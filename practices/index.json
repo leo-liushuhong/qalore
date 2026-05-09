@@ -1,112 +1,132 @@
 {
-  "version": "2026-04-17-v5",
+  "version": "2026-05-08-v2",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
     {
+      "version": "2026-05-08-v2",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "common/handbook.md",
+        "tech-stacks/functional/cases.md"
+      ],
+      "summary": "新增 story-formats.md（业务逻辑/代码逻辑/测试用例文件格式规范）；handbook.md 新增「评审规范」（问题严重级别+结论判定规则，通用）；cases.md TC 前缀注册规则改为规范语言，执行步骤移出至 capability"
+    },
+    {
+      "version": "2026-05-08-v1",
+      "changed_files": [
+        "tech-stacks/functional/assertions.md",
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/output.md",
+        "common/handbook.md"
+      ],
+      "summary": "functional/standards.md 按使用场景拆分为四文件；版本标记规则重写；用例质量标准扩展；handbook 更新故事文件表"
+    },
+    {
       "version": "2026-04-17-v5",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "用例格式字段表「优先级」说明补充 P3：P0/P1/P2 → P0/P1/P2/P3"
+      "summary": "用例格式字段表「优先级」说明补充 P3"
     },
     {
       "version": "2026-04-17-v4",
       "changed_files": ["common/handbook.md"],
-      "summary": "Token 统计「适用范围」去除信号词等实现细节，改为引用 qa-token-report SKILL.md"
+      "summary": "Token 统计「适用范围」改为引用 qa-token-report SKILL.md"
     },
     {
       "version": "2026-04-17-v3",
       "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
-      "summary": "新增「跨模块 TC 归属规则」节（standards.md）；沟通规范补充 practices 写入前必须确认条目（handbook.md）"
+      "summary": "新增「跨模块 TC 归属规则」；沟通规范补充 practices 写入前必须确认"
     },
     {
       "version": "2026-04-17-v2",
       "changed_files": ["common/handbook.md"],
-      "summary": "新增 practices 写入协议：写入前必须展示确认表格等待人类同意，原子完成写入+版本追踪"
+      "summary": "新增 practices 写入协议"
     },
     {
       "version": "2026-04-17-v1",
       "changed_files": ["common/handbook.md"],
-      "summary": "修复 Token 使用统计「适用范围」描述：Stop Hook 为全局机制，read_usage.py 通过 last_assistant_message 关键词过滤实现 testcraft 专属，非 testcraft 会话静默退出"
+      "summary": "修复 Token 统计适用范围描述"
     },
     {
       "version": "2026-04-16-v1",
       "changed_files": ["common/handbook.md"],
-      "summary": "新增 Token 使用统计章节：testcraft Stop Hook 自动统计规则、触发时机及输出规范（仅限 testcraft）"
+      "summary": "新增 Token 使用统计章节"
     },
     {
       "version": "2026-04-15-v1",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "覆盖率规则新增「第三层级：上下游依赖覆盖（强制）」：业务逻辑文件「上下游依赖」节非空时，每个依赖方向至少输出 1 条上下游维度用例"
+      "summary": "覆盖率规则新增第三层级：上下游依赖覆盖（强制）"
     },
     {
       "version": "2026-04-14-v5",
       "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
-      "summary": "新增产物输出范围体系：(1) standards.md 输出文件命名规则补充版本级/Feature级范围定义及对应文件命名；(2) handbook.md 必须暂停条目新增「无法确定产物输出范围」触发条件"
+      "summary": "新增产物输出范围体系"
     },
     {
       "version": "2026-04-14-v4",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "changelog 写入顺序规则：新版本条目插入文件头部（倒序），最新变更永远在最前，旧条目原样保留不得删除或重排"
+      "summary": "changelog 写入顺序规则"
     },
     {
       "version": "2026-04-14-v3",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "修复九项边界/逻辑漏洞：(1/7)直接输出模式下testcraft步骤6增加skip条件；(2)TC ID规划独立为执行步骤，置于计划展示前；(3)版本推断改为需求文档唯一来源；(4)步骤2增加index.json结构一致性校验；(5)两处项目名确认增加场景说明区分职责；(6)变量fallback按类型分级处理；(8)业务逻辑文件不存在时跳过并纳入写入确认；(9)覆盖率规则补充PRD明确描述与衍生场景的判断说明"
+      "summary": "修复九项边界/逻辑漏洞"
     },
     {
       "version": "2026-04-14-v2",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "新增三项规则：(1) 覆盖率规则：PRD业务场景强制全量覆盖，测试方法衍生场景默认每类最多1条最典型；(2) 优先级补充P3（极低优先级/锦上添花），并明确PRD标注优先级时强制对齐；(3) TC ID唯一性校验：设计前扫描已有最大序号，新ID从N+1递增，ID范围纳入执行计划供用户确认"
+      "summary": "新增覆盖率规则、P3 优先级、TC ID 唯一性校验"
     },
     {
       "version": "2026-04-14-v1",
       "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
-      "summary": "修复四项设计漏洞：(1) handbook 新增用例变更规则（3.1新增/3.2更新/3.3删除）及 3.2 vs 3.3 判断原则；(2) handbook 修复 沟通规范 标题丢失的结构问题；(3) standards 新增 TC 前缀注册规则及已注册示例表；(4) standards 更新 changelog 格式，补充删除条目写法"
+      "summary": "修复四项设计漏洞"
     },
     {
       "version": "2026-04-13-v9",
       "changed_files": ["common/handbook.md"],
-      "summary": "新增 practices/index.json 维护规范：changelog 倒序插入（最新在前）、顶层 version 与 changelog[0] 保持一致、增量读取从头部向下遍历直到命中 memory 版本"
+      "summary": "新增 practices/index.json 维护规范"
     },
     {
       "version": "2026-04-13-v8",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "整合产物输出规范：删除「飞书 .mm 兼容规范」独立章节，将文件头格式、节点 ID、POSITION、展开规则、TEXT 转义统一并入「脑图结构规则」，形成单一完整的 .mm 输出标准"
+      "summary": "整合产物输出规范"
     },
     {
       "version": "2026-04-13-v7",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "产物输出规范新增「飞书 .mm 兼容规范」子节：节点 ID 命名、POSITION 属性、子节点展开规则、TEXT 引号转义要求"
+      "summary": "新增飞书 .mm 兼容规范"
     },
     {
       "version": "2026-04-13-v6",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "脑图输出规范修正：优先级节点格式统一为「优先级：P0」；版本节点强制输出，无版本时显示「版本：」不可省略"
+      "summary": "脑图输出规范修正"
     },
     {
       "version": "2026-04-13-v5",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "用例格式新增「版本」可选字段及版本标记规则；脑图结构规则更新：TC 节点展开至步骤/预期，脑图定位为导航+执行双用途"
+      "summary": "新增版本可选字段及版本标记规则"
     },
     {
       "version": "2026-04-13-v4",
       "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
-      "summary": "质量底线从 handbook 迁移至 functional/standards；standards 删除 story 写入流程内容（写入时机/必更新文件），仅保留 changelog 格式"
+      "summary": "质量底线从 handbook 迁移至 functional/standards"
     },
     {
       "version": "2026-04-13-v3",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "新增产物输出规范：默认.mm格式、脑图结构规则（根节点=项目名）、叶节点挂载原则、文件命名规则"
+      "summary": "新增产物输出规范"
     },
     {
       "version": "2026-04-13-v2",
       "changed_files": ["tech-stacks/functional/standards.md"],
-      "summary": "新增功能点路径规范：>分隔符多层级路径、叶节点挂载原则、脑图映射规则"
+      "summary": "新增功能点路径规范"
     },
     {
       "version": "2026-04-13-v1",
       "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
-      "summary": "建立通用规范和功能测试规范，完成 1.0 基础规范体系"
+      "summary": "建立通用规范和功能测试规范"
     },
     {
       "version": "2026-04-10-v1",
@@ -116,12 +136,31 @@
   ],
   "common": {
     "file": "common/handbook.md",
-    "summary": "story维护约定（增量/用例变更3.1/3.2/3.3）、自解释原则、断点恢复、practices/index.json维护规范、沟通规范、Token使用统计规则"
+    "summary": "story维护约定、story写入协议（Write Manifest）、practices维护规范、practices写入协议、沟通规范、评审规范（通用严重级别+结论判定）、Token统计",
+    "when_to_load": "执行任何写入操作前，或进行用例评审时"
   },
   "tech_stacks": {
     "functional": {
-      "file": "tech-stacks/functional/standards.md",
-      "summary": "用例格式、优先级定义（P0/P1/P2）、测试维度、TC命名规则（含前缀注册）、story写入规则（含删除条目）、产物输出规范"
+      "story_formats": {
+        "file": "tech-stacks/functional/story-formats.md",
+        "when_to_load": "读取或写入 story 业务逻辑/代码逻辑/测试用例文件时，获取文件格式规范"
+      },
+      "assertions": {
+        "file": "tech-stacks/functional/assertions.md",
+        "when_to_load": "理解需求或代码时（qa-understand），获取可测试断言格式和质量规范"
+      },
+      "cases": {
+        "file": "tech-stacks/functional/cases.md",
+        "when_to_load": "设计或评审测试用例时（qa-functional-test、qa-case-review），获取用例格式、优先级、覆盖规则、版本标记、质量标准"
+      },
+      "changelog": {
+        "file": "tech-stacks/functional/changelog.md",
+        "when_to_load": "写入 story 用例变更记录时（qa-functional-test），获取 changelog 格式"
+      },
+      "output": {
+        "file": "tech-stacks/functional/output.md",
+        "when_to_load": "生成脑图产物时（qa-functional-test），获取 .mm 格式规范"
+      }
     }
   },
   "projects": {}
