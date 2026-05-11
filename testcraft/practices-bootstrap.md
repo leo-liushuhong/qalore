@@ -11,6 +11,7 @@ practices/
   index.json                               ← 版本管理入口（必须）
   common/
     handbook.md                            ← 通用规范（必须）
+    handbook-practices-ops.md             ← practices 操作规范，按需加载（必须）
   tech-stacks/
     functional/
       assertions.md                        ← 可测试断言规范
@@ -121,5 +122,14 @@ practices/
 |---------|------|
 | `## story 维护约定` | 增量原则、自解释原则、断点恢复、用例变更规则 |
 | `## story 写入协议` | Write Manifest 格式、确认与执行 |
-| `## practices 写入协议` | practices 文件变更的确认与原子写入 |
 | `## 评审规范` | 通用问题严重级别和结论判定规则 |
+
+> `practices 写入协议` 和 `practices/index.json 维护规范` 已移至 `handbook-practices-ops.md`，不在 handbook.md 中。
+
+## handbook-practices-ops.md 必须存在
+
+路径：`{practices_path}/common/handbook-practices-ops.md`
+
+仅在用户要求修改 practices 规范时按需加载，包含两节：
+- `## practices/index.json 维护规范`
+- `## practices 写入协议`

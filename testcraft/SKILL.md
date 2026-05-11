@@ -16,13 +16,13 @@ description: >
 
 ## 网关职责
 
-接收测试任务，完成三件事后交给 capability 执行，不干预执行过程：
+接收测试任务，完成三件事后交给 capability 执行：
 
 1. **环境验证** — 路径是否有效、capability 是否可用
-2. **意图识别** — 对照路由表推断触发哪些 capability
+2. **意图识别** — 对照路由表推断触发哪些 capability，并确定执行顺序
 3. **上下文注入** — 向所有被触发的 capability 注入必要变量
 
-**不负责：** 执行顺序、并发时序、流程控制、写入协议。这些由各 capability 自主声明和管理，执行时序由 Claude 根据 capability 的输入/输出依赖推断。
+**不负责：** 各 capability 内部的执行流程、产物格式、story 写入协议——这些由 capability 和 practices 自主管理。
 
 ---
 
@@ -45,13 +45,35 @@ description: >
 - `{story_path}/` 不存在 → 停止：「story 目录不存在，请创建后重试」
 - 全部通过 → 将两个路径写入 context，供所有 capability 使用
 
+**practices 版本一致性验证（路径通过后必执行）：**
+- 读取 `{practices_path}/index.json`，校验 `version == changelog[0].version`
+- 不一致 → 停止，输出：
+  ```
+  practices/index.json 版本字段不一致，请手动修复后重试。
+  修复方法：将顶层 "version" 字段的值改为与 changelog 数组第一条的 "version" 值相同。
+  当前顶层 version：{值}
+  changelog[0].version：{值}
+  建议以 changelog[0].version 为准（changelog 是写入的权威记录）。
+  ```
+- 一致 → 继续
+
 ---
 
 ## 意图识别与 capability 路由
 
 识别项目名（从用户描述或文档中提取）：
 - 无法确定 → 暂停询问：「请问这个任务属于哪个项目？当前 story 中已有：{列出 story_path/ 下的目录名}」
-- 不得自行假设；模块名与项目名歧义时，唯一匹配直接推断，多项匹配必须暂停确认
+- **推断条件（同时满足才可推断，否则暂停确认）：**
+  1. 用户明确提及了某个词，且
+  2. 该词与 story_path/ 下某目录名**字符串完全相等**（大小写一致）
+- 模糊匹配、首字母缩写、关键词匹配、语义相近——均不得推断，必须暂停确认
+- 多项匹配必须暂停确认
+
+**模块粒度定义（识别或新建模块时使用）：**
+一个模块 = 用户可独立触发、独立感知结果的最小业务功能单元。判断标准：
+- 正面：用户能单独描述「我想测 X 的 Y 功能」→ Y 是模块
+- 反面：「整个项目」「所有功能」不是模块；单个 API 端点通常也不是，除非业务语义完全独立
+- 有疑问时暂停向用户确认，不自行决定粒度
 
 识别项目名后检查 story 目录：
 - `{story_path}/{确认项目名}/` 不存在（新项目）→ 询问用户：
@@ -61,13 +83,20 @@ description: >
 
 对照路由表识别需要触发的 capability（可多个同时匹配）：
 
-| 触发意图 | Capability |
-|---------|-----------|
-| 用户提供了任何形式的信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录类意图 | `qa-understand` |
-| 用户需要测试用例，描述含「生成/出用例/全量/测试文件」，或无需求文档但指定模块，或描述含「更新story/写入story/沉淀到story」 | `qa-functional-test` |
-| 用户描述含「评审/review/检查用例/审查用例」，或粘贴了 TC 内容要评审，或描述含「生成并评审」 | qa-case-review |
+| 触发意图 | Capability | depends_on |
+|---------|-----------|-----------|
+| 用户提供了任何形式的信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录类意图 | `qa-understand` | — |
+| 用户需要测试用例，描述含「生成/出用例/全量/测试文件」，或无需求文档但指定模块，或描述含「更新story/写入story/沉淀到story」 | `qa-functional-test` | 同会话触发了 qa-understand 时，须等其完成 |
+| 用户描述含「评审/review/检查用例/审查用例」，或粘贴了 TC 内容要评审，或描述含「生成并评审」 | qa-case-review | 联动模式下须等 qa-understand 完成 |
+
+**多 capability 执行顺序约束：**
+- 同会话同时触发 qa-understand 和 qa-functional-test → 先执行 qa-understand，待 `【测试意图已提炼】` 交接块产出后，再执行 qa-functional-test
+- 同会话同时触发 qa-understand 和 qa-case-review（联动模式）→ 同上，先执行 qa-understand
+- 不得并发启动有依赖关系的 capability
 
 无匹配项 → 向用户说明无法识别意图，请求澄清，不猜测执行。
+
+**多模块任务调度：** 网关完成路由和上下文注入后，不介入模块间的迭代调度。多模块任务的执行节奏（逐模块推进、何时输出产物）由 qa-functional-test 自主驱动，遵循 handbook.md「多模块任务规范」章节。
 
 ---
 
@@ -76,9 +105,10 @@ description: >
 读取目标 capability 的 SKILL.md，在 context 中显式声明：
 
 ```
-practices_path = {值}
-story_path     = {值}
-确认项目名     = {值}
+practices_path    = {值}
+story_path        = {值}
+确认项目名        = {值}
+practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 字段（环境验证阶段已读取）
 ```
 
 多个 capability 同时触发时，各自读取 SKILL.md，共享同一套注入变量。
@@ -107,13 +137,9 @@ Phase 2 capability 请求处理：
 
 ---
 
-## practices 版本管理
+## practices 加载
 
-读取 `{practices_path}/index.json`：
-- 校验 `version` == `changelog[0].version`：不一致 → 停止，提示手动修复
-- 对比 memory 中记录的版本：
-  - 无 memory / 版本不一致 → 读取变更文件，更新 memory
-  - 版本一致 → 继续
+版本一致性已在环境验证阶段校验（`version == changelog[0].version`），此处不重复。
 
 **加载 handbook.md（每次任务必执行）：**
 ```
@@ -122,17 +148,13 @@ context 中存在 【practices:handbook.md:loaded】 → 跳过（0 token）
          加载完成后写入 context：【practices:handbook.md:loaded】
 ```
 
-**Practices 文件 context 标记规范（供所有 capability 统一使用）：**
+**每次任务开始时验证标记（防止 context 压缩后标记丢失）：**
 ```
-格式：【practices:{文件简称}:loaded】
-示例：【practices:cases.md:loaded】
-      【practices:assertions.md:loaded】
-      【practices:output.md:loaded】
+【practices:handbook.md:loaded】 不存在 → 重新 Read handbook.md，写入标记
+存在 → 继续（其余标记由各 capability 在用到时自行检查）
+```
 
-标记存在 → 该文件内容在 context 中可用，跳过加载
-标记不存在（新会话 / 被压缩 / 未加载）→ 加载该文件，加载后写入标记
-版本更新时：网关重新加载文件并覆写标记，capability 无需处理版本判断
-```
+context 标记规范（格式、规则）见 handbook.md「context 标记规范」章节。
 
 ---
 
@@ -140,9 +162,7 @@ context 中存在 【practices:handbook.md:loaded】 → 跳过（0 token）
 
 触发条件：用户明确要求变更规范，或 capability 执行中发现需要补充。绝大多数日常任务不涉及此步骤。
 
-遵循 `{practices_path}/common/handbook.md`「practices 写入协议」执行：
-- 写入前：所有待修改文件合并为一张确认表，一次性展示，不逐文件打断
-- 同意后：主体文件 + index.json **并行原子写入**，不得分步
+触发时先 Read `{practices_path}/common/handbook-practices-ops.md`，按其中「practices 写入协议」执行；practices/index.json 的版本管理规则见同文件「practices/index.json 维护规范」章节。
 
 ---
 

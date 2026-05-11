@@ -98,9 +98,14 @@ Capability 执行完成后，在产出末尾输出【待沉淀】声明，声明
 - `追加`：只追加，不修改已有内容（changelog 类文件）
 - `3.1新增 / 3.2更新 / 3.3删除`：测试用例文件的变更操作，遵循「用例变更规则」
 
-### 多 capability 汇总规则
+### 多 capability 顺序执行规则
 
-同一任务中多个 capability 执行完毕后，所有【待沉淀】声明**合并为一张确认表**，一次性展示，一次确认。不分别打断用户。
+capability 按依赖顺序顺序执行（非并发），每个 capability 执行完后**立即**输出自己的【待沉淀】并等待用户确认，不等待后续 capability 完成。
+
+- qa-understand 执行完 → 输出业务/代码逻辑文件的【待沉淀】→ 用户确认 → 写入
+- qa-functional-test 执行完 → 输出 TC 文件的【待沉淀】→ 用户确认 → 写入
+
+每次确认只对当前 capability 的产物负责，不延迟等待合并。
 
 ### 确认与执行
 
@@ -108,6 +113,12 @@ Capability 执行完成后，在产出末尾输出【待沉淀】声明，声明
 - 所有文件并行写入
 - index.json 的多条变更合并后一次写入，不分步
 - 遵循本文件「增量原则」和「用例变更规则」
+
+**patch 操作规程（操作类型为 patch 时必须遵守）：**
+1. 先 Read 目标文件，将现有内容写入 context
+2. 在现有内容基础上合并变更（追加新断言 / 修改指定行 / 删除指定行）
+3. 将合并后的完整内容 Write 回文件
+4. 不得跳过步骤 1 直接 Write——跳过步骤 1 等同于全量覆盖，将清空历史内容
 
 用户拒绝：当次产出不写入任何 story 文件，流程终止。
 
@@ -117,76 +128,6 @@ Capability 执行完成后，在产出末尾输出【待沉淀】声明，声明
 - 新模块首建：声明 `modules.{模块名}` 全部初始字段及值
 - 字段更新：只声明变更的字段，不涉及的字段不写入声明
 - 禁止声明删除已有条目
-
----
-
-## practices/index.json 维护规范
-
-### changelog 写入规则
-
-**新版本条目插入到 changelog 数组的最前面（倒序），最新的变更永远在第一位。**
-
-```json
-{
-  "version": "vX",          ← 顶层 version 始终与 changelog[0].version 保持一致
-  "changelog": [
-    { "version": "vX", ... },   ← 最新版本，最前面
-    { "version": "vX-1", ... },
-    ...
-    { "version": "v1", ... }    ← 最旧版本，最后面
-  ]
-}
-```
-
-每次更新必须同步执行以下三步，缺一不可：
-
-| 步骤 | 操作 |
-|------|------|
-| 1 | 在 changelog 数组**头部**插入新条目（含 version、changed_files、summary） |
-| 2 | 将顶层 `"version"` 字段更新为与新条目相同的版本号 |
-| 3 | 若新增了规范文件类型，在 `common` 或 `tech_stacks` 下注册对应条目 |
-
-### changelog 读取规则
-
-**增量读取时，从数组头部向下遍历，直到遇到 memory 中记录的版本号为止。**
-
-```
-changelog[0] → changelog[1] → ... → changelog[N]（memory 版本）
-↑ 读这些条目的 changed_files，合并为本次需要更新的文件列表
-```
-
-若 memory 版本不在 changelog 中（版本号已超出范围），退化为全量读取。
-
-### 格式约束
-
-- changelog 为 JSON 数组，条目之间必须有逗号，最后一条不加逗号
-- 版本号格式：`{YYYY-MM-DD}-v{n}`，同日期内的 n 从 1 开始递增
-- `changed_files` 使用相对于 `practices_path` 的路径
-
----
-
-## practices 写入协议
-
-### 写入前确认（强制，与 story 写入协议对等）
-
-凡需要修改 `{practices_path}` 下任意文件时，**必须在写入前**展示待写入内容，等待人类确认：
-
-```
-【practices 写入确认】
-| 文件 | 完整路径 | 操作 |
-|------|---------|------|
-| `{文件名}` | `{practices_path}/...` | {新建 / 新增章节 / 修改内容摘要} |
-| `index.json` | `{practices_path}/` | 版本升至 {新版本号} |
-```
-
-等待人类响应：
-- **同意** → 执行写入（主体文件 + index.json 并行，原子完成）
-- **修正** → 调整后重新展示
-- **拒绝** → 终止本次 practices 修改
-
-### 写入后版本追踪（与写入操作并行，不得分步）
-
-修改 practices 主体文件与更新 index.json 必须在同一执行步骤内并行完成，规则见「practices/index.json 维护规范」章节。
 
 ---
 
@@ -210,6 +151,61 @@ changelog[0] → changelog[1] → ... → changelog[N]（memory 版本）
 
 ---
 
+## 执行前确认规范
+
+每个 capability 在执行任何写入或产物生成操作前，必须向用户展示执行计划并等待确认。这是独立于「story 写入协议」的前置检查点。
+
+**通用协议：**
+- 完成分析、确定执行范围后，展示计划摘要
+- 等待用户响应：
+  - 同意 → 执行
+  - 修正 → 调整后重新展示
+  - 拒绝 → 终止
+- 计划摘要的具体字段由各 capability 的 SKILL.md 定义；各 capability 可根据任务复杂度增减字段，简单任务可使用精简格式
+
+**强制包含字段（各 capability 均须包含）：**
+- 项目名 / 模块名
+- 执行操作范围（会产生或修改哪些产物）
+- 当前 practices 规范版本
+
+---
+
+## 多模块任务规范
+
+多模块任务 = 用户一次请求涉及多个模块（如「给 A、B、C 三个模块出用例」）。
+
+**执行节奏（由 qa-functional-test 自主驱动，网关完成路由后不介入模块间调度）：**
+1. 按模块顺序逐个执行全流程（理解 → 设计 → story 写入），每完成一个立即写入，不等全部完成后批量写入
+2. 每完成一个模块，告知用户：「{模块名} 已完成，继续下一个（{模块名2}）？」
+3. 全部模块的 story 写入完成后，统一执行一次 .mm 产物输出（中间不生成 .mm）
+
+写入节奏遵循「story 维护约定 · 断点恢复规范」章节。
+
+---
+
+## context 标记规范
+
+practices 文件的按需加载通过 context 标记实现，所有 capability 统一遵守此规范。
+
+**标记格式：** `【practices:{文件简称}:loaded】`
+
+**示例：**
+```
+【practices:handbook.md:loaded】
+【practices:cases.md:loaded】
+【practices:assertions.md:loaded】
+【practices:output.md:loaded】
+【practices:story-formats.md:loaded】
+```
+
+**规则：**
+- 标记存在 → 该文件内容在 context 中可用，直接使用，跳过 Read（0 token）
+- 标记不存在（新会话 / context 被压缩 / 未加载）→ 执行 Read，加载后立即写入标记
+- 网关在每次任务开始时验证 `【practices:handbook.md:loaded】`；其余标记由各 capability 在用到时自行检查，规则相同
+- practices 版本更新时，网关重新加载并覆写对应标记；capability 无需处理版本判断
+
+---
+
 ## 评审规范
 
 适用于所有类型的测试用例评审，通用评判标准，与技术栈无关。
@@ -229,25 +225,3 @@ changelog[0] → changelog[1] → ... → changelog[N]（memory 版本）
 | 阻断 = 0 | 通过 |
 | 阻断 > 0，需改进 ≤ 3 | 需修复后通过 |
 | 阻断 > 0，需改进 > 3 | 不通过 |
-
----
-
-## Token 使用统计
-
-### 适用范围
-
-Stop Hook 为 Claude Code **全局** hook，每次 assistant 轮次结束均触发。`read_usage.py` 通过检查 `last_assistant_message` 是否包含 testcraft 任务信号词来判断当前是否为 testcraft 会话；**不匹配则静默退出**，不打印任何内容。具体信号词和过滤逻辑见 `capability/qa-token-report/SKILL.md`。
-
-### 触发时机
-
-每次 testcraft assistant 轮次结束后自动执行，无需 testcraft 主动调用。
-
-**不触发时机：**
-- 非 testcraft 会话（信号词匹配失败，静默退出）
-- 用户明确说"不需要统计" → 可在 `settings.json` 中临时注释 hook
-
-### 输出规则
-
-- 打印到对话，不写入任何文件
-- 格式遵循 `capability/qa-token-report/SKILL.md` 定义
-- 字段：input / output / cache_creation（含 1h/5m 细分）/ cache_read / service_tier / speed / server_tool_use（非零时）/ 未知字段（兜底）

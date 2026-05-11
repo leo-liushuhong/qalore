@@ -4,7 +4,7 @@ description: >
   测试意图理解与提炼。将任意信息源转化为可测试的理解，写入 story，供 qa-functional-test 和 qa-case-review 使用。
   调度层设计：按需加载对应适配器，不预加载所有内容。
   内置适配器：文本（PRD/需求/口述）、代码（文件/目录/片段）。
-  多源时并发加载各适配器独立执行，完成后加载综合层产出统一交接块。
+  多源时顺序执行各适配器（文本适配器完成后再执行代码适配器），完成后加载综合层产出统一交接块。
   由 testcraft 调用，不独立触发。
 ---
 
@@ -22,13 +22,9 @@ description: >
 
 ---
 
-## 调度职责
-
-检测信息源类型，按需加载对应适配器文件执行理解与提炼。不预加载所有适配器，节省 context。
-
----
-
 ## 适配器注册表
+
+按需加载对应适配器，不预加载所有内容。
 
 **适配器基础路径：** `~/.claude/skills/testcraft/capability/qa-understand/adapters/`
 
@@ -39,15 +35,21 @@ description: >
 | （可扩展） | — | — | — |
 
 **加载规则：**
-- 单源 → Read 对应适配器文件的完整路径，按其协议独立执行
-- 多源 → 并发 Read 所有匹配的适配器文件，各自独立执行，完成后 Read `adapters/synthesis.md` 产出统一交接块
+
+每个模块处理开始前，先在 context 写入当前模式标记（覆盖上一个模块的旧标记，保证 code.md 读到的是本模块的模式）：
+
+- 单源 → 写入 `【qa-understand-mode: single】`；Read 对应适配器文件，按其协议独立执行
+- 多源 → 写入 `【qa-understand-mode: multi】`；顺序执行（不并发），确保 assert_seq 不冲突：
+  1. Read 并执行文本适配器（text.md）；执行完成后文本适配器向 context 写入 `【assert_seq_runtime: N】`
+  2. Read 并执行代码适配器（code.md）；代码适配器依据 `【qa-understand-mode: multi】` 读取 `【assert_seq_runtime: N】` 续接，不读文件
+  3. 两个适配器均完成后，Read `adapters/synthesis.md` 产出统一交接块
 - 未注册类型 → 告知用户不支持，提供扩展路径：注册表新增行 + 新建适配器文件
 
 ---
 
 ## 执行前确认
 
-检测信息源类型并加载适配器后，展示执行计划：
+遵循 handbook.md「执行前确认规范」章节。本 capability 的计划摘要格式：
 
 ```
 【测试意图理解执行计划】
@@ -57,24 +59,13 @@ description: >
   · 文本（{来源描述}，操作：{新建/patch}）     ← 文本源时
   · 代码（{路径}，depth={N}，操作：{新建/patch}）← 代码源时
 综合层：{多源时：是 / 单源时：否}
+规范版本：{practices version}
 ```
-
-等待人类响应：同意 → 执行；修正 → 调整后重新展示；拒绝 → 终止。
 
 ---
 
 ## 统一交接块格式（所有适配器的输出契约）
 
-无论单源或多源，最终向 qa-functional-test 和 qa-case-review 输出统一格式。
-**完整格式定义与示例见 `adapters/synthesis.md`「统一断言集合产出」章节。**
+无论单源或多源，最终向 qa-functional-test 和 qa-case-review 输出统一格式。格式定义、字段声明、置信度标注规则见 `{practices_path}/tech-stacks/functional/story-formats.md`「统一交接块格式」章节。
 
-字段声明：
-- `项目` / `模块` / `信息源`：必填
-- `可测试断言`：必填，格式见 assertions.md
-- `待确认项`：有则输出，无则省略
-- `回归候选`：有则输出，无则省略（由代码适配器步骤 6 产出）
-
-断言格式统一，不因信息源类型而变。
-维度标签与粒度规范遵循 `{practices_path}/tech-stacks/functional/assertions.md`。
-
-多模块任务：所有模块处理完后统一输出全部交接块。
+多模块任务：按模块逐个处理，每个模块完成后立即输出该模块的交接块，不等全部模块完成后再统一输出。
