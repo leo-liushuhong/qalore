@@ -68,6 +68,7 @@ practices/
       "description": "string — 模块一句话描述，面向谁、核心职责",
       "tc_prefix": "string — TC ID 前缀，如 PIPE（由 qa-functional-test 首次写入，注册后不可变）",
       "mm_short_id": "string — 脑图短 ID，如 p1（由 qa-functional-test 首次写入）",
+      "assert_seq": "number — 当前模块已分配的最大 assert 序号，初始为 0（由 qa-understand 维护）",
       "prd_version": "string — 业务逻辑基于的 PRD 版本（可选，无版本时省略此字段）",
       "code_paths": [
         {
@@ -81,7 +82,7 @@ practices/
         "business_logic": "boolean — 业务逻辑.md 是否存在",
         "code_logic": "boolean — 代码逻辑.md 是否存在",
         "tc_count": "number — 测试用例数量，0 表示无用例",
-        "has_pending_items": "boolean — 是否有待确认项未解决"
+        "pending_count": "number — 当前 [pending] 状态的待确认项数量，0 表示无待确认项"
       },
       "last_updated": "YYYY-MM-DD"
     }
@@ -104,8 +105,8 @@ practices/
 | `status.business_logic` | qa-understand（文本适配器）| qa-understand（文本适配器）|
 | `status.code_logic` | qa-understand（代码适配器）| qa-understand（代码适配器）|
 | `status.tc_count` | qa-functional-test | qa-functional-test |
-| `status.has_pending_items` | qa-understand | qa-understand |
-| `last_updated` | 任意写入操作 | 任意写入操作 |
+| `status.pending_count` | qa-understand | qa-understand（每次写入后同步更新）|
+| `assert_seq` | qa-understand（text 或 code 适配器）| qa-understand（每次分配新 ID 后更新）|
 
 **写入规则（所有 capability 共同遵守）：**
 - 只追加/更新自己所有权的字段，禁止覆盖他人字段

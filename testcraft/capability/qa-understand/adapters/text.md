@@ -26,8 +26,16 @@
 不存在 → 全新模块，从零提炼
 
 已存在 → 读取现有文件：
+  · 提取所有 [pending] 状态的待确认项，写入 context（供本次分析尝试解答）
   · 与新需求对比，识别新增/变更/删除部分
   · 仅提炼变化部分，不重写未变内容
+```
+
+**待确认项解答检查（有 pending 项时执行）：**
+```
+对每条 [pending] 项，检查本次输入是否包含答案：
+  有答案 → 标记为 resolved，生成对应正式断言（分配 assert ID），纳入本次【待沉淀】
+  无答案 → 保持 pending，pending_count 不变
 ```
 
 ---
@@ -55,21 +63,69 @@
 
 ---
 
+## 断言 ID 分配
+
+规则遵循 story-formats.md「断言 ID 规范」（权威来源，此处不重复）：
+- 读 index.json 的 `assert_seq` 字段获取当前最大序号，从 +1 开始递增
+- 文件不存在或 assert_seq 为 0 时从 001 开始
+
+每条断言格式：`[assert-{模块缩写}-{seq}] 【维度】对象 · 条件 → 预期`
+
+**多源场景（同时运行 code adapter）：【待沉淀】由 synthesis 统一输出，本节不单独输出。**
+
+---
+
 ## 写入目标格式
 
-遵循 `{practices_path}/tech-stacks/functional/story-formats.md`「业务逻辑文件」格式规范。
+```
+context 中存在 【practices:story-formats.md:loaded】 → 直接复用，0 token
+不存在 → Read({practices_path}/tech-stacks/functional/story-formats.md)
+         加载后写入：【practices:story-formats.md:loaded】
+```
+
+遵循加载后的「业务逻辑文件」格式规范。
 
 ---
 
 ## 产出写入声明
 
-执行完成后输出【待沉淀】声明，格式遵循 `{practices_path}/common/handbook.md`「story 写入协议」：
+**场景一：全新模块（业务逻辑.md 不存在）**
+
+执行完成后直接输出【待沉淀】声明。
+
+**场景二：已有历史内容（业务逻辑.md 已存在），且本次有变更**
+
+本次无任何变更（断言内容与历史完全一致，无新增/修改/解答）→ 告知用户「内容与 story 一致，无需更新」，不输出【待沉淀】。
+
+有变更时，先展示对比表，等待用户确认后再输出【待沉淀】：
+
+```
+【历史内容】（当前 story 中的断言和待确认项）
+| assert ID | 维度 | 内容摘要 | 类型 |
+|-----------|------|---------|------|
+| assert-IMG-001 | 功能 | {内容摘要} | 断言 |
+| assert-IMG-? | 输入约束 | {待确认内容} | 待确认（pending）|
+
+【本次更新】（基于新输入的变化）
+| 变更类型 | assert ID | 内容摘要 |
+|---------|-----------|---------|
+| 新增断言 | assert-IMG-006 | {内容摘要} |
+| 解答待确认 | assert-IMG-? → assert-IMG-006 | {确认结论} |
+| 断言变更 | assert-IMG-001 | {变更摘要} |
+| 新增待确认 | — | {待确认内容} |
+```
+
+等待用户确认：同意 → 输出【待沉淀】；修正 → 调整后重新展示；拒绝 → 终止。
+
+---
+
+【待沉淀】声明格式，遵循 `{practices_path}/common/handbook.md`「story 写入协议」：
 
 ```
 【待沉淀】
 | 文件 | 路径 | 操作 | 变更摘要 |
 |------|------|------|---------|
-| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{模块}/ | {新建/patch} | {断言变更摘要，如：新增5条断言，修改2条} |
+| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{模块}/ | {新建/patch} | {断言变更摘要} |
 | index.json | {story_path}/{项目}/ | {新建条目/patch} | {变更字段摘要} |
 ```
 
@@ -79,21 +135,23 @@
 ```json
 "{模块名}": {
   "description": "{模块一句话描述}",
+  "assert_seq": {本次最大序号},
   "prd_version": "{版本号（无版本时省略此字段）}",
   "status": {
     "business_logic": true,
     "code_logic": false,
     "tc_count": 0,
-    "has_pending_items": {true/false}
+    "pending_count": {pending 项数量}
   },
   "last_updated": "{YYYY-MM-DD}"
 }
 ```
 
 已有模块更新：仅声明变更的字段：
+- `assert_seq`（若本次新增了断言）
 - `prd_version`（若本次有版本信号）
 - `status.business_logic: true`
-- `status.has_pending_items: {true/false}`（基于本次提炼结果中是否有待确认项）
+- `status.pending_count: {新的 pending 数量}`
 - `last_updated`
 
 > 若该模块 `status.tc_count = 0`，提醒用户：「{模块名} 尚无测试用例，如需生成执行『生成 {模块名} 用例』」

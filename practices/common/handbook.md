@@ -31,13 +31,35 @@
 读 story/{项目}/index.json → 获取全部模块列表
     ↓
 逐模块检查 status 字段，了解当前状态：
-  status.has_pending_items = true  → 有待确认项未解决，需先与 PM 确认再继续
-  status.business_logic = false    → 尚无业务逻辑，从 qa-understand 开始
-  status.code_logic = false        → 代码逻辑未提炼（可选，视需求决定是否需要）
-  status.tc_count = 0              → 尚无测试用例，从 qa-functional-test 开始
+  status.pending_count > 0   → 有待确认项未解决，提示用户处理后再继续（不强制阻断）
+  status.business_logic = false → 尚无业务逻辑，从 qa-understand 开始
+  status.code_logic = false  → 代码逻辑未提炼（可选，视需求决定是否需要）
+  status.tc_count = 0        → 尚无测试用例，从 qa-functional-test 开始
     ↓
 从第一个未完成状态的模块继续工作，已完成的模块跳过
 ```
+
+### 待确认项生命周期规范
+
+待确认项有三种状态，状态标记写在条目行首：
+
+| 状态 | 含义 | 迁移条件 |
+|------|------|---------|
+| `[pending]` | 已提出，等待确认 | 初始状态 |
+| `[resolved]` | 已确认，答案已转化为正式断言 | AI 后续分析发现答案，或用户提供确认信息 |
+| `[dismissed]` | 已确认，结论是不需要测试或超出范围 | 用户明确说明无需覆盖 |
+
+**状态迁移规则：**
+- `pending → resolved`：在条目末尾追加确认日期和来源，同时在断言列表中新增对应的正式断言（分配 assert ID）
+- `pending → dismissed`：在条目末尾追加确认日期和原因
+- 已 resolved / dismissed 的条目**不得删除**，保留完整历史
+
+**`index.json` 中 `pending_count` 字段：**
+- 值 = 当前模块待确认项中 `[pending]` 状态的数量
+- 每次写入业务逻辑.md 或代码逻辑.md 后同步更新
+- `pending_count > 0` 时，断点恢复流程提示先处理待确认项
+
+---
 
 ### 用例变更规则
 

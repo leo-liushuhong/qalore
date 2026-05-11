@@ -1,8 +1,38 @@
 {
-  "version": "2026-05-08-v2",
+  "version": "2026-05-11-v3",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-05-11-v3",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "断言 ID 规范升级：置信度标注（✓/待代码确认/仅实现视角/⚠️）由 synthesis 写回业务逻辑.md 持久化，跨会话可读；断言 ID 分配规则合并为单一权威来源（story-formats.md），适配器改为引用；业务逻辑.md 格式新增「代码补充断言」节承载仅实现视角断言"
+    },
+    {
+      "version": "2026-05-11-v2",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "待确认项生命周期升级：新增 [pending/resolved/dismissed] 三态标记，resolved 时追加确认日期和来源并关联 assert ID；index.json schema 中 has_pending_items(boolean) 改为 pending_count(number)；text adapter 新增历史对比展示流程（历史内容 + 本次更新两张表，用户确认后写入）；qa-functional-test 新增断言置信度处理策略（待代码确认不降优先级，仅实现视角必须覆盖，冲突时暂停）"
+    },
+    {
+      "version": "2026-05-11-v1",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "新增断言 ID 规范（[assert-{模块缩写}-{seq}]）：每条断言有唯一 ID，业务逻辑.md 和代码逻辑.md 共享序号空间，synthesis 对齐同一场景 ID 实现跨文件关联；测试用例文件支持 assert ID 标注；index.json schema 新增 assert_seq 字段"
+    },
+    {
+      "version": "2026-05-08-v3",
+      "changed_files": [
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/output.md"
+      ],
+      "summary": "用例格式升级：预期结果从末尾合并写法改为逐步内联写法（触发性步骤紧跟「→ 预期：{内容}」）；用例质量标准新增「逐步预期完整性」；脑图结构更新预期节点 ID 规则（由 e1 改为 s{n}_e，挂在对应触发步骤下）"
+    },
     {
       "version": "2026-05-08-v2",
       "changed_files": [
