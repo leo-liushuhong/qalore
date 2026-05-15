@@ -1,8 +1,27 @@
 {
-  "version": "2026-05-11-v3",
+  "version": "2026-05-15-v2",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-05-15-v2",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/cases.md"
+      ],
+      "summary": "审查修复：① story-formats.md 统一交接块格式更新（信息源补充多仓库格式，回归候选扩展为4种类型）；② changelog.md 断言 changelog 补充文件标题行定义；③ cases.md 跨模块覆盖规则更新（「上下游依赖」节引用改为「[模块::功能点] 标签的上下游断言」，TC 关联标注改为在断言行末追加）"
+    },
+    {
+      "version": "2026-05-15-v1",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/assertions.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "重大架构升级：① 内容文件改为功能点/组件分节，支持原地覆盖更新（断言变更规则 3.1/3.2/3.3）；② 新增业务逻辑/代码逻辑 changelog 文件，变动即记录；③ 断言行末新增 | upd:{版本/日期} 标记和节头 > last-upd:；④ 置信度标注扩展为 7 种（新增✓部分代码确认/代码独立多源/⚠️(代码)）；⑤ 上下游断言新增跨模块结构化标签 [模块::功能点]；⑥ index.json 新增 depends_on 和 business_related 功能级关联字段（从上下游断言聚合）；⑦ 多源代码分析支持：[来源:仓库名] 标注"
+    },
     {
       "version": "2026-05-11-v3",
       "changed_files": [
@@ -185,7 +204,7 @@
       },
       "changelog": {
         "file": "tech-stacks/functional/changelog.md",
-        "when_to_load": "写入 story 用例变更记录时（qa-functional-test），获取 changelog 格式"
+        "when_to_load": "写入任何变更记录时（qa-understand 写业务/代码逻辑 changelog；qa-functional-test 写用例 changelog），获取 changelog 格式"
       },
       "output": {
         "file": "tech-stacks/functional/output.md",
