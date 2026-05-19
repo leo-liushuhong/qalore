@@ -1,0 +1,225 @@
+{
+  "version": "2026-05-18-v1",
+  "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
+  "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
+  "changelog": [
+    {
+      "version": "2026-05-18-v1",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/assertions.md"
+      ],
+      "summary": "skill 审查修复：① handbook.md 沟通规范新增外部依赖断点集中提问规则；② story-formats.md 业务逻辑断言格式注释补充多源模式 [来源:text] 说明；③ assertions.md 多源来源标注扩展为三类（text/仓库名/code），修正摘要移除陈旧 Token统计 字段"
+    },
+    {
+      "version": "2026-05-15-v2",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/cases.md"
+      ],
+      "summary": "审查修复：① story-formats.md 统一交接块格式更新（信息源补充多仓库格式，回归候选扩展为4种类型）；② changelog.md 断言 changelog 补充文件标题行定义；③ cases.md 跨模块覆盖规则更新（「上下游依赖」节引用改为「[模块::功能点] 标签的上下游断言」，TC 关联标注改为在断言行末追加）"
+    },
+    {
+      "version": "2026-05-15-v1",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/assertions.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "重大架构升级：① 内容文件改为功能点/组件分节，支持原地覆盖更新（断言变更规则 3.1/3.2/3.3）；② 新增业务逻辑/代码逻辑 changelog 文件，变动即记录；③ 断言行末新增 | upd:{版本/日期} 标记和节头 > last-upd:；④ 置信度标注扩展为 7 种（新增✓部分代码确认/代码独立多源/⚠️(代码)）；⑤ 上下游断言新增跨模块结构化标签 [模块::功能点]；⑥ index.json 新增 depends_on 和 business_related 功能级关联字段（从上下游断言聚合）；⑦ 多源代码分析支持：[来源:仓库名] 标注"
+    },
+    {
+      "version": "2026-05-11-v3",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "断言 ID 规范升级：置信度标注（✓/待代码确认/仅实现视角/⚠️）由 synthesis 写回业务逻辑.md 持久化，跨会话可读；断言 ID 分配规则合并为单一权威来源（story-formats.md），适配器改为引用；业务逻辑.md 格式新增「代码补充断言」节承载仅实现视角断言"
+    },
+    {
+      "version": "2026-05-11-v2",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "待确认项生命周期升级：新增 [pending/resolved/dismissed] 三态标记，resolved 时追加确认日期和来源并关联 assert ID；index.json schema 中 has_pending_items(boolean) 改为 pending_count(number)；text adapter 新增历史对比展示流程（历史内容 + 本次更新两张表，用户确认后写入）；qa-functional-test 新增断言置信度处理策略（待代码确认不降优先级，仅实现视角必须覆盖，冲突时暂停）"
+    },
+    {
+      "version": "2026-05-11-v1",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "新增断言 ID 规范（[assert-{模块缩写}-{seq}]）：每条断言有唯一 ID，业务逻辑.md 和代码逻辑.md 共享序号空间，synthesis 对齐同一场景 ID 实现跨文件关联；测试用例文件支持 assert ID 标注；index.json schema 新增 assert_seq 字段"
+    },
+    {
+      "version": "2026-05-08-v3",
+      "changed_files": [
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/output.md"
+      ],
+      "summary": "用例格式升级：预期结果从末尾合并写法改为逐步内联写法（触发性步骤紧跟「→ 预期：{内容}」）；用例质量标准新增「逐步预期完整性」；脑图结构更新预期节点 ID 规则（由 e1 改为 s{n}_e，挂在对应触发步骤下）"
+    },
+    {
+      "version": "2026-05-08-v2",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "common/handbook.md",
+        "tech-stacks/functional/cases.md"
+      ],
+      "summary": "新增 story-formats.md（业务逻辑/代码逻辑/测试用例文件格式规范）；handbook.md 新增「评审规范」（问题严重级别+结论判定规则，通用）；cases.md TC 前缀注册规则改为规范语言，执行步骤移出至 capability"
+    },
+    {
+      "version": "2026-05-08-v1",
+      "changed_files": [
+        "tech-stacks/functional/assertions.md",
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/output.md",
+        "common/handbook.md"
+      ],
+      "summary": "functional/standards.md 按使用场景拆分为四文件；版本标记规则重写；用例质量标准扩展；handbook 更新故事文件表"
+    },
+    {
+      "version": "2026-04-17-v5",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "用例格式字段表「优先级」说明补充 P3"
+    },
+    {
+      "version": "2026-04-17-v4",
+      "changed_files": ["common/handbook.md"],
+      "summary": "Token 统计「适用范围」改为引用 qa-token-report SKILL.md"
+    },
+    {
+      "version": "2026-04-17-v3",
+      "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
+      "summary": "新增「跨模块 TC 归属规则」；沟通规范补充 practices 写入前必须确认"
+    },
+    {
+      "version": "2026-04-17-v2",
+      "changed_files": ["common/handbook.md"],
+      "summary": "新增 practices 写入协议"
+    },
+    {
+      "version": "2026-04-17-v1",
+      "changed_files": ["common/handbook.md"],
+      "summary": "修复 Token 统计适用范围描述"
+    },
+    {
+      "version": "2026-04-16-v1",
+      "changed_files": ["common/handbook.md"],
+      "summary": "新增 Token 使用统计章节"
+    },
+    {
+      "version": "2026-04-15-v1",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "覆盖率规则新增第三层级：上下游依赖覆盖（强制）"
+    },
+    {
+      "version": "2026-04-14-v5",
+      "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
+      "summary": "新增产物输出范围体系"
+    },
+    {
+      "version": "2026-04-14-v4",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "changelog 写入顺序规则"
+    },
+    {
+      "version": "2026-04-14-v3",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "修复九项边界/逻辑漏洞"
+    },
+    {
+      "version": "2026-04-14-v2",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "新增覆盖率规则、P3 优先级、TC ID 唯一性校验"
+    },
+    {
+      "version": "2026-04-14-v1",
+      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "summary": "修复四项设计漏洞"
+    },
+    {
+      "version": "2026-04-13-v9",
+      "changed_files": ["common/handbook.md"],
+      "summary": "新增 practices/index.json 维护规范"
+    },
+    {
+      "version": "2026-04-13-v8",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "整合产物输出规范"
+    },
+    {
+      "version": "2026-04-13-v7",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "新增飞书 .mm 兼容规范"
+    },
+    {
+      "version": "2026-04-13-v6",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "脑图输出规范修正"
+    },
+    {
+      "version": "2026-04-13-v5",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "新增版本可选字段及版本标记规则"
+    },
+    {
+      "version": "2026-04-13-v4",
+      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "summary": "质量底线从 handbook 迁移至 functional/standards"
+    },
+    {
+      "version": "2026-04-13-v3",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "新增产物输出规范"
+    },
+    {
+      "version": "2026-04-13-v2",
+      "changed_files": ["tech-stacks/functional/standards.md"],
+      "summary": "新增功能点路径规范"
+    },
+    {
+      "version": "2026-04-13-v1",
+      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "summary": "建立通用规范和功能测试规范"
+    },
+    {
+      "version": "2026-04-10-v1",
+      "changed_files": [],
+      "summary": "初始版本，规范文件待建设"
+    }
+  ],
+  "common": {
+    "file": "common/handbook.md",
+    "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）",
+    "when_to_load": "执行任何写入操作前，或进行用例评审时"
+  },
+  "tech_stacks": {
+    "functional": {
+      "story_formats": {
+        "file": "tech-stacks/functional/story-formats.md",
+        "when_to_load": "读取或写入 story 业务逻辑/代码逻辑/测试用例文件时，获取文件格式规范"
+      },
+      "assertions": {
+        "file": "tech-stacks/functional/assertions.md",
+        "when_to_load": "理解需求或代码时（qa-understand），获取可测试断言格式和质量规范"
+      },
+      "cases": {
+        "file": "tech-stacks/functional/cases.md",
+        "when_to_load": "设计或评审测试用例时（qa-functional-test、qa-case-review），获取用例格式、优先级、覆盖规则、版本标记、质量标准"
+      },
+      "changelog": {
+        "file": "tech-stacks/functional/changelog.md",
+        "when_to_load": "写入任何变更记录时（qa-understand 写业务/代码逻辑 changelog；qa-functional-test 写用例 changelog），获取 changelog 格式"
+      },
+      "output": {
+        "file": "tech-stacks/functional/output.md",
+        "when_to_load": "生成脑图产物时（qa-functional-test），获取 .mm 格式规范"
+      }
+    }
+  },
+  "projects": {}
+}
