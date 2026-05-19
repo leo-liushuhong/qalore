@@ -151,7 +151,7 @@ context 中存在 【practices:handbook.md:loaded】 → 跳过（0 token）
 **每次任务开始时验证标记（防止 context 压缩后标记丢失）：**
 ```
 【practices:handbook.md:loaded】 不存在 → 重新 Read handbook.md，写入标记
-存在 → 继续（其余标记由各 capability 在用到时自行检查）
+存在 → 继续（其余 practices 文件的 `【practices:*.loaded】` 标记由各 capability 在实际使用前自行验证：标记存在 → 跳过 Read；标记不存在（含 context 压缩后丢失）→ 重新 Read 并写入标记）
 ```
 
 context 标记规范（格式、规则）见 handbook.md「context 标记规范」章节。

@@ -6,7 +6,12 @@
 
 ## 核心思考哲学：7问追问
 
-阅读任何文本输入后，对其中每一个有独立可验证行为的功能单元（需求对象）逐一追问以下7个问题。目标不是复述文档写了什么，而是推导出什么可以被验证。
+> 7问追问是文本信息源的认知哲学，与 qa-understand SKILL.md 的三驱动元框架共同构成完整的认知体系：
+> 三驱动决定「为什么读、何时停、如何识别边界」；7问追问决定「如何从需求描述中提取可测试行为」。
+
+文本的语义单元是**功能点段落**（描述一个完整业务场景的最小文字单元）。对于多章节文档，导航优先从功能目标表或功能概览部分开始，这是信息密度最高、最能快速建立模块地图的位置。跨引用（「同当前规则」「见 X 功能」）按需追踪，最多一层。阅读策略见 qa-understand SKILL.md「渐进式阅读策略」章节。
+
+对每个功能点段落逐一追问以下 7 个问题。目标不是复述文档写了什么，而是推导出什么可以被验证。
 
 | 追问 | 目的 |
 |------|------|
@@ -70,6 +75,7 @@
 **写入规程：**
 - 业务逻辑.md 按「断言变更规则」操作（见 handbook.md）：找到对应功能点章节原地覆盖，新功能点追加章节，删除的功能点整节移除
 - 每条被新增或更新的断言行末附 `| upd:{版本/日期}`（有 PRD 版本用版本号，无则用日期）；功能点节头同步刷新 `> last-upd:{版本/日期}`
+- **多源模式**（`【qa-understand-mode: multi】`）：在每条被新增或更新的断言行末 `| upd:{版本/日期}` 之后追加 `[来源:text]`，供 synthesis 区分来源
 - **上下游断言跨模块时**：目标用 `[模块::功能点]` 标签标注；写入后**重建** index.json 的 `business_related`——扫描**步骤2合并后的完整内容**（即写入文件的最终版本）中所有 `[模块::功能点]` 标签，提取全量跨模块引用，完整替换 index.json 中的 `business_related` 字段（不追加，防止删除的引用残留形成幽灵数据）
 - 内容文件写入后必须同步追加 changelog，格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节
 
@@ -77,6 +83,6 @@ patch 操作说明：「现有 {m} 条」须来自实际 Read 文件后统计，
 
 **多源（文本 + 代码适配器同时运行）：** 本节不输出独立的【待沉淀】。断言 ID 分配照常进行，执行结果（含断言列表和 pending 项）传入 synthesis.md，由其统一输出最终的【待沉淀】。
 
-**index.json 声明字段：** 新模块首建时的完整字段 schema 见 `testcraft` skill 包内 `practices-bootstrap.md`「story/index.json 完整字段 Schema」章节。已有模块更新时，仅声明变更字段：`assert_seq`、`prd_version`（若有版本信号）、`business_related`（有跨模块上下游断言时更新）、`status.pending_count`、`last_updated`。
+**index.json 声明字段：** 新模块首建时的完整字段 schema 见 `testcraft` skill 包内 `practices-bootstrap.md`「story/index.json 完整字段 Schema」章节。已有模块更新时，仅声明变更字段：`assert_seq`、`prd_version`（若有版本信号）、`business_related`（有跨模块上下游断言时更新）、`status.pending_count`、`last_updated`。首次为模块创建业务逻辑.md 时（无论模块是否已有其他 story 文件），额外声明：`status.business_logic: true`、`status.business_logic_changelog: true`。
 
 > 模块 `status.tc_count = 0` 时，提醒用户：「{模块名} 尚无测试用例，如需生成执行『生成 {模块名} 用例』」

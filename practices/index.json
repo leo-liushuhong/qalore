@@ -1,8 +1,17 @@
 {
-  "version": "2026-05-15-v2",
+  "version": "2026-05-18-v1",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-05-18-v1",
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/assertions.md"
+      ],
+      "summary": "skill 审查修复：① handbook.md 沟通规范新增外部依赖断点集中提问规则；② story-formats.md 业务逻辑断言格式注释补充多源模式 [来源:text] 说明；③ assertions.md 多源来源标注扩展为三类（text/仓库名/code），修正摘要移除陈旧 Token统计 字段"
+    },
     {
       "version": "2026-05-15-v2",
       "changed_files": [
@@ -185,7 +194,7 @@
   ],
   "common": {
     "file": "common/handbook.md",
-    "summary": "story维护约定、story写入协议（Write Manifest）、practices维护规范、practices写入协议、沟通规范、评审规范（通用严重级别+结论判定）、Token统计",
+    "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）",
     "when_to_load": "执行任何写入操作前，或进行用例评审时"
   },
   "tech_stacks": {
