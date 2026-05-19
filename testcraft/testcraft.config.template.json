@@ -1,5 +1,0 @@
-{
-  "_readme": "首次使用 testcraft 前，AI 会自动引导你完成配置，无需手动编辑此模板。如需手动配置，将此文件复制到 ~/.claude/testcraft-config.json 并填写实际路径。",
-  "practices_path": "请填写 practices 目录的绝对路径，例如：C:\\Users\\yourname\\joymaker\\practices",
-  "story_path": "请填写 story 目录的绝对路径，例如：C:\\Users\\yourname\\joymaker\\story"
-}
