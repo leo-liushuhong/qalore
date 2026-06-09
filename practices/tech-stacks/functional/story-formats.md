@@ -1,6 +1,6 @@
 # Story 文件格式规范
 
-testcraft 沉淀的 story 文件格式定义。所有读取或写入这些文件的 capability 遵循此规范。
+qalore 沉淀的 story 文件格式定义。所有读取或写入这些文件的 capability 遵循此规范。
 
 ---
 

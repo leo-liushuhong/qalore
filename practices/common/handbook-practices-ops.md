@@ -1,4 +1,4 @@
-# testcraft practices 操作规范
+# qalore practices 操作规范
 
 按需加载——仅在用户明确要求修改 practices 规范时才需要此文件。
 

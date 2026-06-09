@@ -1,4 +1,4 @@
-# testcraft 通用规范
+# qalore 通用规范
 
 ## story 维护约定
 
@@ -141,7 +141,7 @@ capability 按依赖顺序顺序执行（非并发），每个 capability 执行
 
 ### index.json 变更声明规则
 
-写入声明中 index.json patch 条目需明确字段路径和值，schema 见 testcraft skill 包内 `practices-bootstrap.md`：
+写入声明中 index.json patch 条目需明确字段路径和值，schema 见 qalore skill 包内 `practices-bootstrap.md`：
 - 新模块首建：声明 `modules.{模块名}` 全部初始字段及值
 - 字段更新：只声明变更的字段，不涉及的字段不写入声明
 - 禁止声明删除已有条目
