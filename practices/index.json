@@ -1,10 +1,21 @@
 {
-  "version": "2026-05-18-v1",
+  "version": "2026-06-10-v1",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
     {
-      "version": "2026-05-18-v1",
+      "version": "2026-06-10-v1",
+      "changed_files": [
+        "common/handbook.md",
+        "common/handbook-practices-ops.md",
+        "tech-stacks/functional/assertions.md",
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/changelog.md",
+        "tech-stacks/functional/story-formats.md"
+      ],
+      "summary": "系统审查修复（6 文件）：① handbook.md 全局统一术语——「只追加」→「只增不删（新条目头部插入）」，消除与 changelog「头部插入」的矛盾；操作类型「追加」→「只增不删」；「testcraft」→「qalore」；② handbook-practices-ops.md「testcraft」→「qalore」；③ assertions.md 删除置信度标注重复表格，改为引用 story-formats.md 为唯一权威，消除双重维护风险；④ cases.md「testcraft」→「qalore」；⑤ changelog.md 去重——断言 changelog 节中删除与独立「changelog 写入顺序」节重复的写入顺序声明；新增 story-formats.md 交叉引用（文件命名来源）；⑥ story-formats.md 新增与 assertions.md 的边界标注（断言格式 vs ID 分配规则职责分离）；新增 cases.md 交叉引用（TC 文件命名来源）；「只追加」→「只增不删」统一"
+    },
+    {
       "changed_files": [
         "common/handbook.md",
         "tech-stacks/functional/story-formats.md",
