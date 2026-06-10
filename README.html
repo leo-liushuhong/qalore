@@ -1,678 +1,529 @@
 <!DOCTYPE html>
-<!-- AI_SKIP: 本文件为人类阅读版本，内容经视觉优化，不适合 AI 直接解析。AI 请阅读 README.md 获取机器优化版本。-->
-<html lang="zh-CN" data-audience="human">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="ai-skip" content="true">
-    <meta name="robots" content="noindex">
-    <title>qalore — AI 测试工作的持久记忆层</title>
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --primary-dark: #3730a3;
-            --secondary: #0ea5e9;
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --code-bg: #1e293b;
-            --radius: 12px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans CJK SC', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.7;
-            font-size: 16px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>qalore — 面向 AI 的结构化测试知识管理系统</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f8f9fa; --text: #1a1a2e; --text-secondary: #555;
+    --primary: #007acc; --primary-light: #e6f4ff; --accent: #e8553d;
+    --border: #e0e0e0; --code-bg: #f4f4f5; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --gradient: linear-gradient(135deg, #0d1b2a 0%, #1b2838 40%, #0d3446 100%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --surface: #161b22; --text: #e6edf3; --text-secondary: #8b949e;
+      --primary: #58a6ff; --primary-light: #0d2847; --accent: #f78166;
+      --border: #30363d; --code-bg: #1c2128; --shadow: 0 2px 12px rgba(0,0,0,0.3);
+      --gradient: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d2847 100%);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+    line-height: 1.75; color: var(--text); background: var(--bg);
+  }
 
-        /* AI Notice */
-        .ai-notice {
-            background: #fef9c3;
-            border-bottom: 1px solid #fde68a;
-            padding: 8px 20px;
-            font-size: 13px;
-            color: #92400e;
-            text-align: center;
-        }
-        .ai-notice strong { color: #78350f; }
+  /* ── Navigation ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px); padding: 0 2rem;
+  }
+  nav .inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  nav .logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+  nav .links { display: flex; gap: 1.5rem; }
+  nav .links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+  nav .links a:hover { color: var(--primary); }
 
-        /* Navigation */
-        nav {
-            position: sticky; top: 0;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 0 32px;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 56px;
-        }
-        .nav-logo { font-weight: 800; font-size: 18px; color: var(--primary); letter-spacing: -0.5px; }
-        .nav-links { display: flex; gap: 28px; list-style: none; }
-        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
-        .nav-links a:hover { color: var(--primary); }
+  /* ── Hero ── */
+  .hero {
+    background: var(--gradient); color: #fff; padding: 6rem 2rem 5rem;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(0,122,204,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(232,85,61,0.1) 0%, transparent 50%);
+  }
+  .hero .inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero h1 { font-size: 3.2rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px; }
+  .hero .subtitle { font-size: 1.25rem; opacity: 0.9; margin-bottom: 1.5rem; font-weight: 300; }
+  .hero .cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .hero .btn {
+    display: inline-block; padding: 0.7rem 2rem; border-radius: 8px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s; font-size: 0.95rem;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #005a9e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,122,204,0.4); }
+  .btn-outline { border: 2px solid rgba(255,255,255,0.5); color: #fff; }
+  .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
 
-        /* Hero */
-        .hero {
-            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 35%, #7c3aed 65%, #0ea5e9 100%);
-            padding: 88px 24px 100px;
-            text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::before {
-            content: '';
-            position: absolute; top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background:
-                radial-gradient(circle at 25% 35%, rgba(255,255,255,0.1) 0%, transparent 45%),
-                radial-gradient(circle at 75% 65%, rgba(255,255,255,0.06) 0%, transparent 40%);
-        }
-        .hero-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 5px 18px;
-            font-size: 13px;
-            margin-bottom: 24px;
-            letter-spacing: 0.5px;
-            position: relative;
-        }
-        .hero h1 {
-            font-size: 72px;
-            font-weight: 900;
-            letter-spacing: -4px;
-            margin-bottom: 16px;
-            position: relative;
-        }
-        .hero-tagline {
-            font-size: 24px;
-            font-weight: 300;
-            opacity: 0.95;
-            margin-bottom: 14px;
-            letter-spacing: -0.5px;
-        }
-        .hero-sub {
-            font-size: 16px;
-            opacity: 0.75;
-            max-width: 540px;
-            margin: 0 auto 36px;
-            line-height: 1.65;
-        }
-        .hero-pills {
-            display: flex; gap: 10px;
-            justify-content: center; flex-wrap: wrap;
-            position: relative;
-        }
-        .pill {
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 7px 16px;
-            font-size: 13px;
-        }
+  /* ── Sections ── */
+  section { padding: 4rem 2rem; }
+  section.alt { background: var(--surface); }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .section-desc { color: var(--text-secondary); margin-bottom: 2.5rem; font-size: 1.05rem; }
 
-        /* Sections */
-        .section { max-width: 960px; margin: 0 auto; padding: 72px 24px; }
-        .section-label {
-            font-size: 12px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px;
-            color: var(--primary); margin-bottom: 8px;
-        }
-        .section-title {
-            font-size: 34px; font-weight: 800;
-            letter-spacing: -1.5px; margin-bottom: 12px;
-        }
-        .section-desc { color: var(--text-muted); max-width: 580px; margin-bottom: 44px; font-size: 17px; }
+  /* ── Cards ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.8rem; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .card .icon { font-size: 2rem; margin-bottom: 0.8rem; }
+  .card h3 { font-size: 1.15rem; margin-bottom: 0.6rem; }
+  .card p { color: var(--text-secondary); font-size: 0.93rem; }
 
-        /* Why / Comparison */
-        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .comparison-card {
-            background: var(--surface); border-radius: var(--radius);
-            padding: 28px; box-shadow: var(--shadow);
-        }
-        .comparison-card.before { border-top: 3px solid #f87171; }
-        .comparison-card.after { border-top: 3px solid #34d399; }
-        .comparison-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 18px; }
-        .comp-item {
-            display: flex; align-items: flex-start;
-            gap: 10px; margin-bottom: 13px;
-            font-size: 14px; line-height: 1.55;
-        }
-        .comp-icon {
-            flex-shrink: 0; width: 20px; height: 20px;
-            border-radius: 50%; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 11px; margin-top: 2px; font-weight: 700;
-        }
-        .before .comp-icon { background: #fee2e2; color: #ef4444; }
-        .after .comp-icon { background: #d1fae5; color: #059669; }
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.93rem; }
+  th, td { border: 1px solid var(--border); padding: 0.75rem 1rem; text-align: left; }
+  th { background: var(--surface); font-weight: 600; color: var(--text); }
+  tr:hover td { background: var(--surface); }
 
-        /* Philosophy */
-        .philosophy-bg { background: linear-gradient(180deg, #f8fafc 0%, #f0f4ff 100%); }
-        .philosophy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .phil-card {
-            background: white; border-radius: var(--radius);
-            padding: 28px; box-shadow: var(--shadow); border: 1px solid var(--border);
-        }
-        .phil-card.featured {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #7c3aed 100%);
-            color: white; border: none;
-        }
-        .card-icon {
-            width: 46px; height: 46px; border-radius: 10px;
-            background: #ede9fe; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 22px; margin-bottom: 14px;
-        }
-        .phil-card.featured .card-icon { background: rgba(255,255,255,0.2); }
-        .card-label {
-            font-size: 11px; text-transform: uppercase;
-            letter-spacing: 1.5px; color: var(--primary);
-            font-weight: 700; margin-bottom: 6px;
-        }
-        .phil-card.featured .card-label { color: rgba(255,255,255,0.65); }
-        .phil-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
-        .phil-card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
-        .phil-card.featured p { color: rgba(255,255,255,0.8); }
-        .drive-list {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 12px; margin-top: 18px;
-        }
-        .drive-item {
-            background: rgba(255,255,255,0.13);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px; padding: 13px 15px; font-size: 13px; line-height: 1.5;
-        }
-        .drive-item strong { display: block; margin-bottom: 5px; font-size: 13px; color: white; }
-        .drive-item span { color: rgba(255,255,255,0.75); }
-        .callout {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px; padding: 14px 18px;
-            margin-top: 18px; font-size: 14px; line-height: 1.6;
-            color: rgba(255,255,255,0.9);
-        }
-        .phase-diagram {
-            display: flex; align-items: center;
-            gap: 12px; margin-top: 18px;
-        }
-        .phase-box {
-            flex: 1; background: #f0f4ff;
-            border-radius: 8px; padding: 14px;
-            font-size: 13px; text-align: center;
-            border: 1px solid #e0e7ff;
-        }
-        .phase-box .phase-num {
-            font-size: 10px; font-weight: 700;
-            color: var(--primary); text-transform: uppercase;
-            letter-spacing: 1px; margin-bottom: 5px;
-        }
-        .phase-box strong { display: block; font-size: 14px; margin-bottom: 4px; }
-        .phase-box small { color: var(--text-muted); font-size: 12px; }
-        .phase-arrow { font-size: 22px; color: var(--primary-light); }
-        .question-block {
-            background: #fffbeb; border-left: 4px solid #f59e0b;
-            border-radius: 0 8px 8px 0;
-            padding: 16px 20px; font-size: 16px;
-            font-weight: 600; color: #92400e;
-            margin-top: 16px; line-height: 1.5;
-        }
+  /* ── Code ── */
+  code { background: var(--code-bg); padding: 0.15em 0.5em; border-radius: 4px; font-size: 0.88em; font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace; }
+  pre { background: var(--code-bg); padding: 1.2rem 1.5rem; border-radius: 8px; overflow-x: auto; font-size: 0.85em; line-height: 1.6; border: 1px solid var(--border); }
+  pre code { background: none; padding: 0; }
 
-        /* Quick Start */
-        .steps { display: flex; flex-direction: column; gap: 28px; }
-        .step { display: flex; gap: 22px; }
-        .step-num {
-            width: 42px; height: 42px; border-radius: 50%;
-            background: var(--primary); color: white;
-            font-weight: 800; font-size: 17px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; box-shadow: 0 4px 12px rgba(79,70,229,0.35);
-        }
-        .step-content h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-        .step-content p { font-size: 14px; color: var(--text-muted); margin-bottom: 14px; }
-        pre {
-            background: var(--code-bg); border-radius: 10px;
-            padding: 18px 20px;
-            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
-            font-size: 13px; line-height: 1.7; overflow-x: auto;
-            color: #cbd5e1;
-        }
-        .c { color: #475569; }
-        .s { color: #86efac; }
-        .k { color: #7dd3fc; }
-        code {
-            background: #f1f5f9; border-radius: 5px;
-            padding: 2px 7px; font-family: monospace;
-            font-size: 13px; color: var(--primary-dark);
-        }
+  /* ── Block quote ── */
+  blockquote {
+    border-left: 4px solid var(--primary); margin: 1.5rem 0; padding: 1rem 1.5rem;
+    background: var(--primary-light); border-radius: 0 8px 8px 0; font-size: 1.1rem;
+  }
+  blockquote strong { color: var(--accent); }
 
-        /* Capabilities */
-        .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .cap-card {
-            background: white; border-radius: var(--radius);
-            padding: 28px; box-shadow: var(--shadow); border: 1px solid var(--border);
-        }
-        .cap-icon {
-            width: 50px; height: 50px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 26px; margin-bottom: 16px;
-        }
-        .cap-card:nth-child(1) .cap-icon { background: #ede9fe; }
-        .cap-card:nth-child(2) .cap-icon { background: #dbeafe; }
-        .cap-card:nth-child(3) .cap-icon { background: #dcfce7; }
-        .cap-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 9px; }
-        .cap-card p { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-        .tag {
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 6px; padding: 3px 10px;
-            font-size: 12px; color: var(--text-muted);
-        }
+  /* ── Feature highlight ── */
+  .highlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+  @media (max-width: 768px) { .highlight-grid { grid-template-columns: 1fr; } }
 
-        /* Story Principles */
-        .principles { display: flex; flex-direction: column; gap: 20px; }
-        .principle {
-            background: white; border-radius: var(--radius);
-            padding: 28px; box-shadow: var(--shadow);
-            display: flex; gap: 22px; align-items: flex-start;
-        }
-        .p-num {
-            width: 38px; height: 38px; border-radius: 50%;
-            background: #ede9fe; color: var(--primary);
-            font-weight: 800; font-size: 16px;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .principle h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .principle p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
-        .layer-visual { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-        .layer-row { display: flex; align-items: center; gap: 14px; }
-        .layer-bar {
-            height: 30px; border-radius: 6px;
-            display: flex; align-items: center;
-            padding: 0 14px; font-size: 12px;
-            font-weight: 600; color: white; white-space: nowrap;
-        }
-        .layer-bar.l1 { background: var(--primary); width: 42%; }
-        .layer-bar.l2 { background: var(--secondary); width: 62%; }
-        .layer-bar.l3 { background: #10b981; width: 80%; }
-        .layer-note { font-size: 12px; color: var(--text-muted); }
+  /* ── Comparison table ── */
+  .compare-table th:first-child, .compare-table td:first-child { font-weight: 600; }
+  .compare-table td:nth-child(2) { color: var(--accent); }
+  .compare-table td:nth-child(3) { color: #2ea043; font-weight: 500; }
+  @media (prefers-color-scheme: dark) {
+    .compare-table td:nth-child(3) { color: #3fb950; }
+  }
 
-        /* Extension */
-        .ext-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .ext-box { background: white; border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow); }
-        .ext-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .ext-box ol { padding-left: 20px; font-size: 14px; line-height: 2.2; color: var(--text-muted); }
-        .phase-list { display: flex; flex-direction: column; gap: 10px; }
-        .phase-item {
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 8px; padding: 11px 15px;
-            font-size: 13px; display: flex; align-items: center; gap: 10px;
-        }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
+  /* ── Capability detail ── */
+  .cap-section { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+  .cap-section:last-child { border-bottom: none; }
+  .cap-section h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .cap-section h3 span { font-size: 0.85rem; font-weight: 500; color: var(--primary); margin-left: 0.5rem; }
+  .cap-badges { display: flex; gap: 0.5rem; margin: 0.8rem 0; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; padding: 0.25em 0.7em; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 600;
+  }
+  .badge-in { background: #ddf4ff; color: #0366d6; }
+  .badge-out { background: #fdf0ed; color: #cf222e; }
+  .badge-think { background: #f3e8ff; color: #7c3aed; }
+  @media (prefers-color-scheme: dark) {
+    .badge-in { background: #0d2847; color: #58a6ff; }
+    .badge-out { background: #3d1214; color: #f78166; }
+    .badge-think { background: #1e1033; color: #a371f7; }
+  }
 
-        /* Footer */
-        footer {
-            background: var(--code-bg); color: #94a3b8;
-            text-align: center; padding: 44px 24px;
-        }
-        footer strong { color: white; font-size: 18px; }
-        .footer-quote {
-            margin-top: 14px; font-size: 16px;
-            color: #7dd3fc; font-style: italic; line-height: 1.6;
-        }
-        .footer-ai-note { margin-top: 22px; font-size: 12px; color: #334155; }
+  /* ── Architecture tree ── */
+  .tree { font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: 0.88em; line-height: 1.8; }
+  .tree .dim { color: var(--text-secondary); }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 48px; letter-spacing: -2px; }
-            .hero-tagline { font-size: 19px; }
-            .comparison-grid, .philosophy-grid, .cap-grid, .ext-grid { grid-template-columns: 1fr; }
-            .drive-list { grid-template-columns: 1fr; }
-            .phil-card.featured { grid-column: 1; }
-            .section-title { font-size: 26px; }
-        }
-    </style>
+  /* ── Footer ── */
+  footer {
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 3rem 2rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+  footer .footer-grid { display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; margin-bottom: 2rem; text-align: left; }
+  footer .footer-col h4 { font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--text); }
+  footer .footer-col a { display: block; margin-bottom: 0.4rem; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp 0.6s ease-out; }
+
+  ul, ol { padding-left: 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 0; }
+</style>
 </head>
 <body>
 
-<!-- AI 提示横幅 -->
-<div class="ai-notice">
-    🤖 <strong>AI 提示</strong>：本文件为人类可读版本，经视觉优化处理。AI 请阅读 <strong>README.md</strong> 获取机器优化版本。
-</div>
-
-<!-- 导航 -->
+<!-- ═══ Navigation ═══ -->
 <nav>
-    <div class="nav-logo">qalore</div>
-    <ul class="nav-links">
-        <li><a href="#why">为什么</a></li>
-        <li><a href="#philosophy">核心哲学</a></li>
-        <li><a href="#quickstart">快速上手</a></li>
-        <li><a href="#capabilities">能力详解</a></li>
-        <li><a href="#story">Story 原则</a></li>
-    </ul>
+  <div class="inner">
+    <a href="#" class="logo">qalore</a>
+    <div class="links">
+      <a href="#why">为什么</a>
+      <a href="#architecture">架构</a>
+      <a href="#quickstart">快速上手</a>
+      <a href="#capabilities">能力</a>
+      <a href="#story">Story 设计</a>
+      <a href="#practices">规范库</a>
+    </div>
+  </div>
 </nav>
 
-<!-- Hero -->
-<div class="hero">
-    <div class="hero-badge">面向 AI 的测试知识基础设施</div>
+<!-- ═══ Hero ═══ -->
+<header class="hero">
+  <div class="inner fade-up">
     <h1>qalore</h1>
-    <p class="hero-tagline">AI 测试工作的持久记忆层</p>
-    <p class="hero-sub">
-        解决 AI 跨会话无持久记忆的根本问题——<br>
-        让每次测试分析都不从零开始，让测试知识随项目一起生长。
+    <p class="subtitle">面向 AI 的结构化测试知识管理系统</p>
+    <p style="opacity:0.8;max-width:600px;margin:0 auto 2rem;font-size:1.05rem">
+      AI 的智力和推理能力 + qalore 的记忆和结构 = 可积累、可追溯、可跨会话延续的测试工程体系
     </p>
-    <div class="hero-pills">
-        <span class="pill">🧠 跨会话知识积累</span>
-        <span class="pill">🎯 用户影响优先</span>
-        <span class="pill">🔍 7问/五镜头结构保底</span>
-        <span class="pill">🔗 PRD→断言→TC 全链路</span>
+    <div class="cta">
+      <a href="#quickstart" class="btn btn-primary">快速开始</a>
+      <a href="#architecture" class="btn btn-outline">了解架构</a>
     </div>
-</div>
+  </div>
+</header>
 
-<!-- Why -->
-<div id="why" style="background: white;">
-    <div class="section">
-        <p class="section-label">核心价值</p>
-        <h2 class="section-title">原生 AI 测试 vs qalore</h2>
-        <p class="section-desc">原生 AI 每次都是第一天上班。qalore 让 AI 的测试工作有记忆、有积累、有方向。</p>
-        <div class="comparison-grid">
-            <div class="comparison-card before">
-                <h3>😓 原生 AI 的困境</h3>
-                <div class="comp-item"><span class="comp-icon">✗</span><span>每次重新分析，无法从上次中断处继续</span></div>
-                <div class="comp-item"><span class="comp-icon">✗</span><span>测试偏"验证性"——系统是否工作，而非用户会在哪里受伤</span></div>
-                <div class="comp-item"><span class="comp-icon">✗</span><span>覆盖随机性高，容易遗漏关键测试维度</span></div>
-                <div class="comp-item"><span class="comp-icon">✗</span><span>多模块无全局视图，团队无法共享测试知识</span></div>
-                <div class="comp-item"><span class="comp-icon">✗</span><span>PRD→TC 黑盒，无法知道用例来自哪条需求</span></div>
-            </div>
-            <div class="comparison-card after">
-                <h3>✨ qalore 的解法</h3>
-                <div class="comp-item"><span class="comp-icon">✓</span><span>story 系统持久化，下次从断点继续，无重复劳动</span></div>
-                <div class="comp-item"><span class="comp-icon">✓</span><span>以"用户最先感受到什么损失"为测试优先级锚点</span></div>
-                <div class="comp-item"><span class="comp-icon">✓</span><span>7问/五镜头结构保底，不遗漏任何测试维度</span></div>
-                <div class="comp-item"><span class="comp-icon">✓</span><span>index.json 统一管理进度，story 是共享知识库</span></div>
-                <div class="comp-item"><span class="comp-icon">✓</span><span>断言链路显式记录，每条 TC 有明确的需求来源</span></div>
-            </div>
+<!-- ═══ Why qalore ═══ -->
+<section id="why">
+  <div class="container">
+    <h2 class="section-title">为什么需要 qalore</h2>
+    <p class="section-desc">原生 AI 在测试任务上存在结构性局限，qalore 从根本上解决这些问题。</p>
+    <table class="compare-table">
+      <thead><tr><th>问题</th><th>原生 AI</th><th>qalore</th></tr></thead>
+      <tbody>
+        <tr><td>跨会话知识</td><td>每次重新分析，重复劳动</td><td>story 系统持久化，下次从断点继续</td></tr>
+        <tr><td>覆盖完整性</td><td>依赖提示词质量，随机性高</td><td>7问 / 五镜头 结构保底，不遗漏维度</td></tr>
+        <tr><td>测试方向</td><td>验证性（系统是否工作）</td><td>对抗性（用户在哪里会受伤）</td></tr>
+        <tr><td>PRD → TC 可追溯</td><td>无，黑盒输出</td><td>断言链路显式记录</td></tr>
+        <tr><td>多模块覆盖管理</td><td>无，无法全局视图</td><td>index.json 统一管理进度和状态</td></tr>
+        <tr><td>团队协作</td><td>每人各做一套</td><td>story 是共享知识库</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ Philosophy ═══ -->
+<section class="alt">
+  <div class="container">
+    <h2 class="section-title">核心思考哲学</h2>
+    <p class="section-desc">思考框架不绑定特定工具，任何 AI 模型均可按其执行。模型越强，细节越好；框架保证大方向不走偏。</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#128269;</div>
+        <h3>三驱动认知框架</h3>
+        <p><strong>假设优先</strong> — 读之前先假设模块「做什么、谁触发、影响什么」，读是验证假设，不是从零积累。</p>
+        <p style="margin-top:0.5rem"><strong>模型驱动</strong> — 每读一段，问：这证实还是推翻了假设的哪个部分？</p>
+        <p style="margin-top:0.5rem"><strong>证据驱动</strong> — 每条论断必须有来源。任何「我认为」都是待验证假设。</p>
+        <p style="margin-top:0.5rem"><strong>边界驱动</strong> — 每个系统交互都有两端。遇边界判断另一端是否已知，未知且关键则主动寻找。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#127919;</div>
+        <h3>用户影响优先</h3>
+        <blockquote style="margin:0.8rem 0;font-size:1rem">
+          如果这个模块今天在生产中出问题，<br><strong>用户最先感受到什么损失？</strong>
+        </blockquote>
+        <p>以此定义 2-3 个优先测试场景，为这些场景设计多角度用例。置信度为 <code>⚠️</code> 和 <code>（待代码确认）</code> 的断言追加高优先级覆盖——这是系统已知的不确定点，也是最容易出 bug 的地方。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128196;</div>
+        <h3>渐进式阅读策略</h3>
+        <p><strong>第一阶段：导航</strong> — 用最低代价扫描信息结构，建立「这里有什么、在哪里」的地图。</p>
+        <p style="margin-top:0.5rem"><strong>第二阶段：切片精读</strong> — 每次精读针对一个<em>语义单元</em>，回答假设中的一个开放问题。没有开放问题时停止，不继续读。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Architecture ═══ -->
+<section id="architecture">
+  <div class="container">
+    <h2 class="section-title">系统架构</h2>
+    <p class="section-desc">skill 包 + practices 规范库 + story 知识库，三层独立协作。</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#9881;&#65039;</div>
+        <h3>Skill 包（执行引擎）</h3>
+        <div class="tree">
+          <strong>qalore/SKILL.md</strong> <span class="dim">← 网关</span><br>
+          &#9500; capability/<strong>qa-understand/</strong> <span class="dim">← 理解</span><br>
+          &#9500; capability/<strong>qa-functional-test/</strong> <span class="dim">← 设计</span><br>
+          &#9500; capability/<strong>qa-case-review/</strong> <span class="dim">← 评审</span><br>
+          &#9492; capability/<strong>qa-token-report/</strong> <span class="dim">← 统计</span>
         </div>
-    </div>
-</div>
-
-<!-- Philosophy -->
-<div id="philosophy" class="philosophy-bg">
-    <div class="section">
-        <p class="section-label">核心思考哲学</p>
-        <h2 class="section-title">不是工具，是思考框架</h2>
-        <p class="section-desc">qalore 的核心竞争力是三套互补的认知框架。任何模型按这套框架执行，大方向上的测试质量都能得到保障。</p>
-
-        <div class="philosophy-grid">
-            <!-- 三驱动 - Featured 全宽 -->
-            <div class="phil-card featured">
-                <div class="card-icon">🧭</div>
-                <div class="card-label">读信息时（PRD / 代码 / 口述）</div>
-                <h3>三驱动认知框架</h3>
-                <p>读任何信息源时，始终用一套驱动体系保持认知方向——确保每次阅读都是目标驱动的，而不是信息堆砌。</p>
-                <div class="drive-list">
-                    <div class="drive-item">
-                        <strong>💡 假设优先</strong>
-                        <span>读前先假设「模块做什么、谁触发、影响什么」。读是在验证假设，不是从零积累信息。</span>
-                    </div>
-                    <div class="drive-item">
-                        <strong>🔄 模型驱动</strong>
-                        <span>每读一段，问：这证实还是推翻了假设的哪个部分？</span>
-                    </div>
-                    <div class="drive-item">
-                        <strong>📋 证据驱动</strong>
-                        <span>每条论断必须有来源（PRD 文字 / 代码实现）。「我认为」不是断言，是待验证假设。</span>
-                    </div>
-                    <div class="drive-item">
-                        <strong>🔗 边界驱动</strong>
-                        <span>每个交互都有两端。遇到边界（外部 API、跨模块依赖）时，判断另一端是否已知。</span>
-                    </div>
-                </div>
-                <div class="callout">
-                    🎯 <strong>认知目标</strong>：完整理解功能行为（为验证类测试打基础）<strong>+</strong> 识别潜在风险点（为异常类测试指方向）——两者都不能偏废。
-                </div>
-            </div>
-
-            <!-- 渐进式阅读 -->
-            <div class="phil-card">
-                <div class="card-icon">📖</div>
-                <div class="card-label">读大文档 / 大文件时</div>
-                <h3>渐进式阅读策略</h3>
-                <p>大文档不是从头读到尾，而是两阶段策略。不限工具类型，任何 agent 自行选择实现方式。</p>
-                <div class="phase-diagram">
-                    <div class="phase-box">
-                        <div class="phase-num">Phase 1</div>
-                        <strong>导航（建地图）</strong>
-                        <small>扫结构，定位置<br>成本极低</small>
-                    </div>
-                    <div class="phase-arrow">→</div>
-                    <div class="phase-box">
-                        <div class="phase-num">Phase 2</div>
-                        <strong>切片精读</strong>
-                        <small>按问题读语义单元<br>有问题才继续</small>
-                    </div>
-                </div>
-                <p style="margin-top:14px; font-size:13px; color:var(--text-muted);">
-                    代码的语义单元 = 函数体 &nbsp;·&nbsp; 文档的语义单元 = 功能点段落
-                </p>
-            </div>
-
-            <!-- 用户影响优先 -->
-            <div class="phil-card">
-                <div class="card-icon">🎯</div>
-                <div class="card-label">设计测试用例时</div>
-                <h3>用户影响优先</h3>
-                <p>测试优先级不由断言系统顺序决定，而由一个问题决定：</p>
-                <div class="question-block">
-                    如果这个模块今天在生产中出问题，用户最先感受到什么损失？
-                </div>
-                <p style="margin-top:14px; font-size:13px; color:var(--text-muted);">
-                    以这个答案定义 2-3 个优先场景，多角度覆盖。再用断言集合补全系统性覆盖。<br>
-                    <strong style="color:var(--text);">⚠️ 和「待代码确认」断言自动获得最高优先级</strong>——这是系统中已知的不确定点，最容易出 bug。
-                </p>
-            </div>
+      </div>
+      <div class="card">
+        <div class="icon">&#128218;</div>
+        <h3>Practices（公司规范）</h3>
+        <div class="tree">
+          <strong>common/</strong> <span class="dim">← 通用规范</span><br>
+          &#9500; handbook.md <span class="dim">← 写入协议、评审规范</span><br>
+          &#9492; handbook-practices-ops.md<br>
+          <strong>tech-stacks/functional/</strong> <span class="dim">← 功能测试</span><br>
+          &#9500; assertions.md <span class="dim">← 断言格式</span><br>
+          &#9500; cases.md <span class="dim">← 用例格式</span><br>
+          &#9500; changelog.md <span class="dim">← 变更记录</span><br>
+          &#9500; output.md <span class="dim">← 产物输出</span><br>
+          &#9492; story-formats.md <span class="dim">← 文件格式</span>
         </div>
+      </div>
+      <div class="card">
+        <div class="icon">&#128451;&#65039;</div>
+        <h3>Story（项目知识库）</h3>
+        <div class="tree">
+          <strong>{项目名}/</strong><br>
+          &#9500; <strong>index.json</strong> <span class="dim">← 全局视图，每次必读</span><br>
+          &#9492; <strong>{模块名}/</strong><br>
+          &nbsp;&nbsp;&#9500; 业务逻辑.md <span class="dim">← 需求视角</span><br>
+          &nbsp;&nbsp;&#9500; 代码逻辑.md <span class="dim">← 代码视角</span><br>
+          &nbsp;&nbsp;&#9492; 测试用例.md <span class="dim">← 用例</span>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
-<!-- Quick Start -->
-<div id="quickstart" style="background: white;">
-    <div class="section">
-        <p class="section-label">快速上手</p>
-        <h2 class="section-title">三步开始使用</h2>
-        <p class="section-desc">qalore 当前以 Claude Code skill 形式提供；思考框架本身不绑定工具，任何 AI 均可按其执行。</p>
-
-        <div class="steps">
-            <div class="step">
-                <div class="step-num">1</div>
-                <div class="step-content">
-                    <h3>创建配置文件</h3>
-                    <p>告诉 qalore 你的规范库和知识库在哪里：</p>
-                    <pre><span class="c">// ~/.claude/qalore-config.json</span>
-{
-  <span class="s">"practices_path"</span>: <span class="s">"/path/to/your/practices"</span>,
-  <span class="s">"story_path"</span>: <span class="s">"/path/to/your/story"</span>
-}</pre>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-num">2</div>
-                <div class="step-content">
-                    <h3>初始化 practices 规范库</h3>
-                    <p>参考 <code>practices-bootstrap.md</code> 创建你的测试规范文件。定义断言格式、用例标准、覆盖规则——一次建设，所有项目复用。</p>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-num">3</div>
-                <div class="step-content">
-                    <h3>用自然语言触发能力</h3>
-                    <p>以下描述在 Claude Code 中会自动识别并调用对应的 qalore 能力：</p>
-                    <pre><span class="c"># 理解需求 → 提炼断言 → 写入 story</span>
-"帮我分析登录模块的需求文档，沉淀到 story"
-
-<span class="c"># 阅读代码 → 提炼断言</span>
-"帮我阅读 src/auth/ 的代码，更新 story"
-
-<span class="c"># 需求 + 代码同时分析（多源模式）</span>
-"读登录模块的 PRD 和代码，更新 story"
-
-<span class="c"># 从 story 生成测试用例</span>
+<!-- ═══ Quick Start ═══ -->
+<section class="alt" id="quickstart">
+  <div class="container">
+    <h2 class="section-title">快速上手</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#9312;</div>
+        <h3>安装</h3>
+        <p>将 <code>qalore/</code> 目录复制到 <code>~/.claude/skills/qalore/</code>，Claude Code 自动发现。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#9313;</div>
+        <h3>配置</h3>
+        <p>创建 <code>~/.claude/qalore-config.json</code>，指定 practices 和 story 路径：</p>
+        <pre><code>{
+  "practices_path": "/path/to/practices",
+  "story_path": "/path/to/story"
+}</code></pre>
+      </div>
+      <div class="card">
+        <div class="icon">&#9314;</div>
+        <h3>使用</h3>
+        <p>在 Claude Code 中描述测试任务即可自动触发：</p>
+        <pre><code>"帮我分析登录模块的需求文档，沉淀到 story"
 "给登录模块出测试用例"
-
-<span class="c"># 评审已有用例</span>
-"评审登录模块的测试用例"</pre>
-                </div>
-            </div>
-        </div>
+"评审登录模块的测试用例"
+"给登录模块出全量用例并输出脑图"</code></pre>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
-<!-- Capabilities -->
-<div id="capabilities" style="background: var(--bg);">
-    <div class="section">
-        <p class="section-label">内置能力</p>
-        <h2 class="section-title">三个核心 Capability</h2>
-        <p class="section-desc">每个 capability 装备一种专业领域的思考方式，不是执行步骤清单——框架保证方向，模型贡献深度。</p>
+<!-- ═══ Capabilities ═══ -->
+<section id="capabilities">
+  <div class="container">
+    <h2 class="section-title">核心能力</h2>
+    <p class="section-desc">3 个建设完成的核心能力 + Token 统计辅助能力。</p>
 
-        <div class="cap-grid">
-            <div class="cap-card">
-                <div class="cap-icon">🔬</div>
-                <h3>qa-understand</h3>
-                <p>从需求文档、代码或两者组合中，独立提炼可测试断言，写入 story。支持多仓库同时分析，synthesis 层自动聚合置信度，标注矛盾点。</p>
-                <div class="tags">
-                    <span class="tag">PRD → 断言</span>
-                    <span class="tag">代码 → 断言</span>
-                    <span class="tag">多源聚合</span>
-                    <span class="tag">置信度判断</span>
-                </div>
-            </div>
-
-            <div class="cap-card">
-                <div class="cap-icon">📝</div>
-                <h3>qa-functional-test</h3>
-                <p>以用户影响为优先级锚点，从断言集合设计测试用例。可选输出 FreeMind 脑图（.mm），支持多模块任务的自主节奏调度，TC 序号唯一不重复。</p>
-                <div class="tags">
-                    <span class="tag">断言 → TC</span>
-                    <span class="tag">用户影响优先</span>
-                    <span class="tag">.mm 脑图</span>
-                    <span class="tag">增量更新</span>
-                </div>
-            </div>
-
-            <div class="cap-card">
-                <div class="cap-icon">🔍</div>
-                <h3>qa-case-review</h3>
-                <p>从结构层（字段完整性）、覆盖层（断言是否都有 TC）、归因层（问题根因在哪里）三个层次评审测试用例质量，输出三级问题报告。</p>
-                <div class="tags">
-                    <span class="tag">结构检查</span>
-                    <span class="tag">覆盖验证</span>
-                    <span class="tag">问题归因</span>
-                    <span class="tag">三级报告</span>
-                </div>
-            </div>
+    <div class="cap-section">
+      <h3>qa-understand <span>测试意图理解与提炼</span></h3>
+      <div class="cap-badges"><span class="badge badge-in">输入：PRD / 代码 / 混合</span><span class="badge badge-think">7问追问 + 五镜头 + 多源聚合</span><span class="badge badge-out">输出：业务逻辑 + 代码逻辑 + 交接块</span></div>
+      <div class="highlight-grid" style="margin-top:1.5rem">
+        <div>
+          <p><strong>7问追问</strong>（文本源）：正常结果、状态、触发者、输入约束、交互反馈、副作用、失败场景 —— 每个功能点逐一追问。</p>
+          <p style="margin-top:0.8rem"><strong>五镜头</strong>（代码源）：入口与路径、数据约束、状态与转换、副作用链、错误路径 —— 每个代码单元独立分析。</p>
+          <p style="margin-top:0.8rem"><strong>多源证据聚合</strong>：文本和代码独立提炼后，综合层识别同一场景、判断置信度、标注矛盾。</p>
         </div>
-    </div>
-</div>
+        <div>
+          <pre><code>[assert-AUTH-001] 【权限】（&#10003;）登录接口
+  · 正确凭据 → 返回 JWT token | upd:v1.0
 
-<!-- Story Principles -->
-<div id="story" style="background: white;">
-    <div class="section">
-        <p class="section-label">Story 设计原则</p>
-        <h2 class="section-title">测试知识如何被持久化</h2>
-        <p class="section-desc">story 是项目测试知识的"物化"——让跨会话、跨模型、跨团队协作成为可能。</p>
+[assert-AUTH-003] 【异常】（待代码确认）
+  登录 · 账号锁定时 → 返回错误码 | upd:v1.0
 
-        <div class="principles">
-            <div class="principle">
-                <div class="p-num">1</div>
-                <div>
-                    <h3>只维护当前态，历史追踪入 changelog</h3>
-                    <p>断言按功能点分节，变更时原地更新，不追加历史。这样每个节都是可直接定位的锚点。变更原因写入 <code>.changelog.md</code>，正常任务完全不加载，只在溯源时才读。</p>
-                </div>
-            </div>
-
-            <div class="principle">
-                <div class="p-num">2</div>
-                <div>
-                    <h3>三层加载，越常用越精简</h3>
-                    <p>越频繁访问的层，信息密度越高、体积越小——这是节省 token 的根本机制。</p>
-                    <div class="layer-visual">
-                        <div class="layer-row">
-                            <div class="layer-bar l1">Layer 1&nbsp;&nbsp;index.json</div>
-                            <span class="layer-note">每次必读，极小，全局概览</span>
-                        </div>
-                        <div class="layer-row">
-                            <div class="layer-bar l2">Layer 2&nbsp;&nbsp;内容文件 .md</div>
-                            <span class="layer-note">按需读，只读当前模块</span>
-                        </div>
-                        <div class="layer-row">
-                            <div class="layer-bar l3">Layer 3&nbsp;&nbsp;changelog 文件</div>
-                            <span class="layer-note">正常任务不读，只在溯源时用</span>
-                        </div>
-                        <p style="font-size:12px; color:#94a3b8; margin-top:8px;">↑ 条长代表文件体积，不代表访问频率——越小越精简，越频繁访问</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="principle">
-                <div class="p-num">3</div>
-                <div>
-                    <h3>跨模块引用用结构化标签，自动聚合不手动维护</h3>
-                    <p>模块间的依赖关系不手动填写，而是从断言中的 <code>[模块::功能点]</code> 标签自动聚合到 index.json，防止手动维护产生幽灵数据。</p>
-                    <pre style="margin-top:14px;">[assert-ORDER-012] 【上下游】订单创建 · 支付成功后
-  → [库存::扣减] 触发库存扣减事务 | upd:v2.0</pre>
-                </div>
-            </div>
+[assert-AUTH-004] 【上下游】（&#10003;）登录成功
+  → [用户中心::会话管理] 创建活跃会话 | upd:v1.0</code></pre>
         </div>
+      </div>
+      <p style="margin-top:1rem"><strong>7 种置信度标注：</strong>
+        <code>（&#10003;）</code> <code>（&#10003;,部分代码确认）</code> <code>（待代码确认）</code> <code>（代码独立）</code> <code>（代码独立,多源）</code> <code>&#9888;&#65039;</code> <code>&#9888;&#65039;(代码)</code>
+      </p>
     </div>
-</div>
 
-<!-- Extension -->
-<div style="background: var(--bg);">
-    <div class="section">
-        <p class="section-label">扩展</p>
-        <h2 class="section-title">能力路线图</h2>
-        <div class="ext-grid">
-            <div class="ext-box">
-                <h3>➕ 新增技术栈能力</h3>
-                <ol>
-                    <li>在 <code>practices/tech-stacks/</code> 下新建规范目录</li>
-                    <li>新建 <code>capability/qa-{name}/SKILL.md</code>，定义该领域的思考哲学</li>
-                    <li>在 <code>qalore/SKILL.md</code> 能力列表中注册，设置状态为 ✅</li>
-                </ol>
-            </div>
-            <div class="ext-box">
-                <h3>⏳ Phase 2 待建设</h3>
-                <div class="phase-list">
-                    <div class="phase-item"><span class="dot"></span>qa-auto-test：自动化测试代码生成</div>
-                    <div class="phase-item"><span class="dot"></span>qa-performance-test：性能/压力测试设计</div>
-                    <div class="phase-item"><span class="dot"></span>qa-security-test：安全测试设计</div>
-                    <div class="phase-item"><span class="dot"></span>qa-chaos-test：混沌测试设计</div>
-                </div>
-            </div>
-        </div>
+    <div class="cap-section">
+      <h3>qa-functional-test <span>功能测试用例设计</span></h3>
+      <div class="cap-badges"><span class="badge badge-think">用户影响优先</span><span class="badge badge-in">输入：交接块 / story 断言</span><span class="badge badge-out">输出：TC 文件 + .mm 脑图</span></div>
+      <p style="margin-top:1rem">先问 <strong>"用户最先感受到什么损失"</strong>，定义优先场景；再用断言集合系统性补全覆盖。支持 P0–P3 四级优先级、正向/边界/异常/上下游四维测试维度，可选输出 FreeMind <code>.mm</code> 脑图。</p>
+      <pre style="margin-top:1rem"><code>用例 ID：TC-AUTH-001
+标题：正确账号密码登录返回有效 token
+功能点：用户登录 &gt; 账号密码登录
+前置条件：存在状态正常的用户账号，用户未登录
+测试步骤：
+  1. 输入正确凭据，点击登录
+     → 预期：返回 HTTP 200，响应体含有效 JWT token
+优先级：P0  |  测试维度：正向</code></pre>
     </div>
-</div>
 
-<!-- Footer -->
+    <div class="cap-section">
+      <h3>qa-case-review <span>用例质量评审</span></h3>
+      <div class="cap-badges"><span class="badge badge-think">溯源式质量判断</span><span class="badge badge-in">输入：TC + 断言基准</span><span class="badge badge-out">输出：评审报告（阻断/需改进/建议）</span></div>
+      <table style="margin-top:1rem">
+        <tr><th>层次</th><th>检查内容</th><th>示例</th></tr>
+        <tr><td><strong>结构层</strong></td><td>字段完整性、步骤可执行性、预期完整性</td><td>触发性步骤是否紧跟 → 预期</td></tr>
+        <tr><td><strong>覆盖层</strong></td><td>与断言基准比对，每条断言是否有对应 TC</td><td>边界值断言是否被覆盖</td></tr>
+        <tr><td><strong>归因层</strong></td><td>发现缺口时追溯根源</td><td>用例设计遗漏 vs 断言理解遗漏</td></tr>
+      </table>
+    </div>
+
+    <div class="cap-section">
+      <h3>qa-token-report <span>Token 使用统计</span></h3>
+      <div class="cap-badges"><span class="badge badge-in">Stop Hook 自动触发</span><span class="badge badge-out">非 qalore 会话静默退出</span></div>
+      <p style="margin-top:0.5rem">从 transcript JSONL 累加本轮 API call 的 token 数据，以固定格式打印到对话。8 个信号词过滤确保只统计 qalore 会话。</p>
+    </div>
+
+    <div style="margin-top:2rem;padding:1.2rem 1.5rem;background:var(--primary-light);border-radius:8px;border-left:4px solid var(--primary)">
+      <strong>&#128679; Phase 2（待建设）</strong>：
+      <code>qa-auto-test</code> 自动化测试 ·
+      <code>qa-performance-test</code> 性能测试 ·
+      <code>qa-security-test</code> 安全测试 ·
+      <code>qa-chaos-test</code> 混沌测试
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Story Design ═══ -->
+<section class="alt" id="story">
+  <div class="container">
+    <h2 class="section-title">Story 设计原则</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">&#127760;</div>
+        <h3>三层加载</h3>
+        <table>
+          <tr><th>层</th><th>内容</th><th>加载策略</th></tr>
+          <tr><td>L1</td><td>index.json</td><td>每次任务必读，极小块</td></tr>
+          <tr><td>L2</td><td>内容文件 .md</td><td>按需读，只读当前模块</td></tr>
+          <tr><td>L3</td><td>changelog</td><td>正常任务绝不读</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="icon">&#128221;</div>
+        <h3>只维护当前态</h3>
+        <p>内容文件按功能点 / 组件分节。变更时原地更新（<strong>3.1新增 / 3.2更新 / 3.3删除</strong>），不追加历史。变更原因写入 <code>.changelog.md</code>，只增不删（新条目头部插入）。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128279;</div>
+        <h3>跨模块关联</h3>
+        <p>上下游断言是唯一真相来源。跨模块引用使用结构化标签 <code>[模块::功能点]</code>，index.json 的 <code>depends_on</code> 和 <code>business_related</code> 从断言自动聚合重建，不独立维护。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#9889;</div>
+        <h3>AI 自解释格式</h3>
+        <p><code>[assert-IMG-003]</code> 唯一 ID ·
+        <code>| upd:v2.0</code> 更新版本 ·
+        <code>&gt; last-upd:</code> 节级标记 ·
+        <code>[模块::功能点]</code> 跨模块引用 ·
+        <code>[来源:repo]</code> 来源标注 ·
+        <code>[pending/resolved/dismissed]</code> 待确认状态</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#9989;</div>
+        <h3>人工确认两道门槛</h3>
+        <p><strong>执行前确认</strong>：展示计划，用户确认"做什么"。
+        <strong>写入前确认</strong>：展示待沉淀，用户确认"写什么"。两个检查点职责不同，不合并，不跳过。</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128274;</div>
+        <h3>Practices 不进向量库</h3>
+        <p>规范需要精确加载，不是语义相似检索。context 标记 <code>【practices:*:loaded】</code> 实现高效按需加载。Story 模块超 50+ 时可叠加向量索引层，不替换现有结构。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Practices ═══ -->
+<section id="practices">
+  <div class="container">
+    <h2 class="section-title">实践规范库</h2>
+    <p class="section-desc">practices 是 qalore 的"公司规范"，一次建设跨项目复用。capability 通过引用使用，不自行重复定义。</p>
+    <table>
+      <tr><th>文件</th><th>职责</th><th>何时加载</th></tr>
+      <tr><td><code>handbook.md</code></td><td>story 维护约定、增量原则、变更规则（3.1/3.2/3.3）、写入协议、评审规范</td><td>每次任务必加载（网关预加载）</td></tr>
+      <tr><td><code>story-formats.md</code></td><td>置信度标注（7 种唯一权威）、断言 ID/来源规则、业务/代码/TC/评审文件格式、交接块格式</td><td>读写 story 文件时</td></tr>
+      <tr><td><code>assertions.md</code></td><td>断言格式语法、维度标签、粒度规范、质量标准</td><td>理解需求或代码时</td></tr>
+      <tr><td><code>cases.md</code></td><td>用例格式、优先级定义（P0–P3）、测试维度、覆盖率规则、跨模块 TC 归属、命名规则</td><td>设计或评审用例时</td></tr>
+      <tr><td><code>changelog.md</code></td><td>changelog 内容格式、写入顺序（头部插入，倒序）</td><td>写入变更记录时</td></tr>
+      <tr><td><code>output.md</code></td><td>.mm 产物格式、脑图结构规则、输出范围策略</td><td>生成脑图产物时</td></tr>
+      <tr><td><code>handbook-practices-ops.md</code></td><td>practices 元操作（index.json 维护规范、practices 写入协议）</td><td>修改 practices 时（极低频）</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ Config ═══ -->
+<section class="alt">
+  <div class="container">
+    <h2 class="section-title">配置参考</h2>
+    <pre><code>// story/{项目}/index.json 完整 Schema
+{
+  "project": "项目名",
+  "description": "面向谁、核心功能",
+  "created": "2026-01-01",
+  "modules": {
+    "登录模块": {
+      "description": "用户认证与授权",
+      "tc_prefix": "AUTH",
+      "mm_short_id": "a{序号}",
+      "assert_seq": 12,
+      "prd_version": "v1.2",
+      "depends_on": {
+        "用户中心": ["sessionService", "tokenValidator"]
+      },
+      "business_related": {
+        "订单模块": ["下单校验"]
+      },
+      "code_paths": [{
+        "path": "src/auth/",
+        "entry": "login()",
+        "depth": 3,
+        "last_read": "2026-01-01"
+      }],
+      "status": {
+        "business_logic": true,
+        "business_logic_changelog": true,
+        "code_logic": false,
+        "code_logic_changelog": false,
+        "tc_count": 15,
+        "pending_count": 2
+      },
+      "last_updated": "2026-01-01"
+    }
+  }
+}</code></pre>
+  </div>
+</section>
+
+<!-- ═══ Footer ═══ -->
 <footer>
-    <strong>qalore</strong>
-    <p style="margin-top:8px; font-size:13px; color:#475569;">MIT License</p>
-    <p class="footer-quote">"让每一次测试分析不再是从零开始，让测试知识随着项目一起生长。"</p>
-    <p class="footer-ai-note">🤖 AI 提示：本文件为人类阅读版本。AI 请阅读 README.md</p>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>核心能力</h4>
+        <a href="#capabilities">qa-understand · 意图理解</a>
+        <a href="#capabilities">qa-functional-test · 用例设计</a>
+        <a href="#capabilities">qa-case-review · 质量评审</a>
+      </div>
+      <div class="footer-col">
+        <h4>设计哲学</h4>
+        <a href="#why">为什么需要 qalore</a>
+        <a href="#story">Story 设计原则</a>
+        <a href="#practices">规范库结构</a>
+      </div>
+      <div class="footer-col">
+        <h4>扩展</h4>
+        <a href="#">新增技术栈能力</a>
+        <a href="#">Phase 2 路线图</a>
+      </div>
+    </div>
+    <p>qalore — 让 AI 的测试工作可积累、可追溯、可跨会话延续。</p>
+    <p style="margin-top:0.5rem;font-size:0.8rem">MIT License · 思考框架不绑定特定工具或平台</p>
+  </div>
 </footer>
 
 </body>
