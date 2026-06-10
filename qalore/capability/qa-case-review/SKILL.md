@@ -1,4 +1,4 @@
-﻿---
+---
 name: qa-case-review
 description: >
   用例评审。由 qalore 调用，不独立触发。

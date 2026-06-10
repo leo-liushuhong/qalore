@@ -1,4 +1,4 @@
-﻿---
+---
 name: qa-token-report
 description: >
   Token 使用统计能力。由 Claude Code Stop Hook 自动触发，不由 qalore 主动调用。

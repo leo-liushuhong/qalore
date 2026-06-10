@@ -1,4 +1,4 @@
-﻿---
+---
 name: qa-understand
 description: >
   测试意图理解与提炼。将任意信息源转化为可测试的理解，写入 story，供 qa-functional-test 和 qa-case-review 使用。

@@ -1,4 +1,4 @@
-﻿# practices 初始化指南
+# practices 初始化指南
 
 本文件帮助首次使用 qalore 的用户完成 practices 目录的初始化，并作为 story/index.json 的 schema 权威来源。
 

@@ -1,4 +1,4 @@
-﻿---
+---
 name: qalore
 description: >
   全栈测试工程师网关。满足以下任一条件时使用：

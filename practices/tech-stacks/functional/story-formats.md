@@ -24,6 +24,8 @@ synthesis 层写入，单源提炼时无标注。
 
 ## 断言 ID 规范
 
+> 断言的基础格式、维度标签、粒度规范见 `assertions.md`。本节仅定义 ID 分配规则、跨文件序号空间、来源标注规则——这些是 story 文件层面的管理规范。
+
 每条可测试断言都有唯一 ID，格式：`[assert-{模块缩写}-{3位序号}]`
 
 - 模块缩写与 TC 前缀一致（如 IMG、PIPE）
@@ -87,7 +89,7 @@ synthesis 层写入，单源提炼时无标注。
 
 ## 业务逻辑 changelog 文件：`{模块名}-功能-业务逻辑.changelog.md`
 
-记录业务逻辑.md 每次变动，只追加，永不删除。格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节。
+记录业务逻辑.md 每次变动，只增不删（新条目头部插入）。格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节。
 
 ---
 
@@ -134,13 +136,13 @@ synthesis 层写入，单源提炼时无标注。
 
 ## 代码逻辑 changelog 文件：`{模块名}-功能-代码逻辑.changelog.md`
 
-记录代码逻辑.md 每次变动，只追加，永不删除。格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节。
+记录代码逻辑.md 每次变动，只增不删（新条目头部插入）。格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节。
 
 ---
 
 ## 测试用例文件：`{模块名}-功能-测试用例.md`
 
-由 qa-functional-test 生成，用例字段格式遵循 `tech-stacks/functional/cases.md`「用例格式」章节。
+由 qa-functional-test 生成，用例字段格式遵循 `tech-stacks/functional/cases.md`「用例格式」章节。文件命名见 `cases.md`「文件命名」章节。
 
 ```markdown
 # {模块名} 功能测试用例
