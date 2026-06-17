@@ -31,7 +31,7 @@ synthesis 层写入，单源提炼时无标注。
 - 模块缩写与 TC 前缀一致（如 IMG、PIPE）
 - 序号在模块内全局递增，跨文件（业务逻辑.md 和代码逻辑.md 共享同一序号空间）
 - text adapter 生成断言时分配 ID，从 001 开始；已有文件时从最大序号 +1 开始
-- code adapter 生成断言时分配 ID：读取 context 中 `【qa-understand-mode】` 标记（由 qa-understand 调度层写入）；值为 `multi` 时从 `【assert_seq_runtime: N】` 续接；值为 `single` 或不存在时从 index.json 的 `assert_seq` 或业务逻辑.md 的最大序号获取
+- code adapter 生成断言时分配 ID：读取 context 中 `【qa-understand-mode】` 标记（由 qa-understand 调度层写入）；值为 `multi` 时从 index.json 的 `assert_seq` 获取续接起点（前序适配器已立即更新）；值为 `single` 或不存在时从 index.json 的 `assert_seq` 或业务逻辑.md 的最大序号获取
 - synthesis 识别同一场景后，将 code_logic.md 中对应断言的 ID 改写为与 business_logic.md 相同的值，并在业务逻辑.md 对应断言行追加置信度标注
 
 **同一 assert ID 在两个文件中出现 = 同一场景的不同视角**，是跨文件关联的唯一依据。
@@ -199,18 +199,7 @@ qa-understand 向 qa-functional-test / qa-case-review 传递理解成果的跨 c
   · {模块名}（业务关联）：本模块 business_related 中包含该模块的功能点
 ```
 
-**置信度标注规则（与置信度标注规范章节一致）：**
-
-| 标注 | 含义 |
-|------|------|
-| `（✓）` | 文本 + 所有代码源确认 |
-| `（✓,部分代码确认）` | 文本 + 部分代码源确认 |
-| `（待代码确认）` | 仅文本，无代码源实现 |
-| `（代码独立）` | 仅单一代码源发现 |
-| `（代码独立,多源）` | 多个代码源均发现，文本未描述 |
-| `⚠️` | 文本与代码源结论矛盾 |
-| `⚠️(代码)` | 多个代码源描述同一场景但结论矛盾 |
-| 无标注 | 单源提炼，尚未与其他来源对照 |
+**置信度标注规则：见本章顶部「置信度标注规范」章节，不在此重复。**
 
 **消费规则（qa-functional-test / qa-case-review）：**
 - context 中存在此块 → 以此为主输入，优先于 story 中的文件

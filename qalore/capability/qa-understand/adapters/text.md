@@ -34,7 +34,8 @@
 
 规则遵循 story-formats.md「断言 ID 规范」（权威来源）：
 - 从 index.json 的 `assert_seq` 获取当前最大序号，从 +1 开始递增
-- **分配完成后立即在 context 中写入：`【assert_seq_runtime: N】`**（N = 本次分配的最大序号），供代码适配器续接使用
+- **分配完成后立即更新 index.json 的 `assert_seq`**（将值设为本次分配的最大序号）。此更新不等【待沉淀】统一写入——立即执行，确保后续适配器（代码适配器）或 context 压缩恢复时读到正确的续接起点
+- 更新方式：Read index.json → 修改 `modules.{模块名}.assert_seq` → Write 回文件（仅改此字段，不触及其他字段）
 - 多源场景下【待沉淀】由 synthesis 统一输出，本节不单独输出
 
 ---
@@ -83,6 +84,6 @@ patch 操作说明：「现有 {m} 条」须来自实际 Read 文件后统计，
 
 **多源（文本 + 代码适配器同时运行）：** 本节不输出独立的【待沉淀】。断言 ID 分配照常进行，执行结果（含断言列表和 pending 项）传入 synthesis.md，由其统一输出最终的【待沉淀】。
 
-**index.json 声明字段：** 新模块首建时的完整字段 schema 见 `qalore` skill 包内 `practices-bootstrap.md`「story/index.json 完整字段 Schema」章节。已有模块更新时，仅声明变更字段：`assert_seq`、`prd_version`（若有版本信号）、`business_related`（有跨模块上下游断言时更新）、`status.pending_count`、`last_updated`。首次为模块创建业务逻辑.md 时（无论模块是否已有其他 story 文件），额外声明：`status.business_logic: true`、`status.business_logic_changelog: true`。
+**index.json 声明字段：** 新模块首建时的完整字段 schema 见 `{practices_path}/schemas/story-index.schema.md`（权威来源）。已有模块更新时，仅声明变更字段：`prd_version`（若有版本信号）、`business_related`（有跨模块上下游断言时更新）、`status.pending_count`、`last_updated`（`assert_seq` 已在 ID 分配阶段实时更新，此处不重复声明）。首次为模块创建业务逻辑.md 时（无论模块是否已有其他 story 文件），额外声明：`status.business_logic: true`、`status.business_logic_changelog: true`。
 
 > 模块 `status.tc_count = 0` 时，提醒用户：「{模块名} 尚无测试用例，如需生成执行『生成 {模块名} 用例』」

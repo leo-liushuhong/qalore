@@ -4,6 +4,7 @@ description: >
   Token 使用统计能力。由 Claude Code Stop Hook 自动触发，不由 qalore 主动调用。
   从 transcript JSONL 累加本轮所有 API call 的 usage 数据，以固定格式打印到对话。
   仅统计本轮；通过 last_assistant_message 信号词过滤，非 qalore 会话静默退出；无需额外 API 调用。
+practices_min_version: "2026-06-12-v11"
 ---
 
 # qa-token-report：Token 使用统计
@@ -67,8 +68,14 @@ capability/qa-token-report/
 
 Stop Hook 配置位于 `~/.claude/settings.json`：
 ```json
-"Stop": [{ "hooks": [{ "type": "command",
-  "command": "python \"C:/Users/.../read_usage.py\"" }] }]
+"hooks": {
+  "Stop": [{
+    "hooks": [{
+      "type": "command",
+      "command": "python \"%USERPROFILE%/.claude/skills/qalore/capability/qa-token-report/read_usage.py\""
+    }]
+  }]
+}
 ```
 
 ---

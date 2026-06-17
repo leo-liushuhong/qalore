@@ -163,5 +163,13 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception:
-        pass
+    except Exception as e:
+        # 静默失败不污染对话，但写入日志文件保证故障可观测
+        log_path = Path.home() / ".claude" / "qa-token-report-error.log"
+        try:
+            from datetime import datetime
+            ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(f"[{ts}] ERROR: {e}\n")
+        except Exception:
+            pass

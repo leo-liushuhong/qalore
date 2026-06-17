@@ -1,8 +1,184 @@
 {
-  "version": "2026-06-10-v1",
+  "version": "2026-06-15-v18",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-06-15-v18",
+      "changed_files": [
+        "index.json",
+        "common/handbook.md",
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/output.md",
+        "qalore:capability/qa-functional-test/SKILL.md"
+      ],
+      "summary": "ChatBI 全量审计驱动修复（6 项）：① cases.md 新增「TC 语言规范」——定义用户视角优先原则、灰盒注解格式（场景（工程））、禁止暴露的实现细节；新增「TC 覆盖验证」——qa-functional-test 产出后须交叉验证 BL 功能点覆盖；② output.md 新增「.mm 生成后验证」——XML合法性/TC节点数/零步骤TC/步骤覆盖率/预期覆盖率 6 项检查；③ handbook.md 扩展「待确认项生命周期规范」——新增 resolved 判定标准（区分\"代码验证实现\"vs\"设计是否正确\"），团队归属标注（前端/后端/PM）；新增「计数一致性规范」——所有计数字段须从实际文件统计，禁止预估数；新增「文件操作规范」——JSON 禁止行级 Edit / 批量脚本执行后验证格式；④ qa-functional-test/SKILL.md 新增「执行后验证」章节——计数/覆盖/格式/语言 4 项必检；practices_min_version 更新至 2026-06-15-v18"
+    },
+    {
+      "version": "2026-06-12-v17",
+      "changed_files": [
+        "index.json",
+        "common/handbook-practices-ops.md",
+        "tech-stacks/functional/changelog.md"
+      ],
+      "summary": "审计修复（3 项）：① v16 changelog changed_files 补全——settings.json Hook 路径变更已实际执行但未列入 changed_files，现补充 claude:settings.json 并定义 claude: 前缀（根因：跨命名空间文件缺少路径前缀约定）；② handbook-practices-ops.md changed_files 格式约束文档化——正式定义四种路径前缀（裸路径/qalore:/story:/claude:）及其语义，消除元数据与行为不同步（根因：规范滞后于实际使用）；③ changelog.md 断言 ID 范围格式澄清——{seq2} 在实际使用中带 PREFIX 前缀（如 assert-NL2-001～NL2-004），规范注释补充说明消除歧义（根因：示例与描述歧义空间）"
+    },
+    {
+      "version": "2026-06-12-v16",
+      "changed_files": [
+        "index.json",
+        "qalore:practices-bootstrap.md",
+        "qalore:capability/qa-token-report/SKILL.md",
+        "claude:settings.json"
+      ],
+      "summary": "审计修复（5 项 / 4 处变更）：① settings.json Hook 配置硬编码路径 C:/Users/HP → %USERPROFILE%（根因：可移植性缺陷——run_silent.bat 的 v14 修复未覆盖运行时入口点，实际 Hook 直接调用 read_usage.py 不经过 .bat）；② qa-token-report/SKILL.md 文档示例同步更新为 %USERPROFILE%；③ practices/index.json handbook-audit when_to_load 修正——从「执行 qalore skill 全面审计时」改为明确标注「人工执行（无自动化触发）」，消除元数据-行为投影失真；④ practices-bootstrap.md 最小格式示例补全 usage_hint 和 conflict_resolution 字段，对齐实际 practices/index.json 格式"
+    },
+    {
+      "version": "2026-06-12-v15",
+      "changed_files": [
+        "common/handbook-audit.md",
+        "index.json"
+      ],
+      "summary": "审计方法升级（v14 审计修复驱动 / 7 项提案全部采纳）：① 流水线 12→14 步 — 新增步骤13「Changelog 声明真实性验证」(M)（changelog 声称的变更必须在文件中有对应证据，捕获「声称已修但未修」类错误）；新增步骤14「基础设施健康检查」(N)（扫描可执行文件的硬编码路径、环境假设、错误处理、配置外部化——审计范围首次从 practices/story 数据生态扩展至 skill 自身运行环境）；② 步骤1 新增第 7 项 — changelog 条目 version 字段必填检查（捕获无版本号的不可索引条目）；③ 步骤3 新增「枚举型格式字段专项」— 对 Schema 定义了格式模式的 string 字段（如 {X}::{Y}）正则验证格式合规率，特别标记部分正确但格式不完整的条目；④ 步骤11 新增「强制执行可达性检查」— 验证每个 practices_min_version 声明对应一段会读取它的校验代码路径，声明存在但校验路径缺失 → 孤立版本声明；⑤ 设计哲学 13→15 条 — 新增哲学14「Changelog 是承诺不是收据」（changelog 声明指向可能从未被写入的目标状态，未兑现的 changelog 比没有更危险）；新增哲学15「契约的可执行性与声明同样重要」（声明范围 ≠ 强制执行范围 → 契约不完整）；⑥ handbook-audit.md 章节标题同步（十二步→十四步、十三条→十五条）；practices/index.json handbook-audit summary 同步更新"
+    },
+    {
+      "version": "2026-06-12-v14",
+      "changed_files": [
+        "common/handbook-audit.md",
+        "index.json",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-token-report/run_silent.bat",
+        "story:ChatBi/index.json"
+      ],
+      "summary": "审计修复（6 项问题 / 7 处变更）：① handbook-audit.md 流水线标题「十一步」→「十二步」（v13 声称但未实际应用的修复，根因：原子变更断裂）；② practices/index.json handbook-audit summary 同步（十一步→十二步、十一条→十三条，根因：副本过期）；③ practices/index.json changelog 第 15 条补充缺失的 version 字段（2026-06-10-v2，根因：JSON 结构完整性缺陷）；④ gateway SKILL.md 版本兼容性检查扩展至基础设施 capability（qa-token-report 等 Hook 触发组件的 practices_min_version 现同样在环境验证阶段校验，根因：消费者-生产者版本契约校验覆盖不全）；⑤ qa-token-report/run_silent.bat 硬编码用户路径改为 %USERPROFILE% 环境变量（根因：可移植性缺陷）；⑥ story/ChatBi/index.json「模型与系统配置」和「飞书IM接入」移除不符合 {模块名}::{功能点名} 格式的 business_related 条目共 6 条（待 qa-understand 下次执行时按正确格式重建，根因：Schema 与数据异步漂移）；⑦ v13 changelog 条目 ⑪ 描述修正（六步/十条 → 十一步/十一条 → 十二步/十三条，根因：描述即缓存过期）"
+    },
+    {
+      "version": "2026-06-12-v13",
+      "changed_files": [
+        "common/handbook-audit.md",
+        "index.json",
+        "tech-stacks/functional/story-formats.md",
+        "qalore:SKILL.md",
+        "qalore:practices-bootstrap.md",
+        "qalore:capability/qa-token-report/SKILL.md",
+        "qalore:capability/qa-understand/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md"
+      ],
+      "summary": "审计方法升级（12→13 项修复）：① handbook-audit.md 流水线 11→12 步 — 新增步骤12「权威-副本一致性检查」(L)，审计流水线标题「十一步」→「十二步」；② 步骤1 新增版本号连续性检查（第6项，检测 changelog 版本跳号如 v12→v10 缺 v11）；③ 步骤8 适用范围扩展至 practices 内部自引用示例（bootstrap 最小格式 ↔ practices/index.json 实际格式）；④ 步骤11 适用范围扩展至基础设施组件（qa-token-report 等 Hook 触发组件）；⑤ 设计哲学 11→13 条 — 新增哲学12「描述即缓存」（自然语言描述与计数字段有相同的过期机制）、哲学13「副本即债务」（权威源变更后副本必然漂移，消除副本或建立同步契约）；⑥ practices-bootstrap.md depth 类型修复（number→string，对齐 schema 权威）；⑦ story-formats.md 废弃 context 标记引用清除（【assert_seq_runtime: N】→index.json assert_seq）；⑧ practices/index.json changelog 补回缺失的 v11 条目；⑨ qa-token-report SKILL.md 补 practices_min_version 声明；⑩ practices-bootstrap.md 最小格式示例版本号从语义版本号改为日期格式；⑪ handbook-audit.md 章节标题计数同步（十一步→十二步、十一条→十三条）；⑫ practices/index.json handbook-audit summary 字段同步更新"
+    },
+    {
+      "version": "2026-06-12-v12",
+      "changed_files": [
+        "schemas/story-index.schema.md",
+        "common/handbook.md",
+        "common/handbook-audit.md",
+        "index.json",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-understand/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md",
+        "qalore:capability/qa-understand/adapters/text.md",
+        "qalore:capability/qa-understand/adapters/code.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "qalore:practices-bootstrap.md"
+      ],
+      "summary": "全面审计修复（8项）+ audit 规范自身升级：① gateway capability 列表拆分用户能力/基础设施/未建设三层，Phase 2 死路径移除，启用路径修正；② handbook.md 新增「章节注册表」和「context 标记注册表」，实现跨文件引用可验证和 context 状态有 schema；③ assert_seq 改为各适配器立即更新 index.json（消除 context 标记传递的 ID 冲突风险）；④ 新建 schemas/story-index.schema.md 为 story/index.json schema 权威来源，practices-bootstrap.md 降级为初始化参考；⑤ 所有 capability SKILL.md 添加 practices_min_version 字段，gateway 环境验证阶段新增版本兼容性检查；⑥ 引用更新指向新权威来源；⑦ handbook-audit.md 自身升级——流水线 8→11 步（新增 I 注册表同质性检查 / J 状态通道盘点 / K 消费者-生产者版本契约），设计哲学 9→11 条（新增哲学10 清单的同质性 / 哲学11 一个文档一个角色，哲学5 扩展版本依赖维度，哲学9 扩展状态通道推论）"
+    },
+    {
+      "version": "2026-06-12-v11",
+      "changed_files": [
+        "common/handbook.md",
+        "schemas/story-index.schema.md",
+        "index.json",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-understand/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md",
+        "qalore:capability/qa-understand/adapters/text.md",
+        "qalore:capability/qa-understand/adapters/code.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "qalore:practices-bootstrap.md"
+      ],
+      "summary": "基础设施重构：① gateway capability 列表拆分用户能力/基础设施/未建设三层，Phase 2 死路径移除；② handbook.md 新增「章节注册表」和「context 标记注册表」，实现跨文件引用可验证和 context 状态有 schema；③ assert_seq 改为各适配器立即更新 index.json（消除 context 标记传递的 ID 冲突风险）；④ 新建 schemas/story-index.schema.md 为 story/index.json schema 权威来源，practices-bootstrap.md 降级为初始化参考"
+    },
+    {
+      "version": "2026-06-12-v10",
+      "changed_files": [
+        "common/handbook-audit.md"
+      ],
+      "summary": "审计规范扩充：① 流水线从六步扩为八步 — 新增步骤7「原子变更验证」(G) 和步骤8「示例即契约检查」(H)；步骤1 新增 changelog 边界专项检查；② 设计哲学从五条扩为八条 — 新增哲学6「变更原子性」、哲学7「示例即测试用例」、哲学8「结构的脆弱点位于编辑边界」"
+    },
+    {
+      "version": "2026-06-12-v9",
+      "changed_files": [
+        "common/handbook-audit.md",
+        "index.json",
+        "qalore:practices-bootstrap.md"
+      ],
+      "summary": "新增审计规范：① 新建 common/handbook-audit.md — 六步审计流水线（F·JSON结构→B·双向注册表→A·Schema双向比对→C·计数字段推导→D·格式合规率采样→E·元数据行为对齐）和五条设计哲学（双向验证/合规率优先/Schema数据异步漂移/可推导字段不信任/元数据是代码投影）；② 注册到 index.json；③ practices-bootstrap.md 目录结构同步"
+    },
+    {
+      "version": "2026-06-12-v8",
+      "changed_files": [
+        "story:ChatBi/*/业务逻辑.changelog.md",
+        "story:ChatBi/*/代码逻辑.changelog.md"
+      ],
+      "summary": "story changelog 格式统一：15 个业务逻辑/代码逻辑 changelog 从旧格式（操作：3.1新增）改为标准格式（功能点/组件「name」新增：assert-ID-范围（n 条，描述）），对齐 changelog.md 规范"
+    },
+    {
+      "version": "2026-06-12-v7",
+      "changed_files": [
+        "story:ChatBi/index.json"
+      ],
+      "summary": "story 数据修复：① 报告与可视化/模型与系统配置 pending_count 修正对齐实际文件；② 知识库管理/数据源与Schema管理 prd_version V2.1.0→V2.1.1 对齐 TC 文件最新版本"
+    },
+    {
+      "version": "2026-06-12-v6",
+      "changed_files": [
+        "index.json"
+      ],
+      "summary": "注册遗漏文件：common 节重构为嵌套结构（对齐 tech_stacks 模式），新增 handbook-practices-ops 条目"
+    },
+    {
+      "version": "2026-06-12-v5",
+      "changed_files": [
+        "index.json"
+      ],
+      "summary": "common.handbook.when_to_load 对齐实际行为：从「执行任何写入操作前，或进行用例评审时」改为「每次任务必加载（由网关预加载）」"
+    },
+    {
+      "version": "2026-06-12-v4",
+      "changed_files": [
+        "tech-stacks/functional/cases.md",
+        "qalore:practices-bootstrap.md"
+      ],
+      "summary": "三次审计修复：① cases.md mm_short_id 规则从「首字母小写」改为「全小写 + 首字母冲突时可用全前缀」，补充 TC-AGT-001→agt001 示例；② practices-bootstrap.md 最小格式移除未使用的 changelog.date 字段"
+    },
+    {
+      "version": "2026-06-12-v3",
+      "changed_files": [
+        "qalore:practices-bootstrap.md"
+      ],
+      "summary": "字段所有权表补充：① description（模块级）首次写入改为「网关（新建模块时，可随后由 qa-understand 补充）」；② 新增 last_updated（项目级）所有权条目"
+    },
+    {
+      "version": "2026-06-12-v2",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "qalore:SKILL.md",
+        "qalore:practices-bootstrap.md",
+        "story:ChatBi/index.json"
+      ],
+      "summary": "全面审计修复（6项）：① practices-bootstrap.md schema 修正 — business_related 格式从嵌套对象改为扁平数组（对齐实际实现）+ 新增项目级 last_updated/移除模块级 last_updated；② story-formats.md 去重 — 删除「统一交接块格式」节内重复的置信度标注表格；③ gateway SKILL.md — Phase 2 capability 路径标注「文件未创建」；④ ChatBi story index.json 补齐 10 模块的 description/tc_prefix/mm_short_id/last_updated"
+    },
+    {
+      "version": "2026-06-12-v1",
+      "changed_files": [
+        "tech-stacks/functional/output.md"
+      ],
+      "summary": "output.md 格式修复（5处）：① 脑图结构图全节点补充 STYLE 属性（模块 bubble，第3级起 fork）；② 层级映射表新增 STYLE 列 + fp ID 修正为模块内递增；③ 操作步骤统一加冒号；④ 节点书写规则新增 STYLE 层级规则；⑤ 新增「TC 来源标记」章节（[仅需求]/[仅代码]）"
+    },
     {
       "version": "2026-06-10-v1",
       "changed_files": [
@@ -16,6 +192,7 @@
       "summary": "系统审查修复（6 文件）：① handbook.md 全局统一术语——「只追加」→「只增不删（新条目头部插入）」，消除与 changelog「头部插入」的矛盾；操作类型「追加」→「只增不删」；「testcraft」→「qalore」；② handbook-practices-ops.md「testcraft」→「qalore」；③ assertions.md 删除置信度标注重复表格，改为引用 story-formats.md 为唯一权威，消除双重维护风险；④ cases.md「testcraft」→「qalore」；⑤ changelog.md 去重——断言 changelog 节中删除与独立「changelog 写入顺序」节重复的写入顺序声明；新增 story-formats.md 交叉引用（文件命名来源）；⑥ story-formats.md 新增与 assertions.md 的边界标注（断言格式 vs ID 分配规则职责分离）；新增 cases.md 交叉引用（TC 文件命名来源）；「只追加」→「只增不删」统一"
     },
     {
+      "version": "2026-06-10-v2",
       "changed_files": [
         "common/handbook.md",
         "tech-stacks/functional/story-formats.md",
@@ -94,107 +271,154 @@
     },
     {
       "version": "2026-04-17-v5",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "用例格式字段表「优先级」说明补充 P3"
     },
     {
       "version": "2026-04-17-v4",
-      "changed_files": ["common/handbook.md"],
+      "changed_files": [
+        "common/handbook.md"
+      ],
       "summary": "Token 统计「适用范围」改为引用 qa-token-report SKILL.md"
     },
     {
       "version": "2026-04-17-v3",
-      "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md",
+        "common/handbook.md"
+      ],
       "summary": "新增「跨模块 TC 归属规则」；沟通规范补充 practices 写入前必须确认"
     },
     {
       "version": "2026-04-17-v2",
-      "changed_files": ["common/handbook.md"],
+      "changed_files": [
+        "common/handbook.md"
+      ],
       "summary": "新增 practices 写入协议"
     },
     {
       "version": "2026-04-17-v1",
-      "changed_files": ["common/handbook.md"],
+      "changed_files": [
+        "common/handbook.md"
+      ],
       "summary": "修复 Token 统计适用范围描述"
     },
     {
       "version": "2026-04-16-v1",
-      "changed_files": ["common/handbook.md"],
+      "changed_files": [
+        "common/handbook.md"
+      ],
       "summary": "新增 Token 使用统计章节"
     },
     {
       "version": "2026-04-15-v1",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "覆盖率规则新增第三层级：上下游依赖覆盖（强制）"
     },
     {
       "version": "2026-04-14-v5",
-      "changed_files": ["tech-stacks/functional/standards.md", "common/handbook.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md",
+        "common/handbook.md"
+      ],
       "summary": "新增产物输出范围体系"
     },
     {
       "version": "2026-04-14-v4",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "changelog 写入顺序规则"
     },
     {
       "version": "2026-04-14-v3",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "修复九项边界/逻辑漏洞"
     },
     {
       "version": "2026-04-14-v2",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "新增覆盖率规则、P3 优先级、TC ID 唯一性校验"
     },
     {
       "version": "2026-04-14-v1",
-      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "修复四项设计漏洞"
     },
     {
       "version": "2026-04-13-v9",
-      "changed_files": ["common/handbook.md"],
+      "changed_files": [
+        "common/handbook.md"
+      ],
       "summary": "新增 practices/index.json 维护规范"
     },
     {
       "version": "2026-04-13-v8",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "整合产物输出规范"
     },
     {
       "version": "2026-04-13-v7",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "新增飞书 .mm 兼容规范"
     },
     {
       "version": "2026-04-13-v6",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "脑图输出规范修正"
     },
     {
       "version": "2026-04-13-v5",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "新增版本可选字段及版本标记规则"
     },
     {
       "version": "2026-04-13-v4",
-      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "质量底线从 handbook 迁移至 functional/standards"
     },
     {
       "version": "2026-04-13-v3",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "新增产物输出规范"
     },
     {
       "version": "2026-04-13-v2",
-      "changed_files": ["tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "新增功能点路径规范"
     },
     {
       "version": "2026-04-13-v1",
-      "changed_files": ["common/handbook.md", "tech-stacks/functional/standards.md"],
+      "changed_files": [
+        "common/handbook.md",
+        "tech-stacks/functional/standards.md"
+      ],
       "summary": "建立通用规范和功能测试规范"
     },
     {
@@ -203,10 +427,29 @@
       "summary": "初始版本，规范文件待建设"
     }
   ],
+  "schemas": {
+    "story_index": {
+      "file": "schemas/story-index.schema.md",
+      "summary": "story/index.json 的 schema 权威定义和字段所有权表（唯一权威来源，practices-bootstrap.md 中的格式仅为初始化参考）",
+      "when_to_load": "需要校验 story 数据结构、新增模块字段、确认字段所有权、或审计 schema 一致性时"
+    }
+  },
   "common": {
-    "file": "common/handbook.md",
-    "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）",
-    "when_to_load": "执行任何写入操作前，或进行用例评审时"
+    "handbook": {
+      "file": "common/handbook.md",
+      "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）",
+      "when_to_load": "每次任务必加载（由网关预加载），也是执行写入操作和用例评审时的规范依据"
+    },
+    "handbook-practices-ops": {
+      "file": "common/handbook-practices-ops.md",
+      "summary": "practices 写入协议和 practices/index.json 维护规范",
+      "when_to_load": "修改 practices 规范时（按需加载）"
+    },
+    "handbook-audit": {
+      "file": "common/handbook-audit.md",
+      "summary": "十四步审计流水线（JSON结构→注册表双向→Schema双向→计数字段→格式合规率→元数据对齐→原子变更→示例即契约→注册表同质性→状态通道盘点→消费者-生产者版本契约→权威-副本一致性→Changelog声明真实性验证→基础设施健康检查）和十五条设计哲学",
+      "when_to_load": "人工执行 qalore 全面审计时（无自动化触发——审计由开发者手动调用，对应规范见 common/handbook-audit.md）"
+    }
   },
   "tech_stacks": {
     "functional": {

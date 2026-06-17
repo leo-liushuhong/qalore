@@ -57,6 +57,19 @@ description: >
   ```
 - 一致 → 继续
 
+**capability 版本兼容性验证（路径通过后、路由前必执行）：**
+- 对**所有已注册 capability**（含用户能力和基础设施），逐一 Read 其 SKILL.md frontmatter 中的 `practices_min_version` 字段
+- 将 `practices_min_version` 与当前 `{practices_path}/index.json` 的 `version` 进行比较（日期优先比较，同日按版本号比较）
+- `practices_min_version` > 当前 practices version → 该 capability 要求的 practices 版本高于当前安装版本，停止，输出：
+  ```
+  [capability 名] 要求 practices 最低版本 {min_version}，当前版本 {current_version}。
+  请更新 practices 到 {min_version} 或更新版本后重试。
+  更新方式：参考 {practices_path}/common/handbook-practices-ops.md 中的 practices 升级流程。
+  ```
+- `practices_min_version` ≤ 当前 practices version → 继续
+- capability SKILL.md 未声明 `practices_min_version` → 不阻断，输出警告：「[capability 名] 未声明 practices_min_version，跳过了版本兼容性检查。建议在该 SKILL.md frontmatter 中添加此字段。」
+- **基础设施 capability 同样参与此检查**（如 qa-token-report 由 Hook 触发，不在路由表中，但其 practices 版本依赖同样必须在环境验证阶段校验，不得因触发方式不同而跳过）
+
 ---
 
 ## 意图识别与 capability 路由
@@ -119,21 +132,32 @@ practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 
 
 子技能封装在包体内，由本 skill 通过 Read 工具显式加载，不对外暴露。
 
+### 用户能力（由网关按路由表触发）
+
 | Capability | SKILL.md 路径 | 状态 |
 |-----------|-------------|------|
 | 测试意图理解与提炼 | `~/.claude/skills/qalore/capability/qa-understand/SKILL.md` | ✅ 可用 |
 | 功能测试用例设计与产物输出 | `~/.claude/skills/qalore/capability/qa-functional-test/SKILL.md` | ✅ 可用 |
 | 用例评审 | `~/.claude/skills/qalore/capability/qa-case-review/SKILL.md` | ✅ 可用 |
-| 自动化测试 | `~/.claude/skills/qalore/capability/qa-auto-test/SKILL.md` | ⏸️ Phase 2 |
-| 性能/压力测试 | `~/.claude/skills/qalore/capability/qa-performance-test/SKILL.md` | ⏸️ Phase 2 |
-| 安全测试 | `~/.claude/skills/qalore/capability/qa-security-test/SKILL.md` | ⏸️ Phase 2 |
-| 混沌测试 | `~/.claude/skills/qalore/capability/qa-chaos-test/SKILL.md` | ⏸️ Phase 2 |
-| Token 使用统计 | `~/.claude/skills/qalore/capability/qa-token-report/SKILL.md` | ✅ 可用（由 Stop Hook 自动执行）|
+
+### 基础设施（由 Hook 自动触发，不由网关路由）
+
+| Capability | SKILL.md 路径 | 触发方式 |
+|-----------|-------------|---------|
+| Token 使用统计 | `~/.claude/skills/qalore/capability/qa-token-report/SKILL.md` | Stop Hook 自动执行 |
+
+### 未建设能力（Phase 2）
+
+以下能力尚未实现，对应的 SKILL.md 文件未创建：
+- 自动化测试
+- 性能/压力测试
+- 安全测试
+- 混沌测试
 
 Phase 2 capability 请求处理：
 1. 明确告知：「[能力名称] 尚未建设，当前版本不支持」
 2. 不得使用通用知识代替执行
-3. 告知启用路径：新建 `practices/tech-stacks/{tech}/standards.md` + 新建 `capability/qa-{tech}/SKILL.md` + 更新本文件列表标记为 ✅
+3. 告知启用路径：按 `practices-bootstrap.md` 目录结构新建 practices 文件 + 新建 `capability/qa-{name}/SKILL.md` + 更新本文件的能力列表
 
 ---
 

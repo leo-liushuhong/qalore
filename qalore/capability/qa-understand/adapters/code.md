@@ -65,10 +65,9 @@
 ## 断言 ID 分配
 
 规则遵循 story-formats.md「断言 ID 规范」（权威来源）：
-- 检查 context 中 `【qa-understand-mode】` 标记（由 qa-understand 调度层在本模块开始时写入）：
-  - **值为 `multi`（多源场景）**：从 `【assert_seq_runtime: N】` 读取续接起点，从 N+1 开始递增
-  - **值为 `single` 或标记不存在（单源场景）**：从 index.json 的 `assert_seq` 获取当前最大序号，从 +1 开始递增
-- 分配完成后更新 context 中的标记：`【assert_seq_runtime: N】`（N = 本次最大序号）
+- 从 index.json 的 `assert_seq` 获取当前最大序号，从 +1 开始递增
+  - 多源场景下，前序适配器（text.md 或上一个 code.md）已立即更新了 index.json 的 `assert_seq`，因此直接读取即可得到正确的续接起点，无需依赖 context 标记
+- **分配完成后立即更新 index.json 的 `assert_seq`**（将值设为本次分配的最大序号）。更新方式：Read index.json → 修改 `modules.{模块名}.assert_seq` → Write 回文件（仅改此字段，不触及其他字段）
 - 多源场景下【待沉淀】由 synthesis 统一输出，本节不单独输出
 
 ---
@@ -104,7 +103,7 @@
 - 内容文件写入后必须同步追加 changelog，格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节
 
 **index.json 声明字段（单源时）：**
-`assert_seq`、`code_paths: [{ "path", "entry", "depth", "last_read" }]`、`depends_on: {"模块名": ["组件列表"]}`（有跨模块上下游断言时更新）、`status.code_logic: true`、`status.code_logic_changelog: true`、`status.pending_count`、`last_updated`
+`code_paths: [{ "path", "entry", "depth", "last_read" }]`、`depends_on: {"模块名": ["组件列表"]}`（有跨模块上下游断言时更新）、`status.code_logic: true`、`status.code_logic_changelog: true`、`status.pending_count`、`last_updated`（`assert_seq` 已在 ID 分配阶段实时更新，此处不重复声明）
 
 patch 操作说明：「现有 {m} 条」须来自实际 Read 文件后统计，不得从 context 记忆推断。
 

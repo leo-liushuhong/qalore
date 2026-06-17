@@ -134,7 +134,7 @@
 | {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
 | {模块名}-功能-代码逻辑.md | {story_path}/{项目}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {组件变更摘要} |
 | {模块名}-功能-代码逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
-| index.json | {story_path}/{项目}/ | {新建条目/patch} | assert_seq={最终值}，pending_count={合计}，depends_on={有更新时}，business_related={有更新时} |
+| index.json | {story_path}/{项目}/ | patch | pending_count={合计}，depends_on={有更新时}，business_related={有更新时}（assert_seq 已由各适配器执行过程中实时更新，此处不重复声明） |
 
 新增/更新断言预览（按文件分组，供用户确认内容正确性）：
 {逐行列出全部新增或更新的断言，格式与对应文件相同，含 | upd:{版本/日期} 标记}

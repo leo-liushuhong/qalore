@@ -4,6 +4,7 @@ description: >
   用例评审。由 qalore 调用，不独立触发。
   对测试用例执行多层质量检查，输出问题报告。不产生持久化产物，报告仅在对话中呈现。
   修复路径由 qa-functional-test 承接。
+practices_min_version: "2026-06-12-v11"
 ---
 
 # qa-case-review：用例评审

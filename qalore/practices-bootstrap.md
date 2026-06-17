@@ -1,6 +1,8 @@
 # practices 初始化指南
 
-本文件帮助首次使用 qalore 的用户完成 practices 目录的初始化，并作为 story/index.json 的 schema 权威来源。
+本文件帮助首次使用 qalore 的用户完成 practices 目录的初始化。
+
+> **Schema 权威来源：** `story/index.json` 的完整字段定义、字段所有权表、写入规则见 `{practices_path}/schemas/story-index.schema.md`（唯一权威）。本文件中引用的格式片段仅为初始化参考。
 
 ---
 
@@ -12,6 +14,7 @@ practices/
   common/
     handbook.md                            ← 通用规范（必须）
     handbook-practices-ops.md             ← practices 操作规范，按需加载（必须）
+    handbook-audit.md                      ← 审计规范，按需加载（必须）
   tech-stacks/
     functional/
       assertions.md                        ← 可测试断言规范
@@ -27,14 +30,20 @@ practices/
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "2026-01-01-v1",
+  "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
+  "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
     {
-      "version": "1.0.0",
-      "date": "YYYY-MM-DD",
-      "changed_files": []
+      "version": "2026-01-01-v1",
+      "changed_files": [],
+      "summary": "初始版本"
     }
-  ]
+  ],
+  "schemas": {},
+  "common": {},
+  "tech_stacks": {},
+  "projects": {}
 }
 ```
 
@@ -64,24 +73,23 @@ practices/
   "project": "string — 项目名",
   "description": "string — 项目一句话描述，面向谁、核心功能",
   "created": "YYYY-MM-DD",
+  "last_updated": "YYYY-MM-DD",
   "modules": {
     "{模块名}": {
       "description": "string — 模块一句话描述，面向谁、核心职责",
       "tc_prefix": "string — TC ID 前缀，如 PIPE（由 qa-functional-test 首次写入，注册后不可变）",
-      "mm_short_id": "string — 脑图短 ID，如 p1（由 qa-functional-test 首次写入）",
+      "mm_short_id": "string — 脑图短 ID，如 agt（由 qa-functional-test 首次写入，规则见 cases.md「.mm 短 ID」）",
       "assert_seq": "number — 当前模块已分配的最大 assert 序号，初始为 0（由 qa-understand 维护）",
       "prd_version": "string — 业务逻辑基于的 PRD 版本（可选，无版本时省略此字段）",
       "depends_on": {
         "{模块名}": ["string — 本模块调用的该模块的具体组件/服务/接口名，由 qa-understand 代码适配器从上下游断言聚合"]
       },
-      "business_related": {
-        "{模块名}": ["string — 本模块业务上影响的该模块的具体功能点名，由 qa-understand 文本/代码适配器从上下游断言聚合"]
-      },
+      "business_related": ["string — 本模块业务上影响的其他模块的功能点，由 qa-understand 文本/代码适配器从上下游断言聚合，格式：{模块名}::{功能点名}"],
       "code_paths": [
         {
           "path": "string — 代码文件或目录路径",
           "entry": "string — 入口函数/类名，如 submit()",
-          "depth": "number — 阅读深度",
+          "depth": "string — 阅读深度（字段级/函数体/接口级/全文）",
           "last_read": "YYYY-MM-DD"
         }
       ],
@@ -92,8 +100,7 @@ practices/
         "code_logic_changelog": "boolean — 代码逻辑.changelog.md 是否存在",
         "tc_count": "number — 测试用例数量，0 表示无用例",
         "pending_count": "number — 当前 [pending] 状态的待确认项数量，0 表示无待确认项"
-      },
-      "last_updated": "YYYY-MM-DD"
+      }
     }
   }
 }
@@ -106,7 +113,8 @@ practices/
 | 字段 | 首次写入 | 后续更新 |
 |------|---------|---------|
 | `description`（项目级）| 网关（新建项目时询问用户）| 不变 |
-| `description`（模块级）| qa-understand | qa-understand |
+| `description`（模块级）| 网关（新建模块时，可随后由 qa-understand 补充）| qa-understand |
+| `last_updated`（项目级）| 各 capability（每次写入后同步更新）| 各 capability |
 | `prd_version` | qa-understand（文本适配器）| qa-understand（文本适配器）|
 | `depends_on` | qa-understand（代码适配器，从上下游断言聚合）| qa-understand（代码适配器）|
 | `business_related` | qa-understand（文本或代码适配器，从上下游断言聚合）| qa-understand（每次写含跨模块标签的上下游断言后更新）|

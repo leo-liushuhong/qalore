@@ -45,7 +45,14 @@ changelog[0] → changelog[1] → ... → changelog[N]（已知版本）
 
 - changelog 为 JSON 数组，条目之间必须有逗号，最后一条不加逗号
 - 版本号格式：`{YYYY-MM-DD}-v{n}`，同日期内的 n 从 1 开始递增
-- `changed_files` 使用相对于 `practices_path` 的路径
+- `changed_files` 路径前缀约定：
+
+| 前缀 | 语义 | 示例 |
+|------|------|------|
+| 裸路径（无前缀）| 相对于 `practices_path` | `common/handbook.md` |
+| `qalore:` | 相对于 skill 包路径（`~/.claude/skills/qalore/`）| `qalore:SKILL.md` |
+| `story:` | 相对于 `story_path` | `story:ChatBi/index.json` |
+| `claude:` | 相对于 `~/.claude/` | `claude:settings.json` |
 
 ---
 
