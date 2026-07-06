@@ -25,8 +25,8 @@ practices_min_version: "2026-06-12-v11"
 
 从三个层次思考：
 
-**结构层**：用例本身是否可执行？字段是否完整？每个触发性步骤是否有对应预期？
-遵循 `{practices_path}/tech-stacks/functional/cases.md`「用例格式」和「用例质量标准」章节。
+**结构层**：用例本身是否可执行？字段是否完整？每个触发性步骤是否有对应预期？**每个 `→ 预期：` 是否有对应 `→ 断言：`？**
+遵循 `{practices_path}/tech-stacks/functional/cases.md`「用例格式」「用例质量标准」「断言规则」章节。
 
 **覆盖层**：该测的场景是否都测了？
 - 每个功能点是否覆盖了正向/边界/异常/上下游四个维度
@@ -59,7 +59,8 @@ practices_min_version: "2026-06-12-v11"
 
 本 capability 使用的 practices 文件：
 - `tech-stacks/functional/assertions.md`（评审断言覆盖时）
-- `tech-stacks/functional/cases.md`（评审用例格式和质量标准时）
+- `tech-stacks/functional/cases.md`（评审用例格式、质量标准、断言规则时）
+- `tech-stacks/functional/execution.md`（评审断言类型合法性时）
 
 handbook.md 已由网关预加载，直接使用；评审严重级别和结论判定规则见 handbook.md「评审规范」章节。
 

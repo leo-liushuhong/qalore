@@ -51,7 +51,7 @@ changelog[0] → changelog[1] → ... → changelog[N]（已知版本）
 |------|------|------|
 | 裸路径（无前缀）| 相对于 `practices_path` | `common/handbook.md` |
 | `qalore:` | 相对于 skill 包路径（`~/.claude/skills/qalore/`）| `qalore:SKILL.md` |
-| `story:` | 相对于 `story_path` | `story:ChatBi/index.json` |
+| `story:` | 相对于 `story_path` | `story:{项目名}/index.json` |
 | `claude:` | 相对于 `~/.claude/` | `claude:settings.json` |
 
 ---

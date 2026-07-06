@@ -409,9 +409,10 @@
 <header class="hero">
   <div class="hero-inner animate-in">
     <div class="badge-row">
-      <span class="hero-badge">🧪 测试意图理解</span>
-      <span class="hero-badge">📋 功能用例设计</span>
-      <span class="hero-badge">🔍 用例质量评审</span>
+      <span class="hero-badge">🧪 意图理解</span>
+      <span class="hero-badge">📋 用例设计</span>
+      <span class="hero-badge">🔍 用例评审</span>
+      <span class="hero-badge">▶️ 用例执行</span>
     </div>
     <h1>qalore</h1>
     <p class="subtitle">AI 驱动的测试任务网关</p>
@@ -475,7 +476,7 @@
       <div class="card animate-in delay-3">
         <span class="card-icon">💉</span>
         <h3>职责三：上下文注入</h3>
-        <p>触发任何 capability 前，先读取其 SKILL.md，然后向 context 显式注入四个变量：<code>practices_path</code>、<code>story_path</code>、<code>确认项目名</code>、<code>practices_version</code>。多个 capability 共享同一套注入值，各自按需加载 practices 文件。</p>
+        <p>触发任何 capability 前，先读取其 SKILL.md，然后向 context 显式注入变量：<code>practices_path</code>、<code>story_path</code>、<code>确认项目名</code>、<code>practices_version</code>、<code>playwright_mcp_available</code>。多个 capability 共享同一套注入值，各自按需加载 practices 文件。</p>
       </div>
     </div>
 
@@ -499,6 +500,7 @@
           <tr><td>提供 PRD / 需求文档 / 代码路径 / 口述；或描述含「理解 / 提炼 / 沉淀 / 分析 / 记录」</td><td><code>qa-understand</code></td><td>—</td></tr>
           <tr><td>描述含「生成用例 / 出用例 / 全量 / 测试文件」；或指定模块但无文档</td><td><code>qa-functional-test</code></td><td>同会话触发了 qa-understand 时，须等其 <code>【测试意图已提炼】</code> 交接块产出</td></tr>
           <tr><td>描述含「评审 / review / 检查用例 / 审查用例」；或粘贴了 TC 内容</td><td><code>qa-case-review</code></td><td>联动模式下须等 qa-understand 完成</td></tr>
+          <tr><td>描述含「执行 / 跑 / 运行 + 用例 / 测试 / TC / 模块」</td><td><code>qa-execution</code></td><td>Playwright MCP 已配置</td></tr>
         </tbody>
       </table>
     </div>
@@ -510,7 +512,7 @@
   <div class="container">
     <div class="section-header animate-in">
       <span class="section-label">Capabilities</span>
-      <h2 class="section-title">三大核心能力</h2>
+      <h2 class="section-title">四大核心能力</h2>
       <p class="section-desc">每个 capability 拥有独立的思考哲学和执行流程，由网关按路由表调度，通过上下文注入获得运行所需变量。</p>
     </div>
 
@@ -523,7 +525,7 @@
       </div>
       <div class="badge-group">
         <span class="badge badge-input">输入：PRD / 代码 / 混合</span>
-        <span class="badge badge-think">思考：三驱动 + 7问 + 五镜头 + 多源聚合</span>
+        <span class="badge badge-think">思考：三驱动 + 7 问追问 + 波及与覆盖分析</span>
         <span class="badge badge-output">输出：业务逻辑.md + 代码逻辑.md + 交接块</span>
       </div>
       <div class="cap-body">
@@ -540,7 +542,7 @@
         <div>
           <p><strong>三个适配器，按需加载：</strong></p>
           <ul class="feature-list">
-            <li><span class="feat-icon">📄</span> <strong>文本适配器（7问追问）</strong> — 对每个功能点追问：正常结果、状态、触发者、输入约束、交互反馈、副作用、失败场景。</li>
+            <li><span class="feat-icon">📄</span> <strong>文本适配器（7 问纵向追问 + 横向波及与覆盖分析）</strong> — 对每个功能点追问：正常结果、状态、触发者、输入约束、交互反馈、副作用、失败场景；全部完成后执行波及与覆盖横向扫描。受信息范围层级约束（4 级同心圆，默认层级 1）。</li>
             <li><span class="feat-icon">💻</span> <strong>代码适配器（五镜头）</strong> — 入口与路径、数据约束、状态与转换、副作用链、错误路径。支持多代码仓库。</li>
             <li><span class="feat-icon">🔬</span> <strong>综合层（证据聚合）</strong> — 文本和代码独立提炼后，识别"同一场景"、判断置信度、标注冲突。</li>
           </ul>
@@ -636,6 +638,31 @@
       </div>
     </div>
 
+    <!-- qa-execution -->
+    <div class="cap-detail animate-in delay-3">
+      <div class="cap-header">
+        <span class="cap-name">qa-execution</span>
+        <span class="cap-tag">测试用例执行</span>
+        <span class="badge badge-status">✅ 可用</span>
+      </div>
+      <div class="badge-group">
+        <span class="badge badge-input">输入：TC 文件 + 执行环境 URL</span>
+        <span class="badge badge-think">引擎：Playwright MCP + CDP Network MCP</span>
+        <span class="badge badge-output">输出：执行报告（PASS / FAIL / SKIP）</span>
+      </div>
+      <div class="cap-body single-col">
+        <div>
+          <p><strong>定位：</strong>通过浏览器自动化执行测试用例，产出步骤级结构化执行报告。依赖 Playwright MCP 提供浏览器控制能力，CDP Network MCP 提供网络请求验证能力。网关执行前检查 Playwright MCP 可用性。</p>
+          <p style="margin-top:0.8rem;"><strong>断言类型（10 种）：</strong></p>
+          <ul class="feature-list">
+            <li><span class="feat-icon">🌐</span> <strong>UI 断言（7 种）</strong> — 元素可见性验证、文本内容验证、元素值验证、列表项验证、截图对比、控制台消息验证、网络请求验证。</li>
+            <li><span class="feat-icon">🔌</span> <strong>API 断言（3 种）</strong> — HTTP 状态码验证、响应体 JSON 验证、响应头验证。</li>
+            <li><span class="feat-icon">📊</span> <strong>执行报告</strong> — 逐用例记录每个步骤的执行结果，汇总 PASS / FAIL / SKIP 统计，失败用例附加截图和错误详情。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Infrastructure -->
     <div class="highlight-box" style="margin-top:2rem;">
       <strong>🔧 基础设施能力：qa-token-report</strong><br>
@@ -712,15 +739,18 @@
           <strong>practices/</strong><br>
           ├── <strong>index.json</strong> <span class="dim">← 版本管理入口</span><br>
           ├── <strong>common/</strong><br>
-          │&nbsp;&nbsp;&nbsp;├── handbook.md <span class="dim">← 写入协议、评审规范（每次任务必加载）</span><br>
+          │&nbsp;&nbsp;&nbsp;├── handbook.md <span class="dim">← 写入协议、评审规范、通用性约束（每次任务必加载）</span><br>
           │&nbsp;&nbsp;&nbsp;├── handbook-practices-ops.md <span class="dim">← practices 元操作</span><br>
-          │&nbsp;&nbsp;&nbsp;└── handbook-audit.md <span class="dim">← 审计规范</span><br>
+          │&nbsp;&nbsp;&nbsp;└── handbook-audit.md <span class="dim">← 审计规范（15 步 + 19 哲学）</span><br>
+          ├── <strong>schemas/</strong><br>
+          │&nbsp;&nbsp;&nbsp;└── story-index.schema.md <span class="dim">← Story 数据 Schema 权威定义</span><br>
           └── <strong>tech-stacks/functional/</strong><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── assertions.md <span class="dim">← 断言格式规范</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── cases.md <span class="dim">← 用例格式规范</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── changelog.md <span class="dim">← 变更记录规范</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── output.md <span class="dim">← .mm 脑图规范</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;└── story-formats.md <span class="dim">← 文件格式规范</span>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── story-formats.md <span class="dim">← 文件格式规范</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── execution.md <span class="dim">← 执行规范（断言 + 规则）</span>
         </div>
       </div>
       <div>
@@ -756,6 +786,7 @@
           <tr><td><code>functional/cases.md</code></td><td>设计或评审用例时</td><td>qa-functional-test / qa-case-review</td></tr>
           <tr><td><code>functional/changelog.md</code></td><td>写入变更记录时</td><td>qa-understand / qa-functional-test</td></tr>
           <tr><td><code>functional/output.md</code></td><td>生成 .mm 脑图时</td><td>qa-functional-test</td></tr>
+          <tr><td><code>functional/execution.md</code></td><td>执行测试用例时</td><td>qa-execution</td></tr>
           <tr><td><code>common/handbook-practices-ops.md</code></td><td>修改 practices 时（极低频）</td><td>网关</td></tr>
         </tbody>
       </table>
@@ -784,6 +815,7 @@
           &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>qa-understand/</strong> <span class="dim">← 理解（含 3 个适配器）</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>qa-functional-test/</strong> <span class="dim">← 用例设计</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>qa-case-review/</strong> <span class="dim">← 用例评审</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <strong>qa-execution/</strong> <span class="dim">← 用例执行（Playwright）</span><br>
           &nbsp;&nbsp;&nbsp;&nbsp;└── <strong>qa-token-report/</strong> <span class="dim">← Token 统计（Hook）</span>
         </div>
       </div>
@@ -810,6 +842,7 @@
         <a href="#capabilities">qa-understand · 意图理解与提炼</a>
         <a href="#capabilities">qa-functional-test · 用例设计与输出</a>
         <a href="#capabilities">qa-case-review · 用例质量评审</a>
+        <a href="#capabilities">qa-execution · 测试用例执行</a>
         <a href="#capabilities">qa-token-report · Token 统计</a>
       </div>
       <div class="footer-col">

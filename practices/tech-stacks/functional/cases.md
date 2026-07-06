@@ -286,3 +286,59 @@ qa-functional-test 产出 TC 后，必须执行覆盖检查：
 | 智能体配置 | 知识库配置 | 0 条 | UNCOVERED |
 | 系统管理 | Prompt模板管理 | 0 条 | UNCOVERED |
 ```
+
+---
+
+## 断言规则（强制）
+
+每条 TC 的每个 `→ 预期：` 必须紧跟至少一个 `→ 断言：`。
+
+断言规则由 qa-functional-test 在设计 TC 时**同步产出**，不可后补。
+无断言规则的 TC 视为不可执行，qa-execution 将标记 SKIP。
+
+### 格式
+
+```
+→ 预期：{自然语言描述，人可读}
+→ 断言：{断言类型}({参数})
+→ 断言：{断言类型}({参数})
+```
+
+- 一个 `→ 预期：` 可对应多个 `→ 断言：`
+- `→ 断言：` 行紧跟在对应的 `→ 预期：` 行之后
+- 参数含空格或特殊字符时用双引号包裹
+
+### 断言类型
+
+断言类型**仅在 `execution.md` 中定义**（权威源），此处列出名称供 TC 设计时查阅：
+
+| 类型 | 用途 | 示例 |
+|------|------|------|
+| `element-exists` | UI 元素存在 | `element-exists(.new-chat-btn)` |
+| `element-not-exists` | UI 元素不存在 | `element-not-exists(.new-chat-btn)` |
+| `element-count` | UI 元素数量 | `element-count(.group-label, 5)` |
+| `element-text` | UI 元素文本 | `element-text(.sidebar-title, "历史记录")` |
+| `element-width` | UI 元素宽度 | `element-width(.chat-sidebar, 380)` |
+| `message-contains` | Element UI 消息 | `message-contains("请输入请求消息！")` |
+| `url-contains` | 页面 URL | `url-contains("/login")` |
+| `api-status` | API HTTP 状态 | `api-status(/api/agent/.*/sessions, 200)` |
+| `api-field-exists` | API 响应字段 | `api-field-exists(/api/agent/.*/sessions, "total")` |
+| `api-field-value` | API 响应字段值 | `api-field-value(/api/agent/.*/sessions, "total", 9)` |
+
+### 告示例
+
+```markdown
+测试步骤：
+1. 输入框为空点击发送     → 预期：弹出黄色警告"请输入请求消息！"
+   → 断言：message-contains("请输入请求消息！")
+
+2. 展开历史记录栏         → 预期：侧栏宽度380px，标题为"历史记录"
+   → 断言：element-width(.chat-sidebar, 380)
+   → 断言：element-text(.sidebar-title, "历史记录")
+```
+
+### TC 产出验证
+
+qa-functional-test 产出 TC 后必须验证（执行后验证第 5 项）：
+- 每条 TC 的每个 `→ 预期：` 至少对应一个 `→ 断言：`
+- 断言类型在 execution.md 定义的 10 种范围内

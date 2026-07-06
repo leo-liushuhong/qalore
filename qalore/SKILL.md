@@ -101,6 +101,7 @@ description: >
 | 用户提供了任何形式的信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录类意图 | `qa-understand` | — |
 | 用户需要测试用例，描述含「生成/出用例/全量/测试文件」，或无需求文档但指定模块，或描述含「更新story/写入story/沉淀到story」 | `qa-functional-test` | 同会话触发了 qa-understand 时，须等其完成 |
 | 用户描述含「评审/review/检查用例/审查用例」，或粘贴了 TC 内容要评审，或描述含「生成并评审」 | qa-case-review | 联动模式下须等 qa-understand 完成 |
+| 用户描述含「执行/跑/运行+用例/测试/TC/模块」 | `qa-execution` | Playwright MCP 已配置（网关环境验证阶段检查） |
 
 **多 capability 执行顺序约束：**
 - 同会话同时触发 qa-understand 和 qa-functional-test → 先执行 qa-understand，待 `【测试意图已提炼】` 交接块产出后，再执行 qa-functional-test
@@ -122,6 +123,8 @@ practices_path    = {值}
 story_path        = {值}
 确认项目名        = {值}
 practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 字段（环境验证阶段已读取）
+playwright_mcp_available = {true/false}   ← 网关检查 Playwright MCP 工具是否在可用工具列表中
+执行环境 URL        = {用户提供，或从 story/index.json 的 test_url 字段读取}
 ```
 
 多个 capability 同时触发时，各自读取 SKILL.md，共享同一套注入变量。
@@ -139,6 +142,7 @@ practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 
 | 测试意图理解与提炼 | `~/.claude/skills/qalore/capability/qa-understand/SKILL.md` | ✅ 可用 |
 | 功能测试用例设计与产物输出 | `~/.claude/skills/qalore/capability/qa-functional-test/SKILL.md` | ✅ 可用 |
 | 用例评审 | `~/.claude/skills/qalore/capability/qa-case-review/SKILL.md` | ✅ 可用 |
+| 测试用例执行 | `~/.claude/skills/qalore/capability/qa-execution/SKILL.md` | ✅ 可用 |
 
 ### 基础设施（由 Hook 自动触发，不由网关路由）
 
@@ -149,7 +153,6 @@ practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 
 ### 未建设能力（Phase 2）
 
 以下能力尚未实现，对应的 SKILL.md 文件未创建：
-- 自动化测试
 - 性能/压力测试
 - 安全测试
 - 混沌测试
