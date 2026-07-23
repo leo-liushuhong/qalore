@@ -7,9 +7,10 @@ description: >
      ~/.claude/qalore-config.json），含业务逻辑/测试用例/代码逻辑/变更日志四类文件，
      按项目-模块两级目录组织。用户说「更新story/沉淀/写入story」时必须调用本 skill，
      不得自行在其他路径创建文件代替。
-  已建设能力：测试意图理解、功能测试、用例评审。未建设（Phase 2）：自动化、性能、安全、混沌。
+  已建设能力：测试意图理解、功能测试、用例评审、用例执行。未建设（Phase 2）：性能、安全、混沌。
   执行前必须先读 ~/.claude/qalore-config.json 获取 practices 和 story 路径，
   验证路径有效后继续。路径无效时立即停止，不得使用通用知识代替。
+practices_min_version: "2026-04-10-v1"
 ---
 
 # qalore：测试任务网关
@@ -41,8 +42,13 @@ description: >
 - **存在** → 读取 practices_path / story_path
 
 路径验证：
+- `practices_path` 字段缺失、为 null 或空字符串 → 停止：「practices_path 未配置，请检查 ~/.claude/qalore-config.json」
+- `{practices_path}` 目录不存在或不可读 → 停止：「practices 目录不存在或无法访问：{practices_path}」
 - `{practices_path}/index.json` 不存在 → 停止：「practices 未初始化，请参考 skill 包内 practices-bootstrap.md 完成初始化」
+- `{practices_path}/index.json` 存在但非有效 JSON → 停止：「practices/index.json 格式损坏，请检查并修复 JSON 语法」
+- `story_path` 字段缺失、为 null 或空字符串 → 停止：「story_path 未配置，请检查 ~/.claude/qalore-config.json」
 - `{story_path}/` 不存在 → 停止：「story 目录不存在，请创建后重试」
+- `{story_path}/` 存在但无写入权限 → 停止：「story 目录无写入权限：{story_path}」
 - 全部通过 → 将两个路径写入 context，供所有 capability 使用
 
 **practices 版本一致性验证（路径通过后必执行）：**
@@ -124,6 +130,7 @@ story_path        = {值}
 确认项目名        = {值}
 practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 字段（环境验证阶段已读取）
 playwright_mcp_available = {true/false}   ← 网关检查 Playwright MCP 工具是否在可用工具列表中
+	cdp_network_mcp_available = {true/false}  ← 网关检查 Python 环境（websocket-client, requests 包）是否可用；不可用时 qa-execution 仅能执行 UI 断言，API 断言将全部 SKIP
 执行环境 URL        = {用户提供，或从 story/index.json 的 test_url 字段读取}
 ```
 
@@ -168,17 +175,15 @@ Phase 2 capability 请求处理：
 
 版本一致性已在环境验证阶段校验（`version == changelog[0].version`），此处不重复。
 
-**加载 handbook.md（每次任务必执行）：**
+**context 标记验证（每次任务必执行）：**
 ```
-context 中存在 【practices:handbook.md:loaded】 → 跳过（0 token）
-不存在 → Read({practices_path}/common/handbook.md)
-         加载完成后写入 context：【practices:handbook.md:loaded】
-```
+每次任务开始时检查 context 标记是否存在：
+  【practices:handbook.md:loaded】 不存在 → 重新 Read handbook.md，写入标记
+  存在 → 跳过（0 token）
 
-**每次任务开始时验证标记（防止 context 压缩后标记丢失）：**
-```
-【practices:handbook.md:loaded】 不存在 → 重新 Read handbook.md，写入标记
-存在 → 继续（其余 practices 文件的 `【practices:*.loaded】` 标记由各 capability 在实际使用前自行验证：标记存在 → 跳过 Read；标记不存在（含 context 压缩后丢失）→ 重新 Read 并写入标记）
+其余 practices 文件的 【practices:*.loaded】 标记由各 capability
+在实际使用前自行验证：标记存在 → 跳过 Read；标记不存在
+（含 context 压缩后丢失）→ 重新 Read 并写入标记
 ```
 
 context 标记规范（格式、规则）见 handbook.md「context 标记规范」章节。

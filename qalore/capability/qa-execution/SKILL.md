@@ -10,12 +10,12 @@ practices_min_version: "2026-06-24-v19"
 
 ## 前置说明
 
-| 变量 | 来源 |
-|------|------|
-| `{practices_path}` | qalore 注入 |
-| `{story_path}` | qalore 注入 |
-| `{确认项目名}` | qalore 注入 |
-| `{执行环境 URL}` | qalore 注入（用户提供，或从 story/index.json 的 test_url 字段读取） |
+| 变量 | 来源 | fallback |
+|------|------|---------|
+| `{practices_path}` | qalore 注入 | 自动恢复：读 `~/.claude/qalore-config.json` 重建 context |
+| `{story_path}` | qalore 注入 | 自动恢复：读 `~/.claude/qalore-config.json` 重建 context |
+| `{确认项目名}` | qalore 注入 | 暂停，向用户重新确认 |
+| `{执行环境 URL}` | qalore 注入 | 暂停，向用户确认 |
 
 ## 触发条件
 

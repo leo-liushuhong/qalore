@@ -97,8 +97,9 @@
 **写入规程：**
 - 代码逻辑.md 按「断言变更规则」操作（见 handbook.md）：找到对应组件章节原地覆盖，新组件追加章节，删除的组件整节移除
 - 每条被新增或更新的断言行末附 `| upd:{日期}`（代码适配器无 PRD 版本，统一用日期）；组件节头同步刷新 `> last-upd:{日期}`
-- **多仓库多源模式**（用户提供多个代码仓库时）：读取 context 中 `【code-source: {仓库名}】` 标记获取当前仓库名，在每条断言行末 `| upd:` 之后追加 `[来源:{仓库名}]`，供 synthesis 区分来源
-- **单仓库多源模式**（`【qa-understand-mode: multi】` 且只有一个代码仓库）：在每条断言行末 `| upd:` 之后追加 `[来源:code]`，供 synthesis 区分与文本断言的来源
+- **多仓库多源模式**（`【code-repo-count】` > 1）：读取 context 中 `【code-source: {仓库名}】` 标记获取当前仓库名，在每条断言行末 `| upd:` 之后追加 `[来源:{仓库名}]`，供 synthesis 区分来源
+- **单仓库多源模式**（`【code-repo-count】` = 1）：在每条断言行末 `| upd:` 之后追加 `[来源:code]`，供 synthesis 区分与文本断言的来源
+- `【code-repo-count】` 标记由 qa-understand 调度层在写入 `【qa-understand-mode: multi】` 时同步写入；code.md 不自行猜测仓库总数
 - **上下游断言跨模块时**：目标用 `[模块::组件]` 标签标注；写入后**重建** index.json 的 `depends_on`——扫描**步骤2合并后的完整内容**（即写入文件的最终版本）中所有 `[模块::组件]` 标签，提取全量跨模块引用，完整替换 index.json 中的 `depends_on` 字段（不追加，防止删除的引用残留形成幽灵数据）
 - 内容文件写入后必须同步追加 changelog，格式见 `tech-stacks/functional/changelog.md`「断言 changelog 格式」章节
 

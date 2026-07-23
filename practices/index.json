@@ -1,8 +1,68 @@
 {
-  "version": "2026-07-06-v2",
+  "version": "2026-07-23-v6",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-07-23-v6",
+      "changed_files": [
+        "common/handbook.md",
+        "index.json"
+      ],
+      "summary": "执行报告写入模式澄清：handbook.md 增量原则表格新增「执行报告.md」行——明确其使用覆盖写入（快照产物，非累积知识），消除与 qa-execution 执行报告格式的\"覆盖写入 vs 只增不删\"规则冲突"
+    },
+    {
+      "version": "2026-07-23-v5",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/cloud-sync.md",
+        "index.json"
+      ],
+      "summary": "拓扑审计修复（3项阻断级）：① story-formats.md 第34行修正——移除不存在的 context 标记引用（【qa-understand-mode】），改为描述 code.md 的实际行为（从 index.json 直接读取 assert_seq，不依赖 context 标记）；② cloud-sync.md subagent 段标识符速查补全 P3 行（01c2c957d44e12389f330e0af2）+ 新增标签获取指引；③ cloud-sync.md 修复 directory/list API HTTP 方法不一致（GET→POST，与主段落对齐）"
+    },
+    {
+      "version": "2026-07-23-v4",
+      "changed_files": [
+        "common/handbook.md",
+        "index.json"
+      ],
+      "summary": "审计修复（3项建议级完善）：① handbook.md 移除 context 标记注册表与章节注册表之间的冗余双水平线；② context 标记注册表新增 code-repo-count 标记（消除 code.md 单/多仓库来源标注的判断歧义——此前依赖会话记忆，现改为显式 context 标记）"
+    },
+    {
+      "version": "2026-07-23-v3",
+      "changed_files": [
+        "common/handbook.md",
+        "index.json"
+      ],
+      "summary": "审计修复：章节注册表补全——新增「计数一致性规范」和「文件操作规范」两个遗漏的章节注册条目（此前这两个 ## 标题存在于 handbook.md 中但未在注册表登记，导致跨文件引用验证时出现 2 处合约不一致）"
+    },
+    {
+      "version": "2026-07-23-v2",
+      "changed_files": [
+        "common/handbook.md",
+        "index.json"
+      ],
+      "summary": "新增「临时文件清理规范」章节——qalore 执行任务过程中产生的所有临时脚本和中间文件必须在任务完成后全部清理，不得残留。同步更新章节注册表。"
+    },
+    {
+      "version": "2026-07-23-v1",
+      "changed_files": [
+        "common/handbook-audit.md",
+        "tech-stacks/functional/cloud-sync.md",
+        "index.json"
+      ],
+      "summary": "subagent 分层体系建设 + audit 升级（4 项变更）：① cloud-sync.md 新增「subagent 执行约束」章节——硬约束（标题前缀优先级/字段完整性/删除安全/执行安全/并发安全边界/同步后验证/错误处理）+ 标识符速查 + API 模板；② handbook-audit.md 审计流水线 16→17 步——新增步骤17「subagent 分层合规检查」(Q)（practices-capability 双向闭合 + 引用粒度 + 触发条件覆盖）；③ handbook-audit.md 步骤5 新增 subagent prompt 模板完整性检查；④ handbook-audit.md 设计哲学 19→20 条——新增哲学20「执行隔离可靠性」（practices 定义隔离内容，capability 定义隔离时机 → 三层闭合验证）"
+    },
+    {
+      "version": "2026-07-14-v1",
+      "changed_files": [
+        "index.json",
+        "common/handbook.md",
+        "common/handbook-audit.md",
+        "tech-stacks/functional/cloud-sync.md"
+      ],
+      "summary": "云效通道建设 + 安全规范补充（4 项变更）：① 新建 tech-stacks/functional/cloud-sync.md — 云效通道规范（与 .mm 通道平行），含 API 能力矩阵/创建 TC body 模板/字段 identifier 速查表/安全规则/同步前后验证；② handbook.md 新增「批量操作安全规范」— 多条件精确过滤 + dry-run 前置 + 禁止全删重建；③ handbook.md 文件操作规范扩充「内容文件的删除操作（3.3）」— 删除后计数验证 + 脚本模式约束（必须用 content[:start] + content[end:] 而非 content[:start] + marker）；④ handbook-audit.md 流水线 15→16 步 — 新增步骤16「外部系统一致性」，方向 A 数据一致性（story↔云效）+ 方向 B 方法合规性（全删重建检测/dry-run 检查/同步后验证执行检查/更新 API 违规检测）"
+    },
     {
       "version": "2026-07-06-v2",
       "changed_files": [
@@ -470,7 +530,7 @@
   "common": {
     "handbook": {
       "file": "common/handbook.md",
-      "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）",
+      "summary": "story维护约定、story写入协议（Write Manifest）、沟通规范（含外部依赖断点集中提问规则）、执行前确认规范、多模块任务规范、context标记规范、评审规范（通用严重级别+结论判定）、批量操作安全规范",
       "when_to_load": "每次任务必加载（由网关预加载），也是执行写入操作和用例评审时的规范依据"
     },
     "handbook-practices-ops": {
@@ -480,7 +540,7 @@
     },
     "handbook-audit": {
       "file": "common/handbook-audit.md",
-      "summary": "十五步审计流水线（JSON结构→注册表双向→Schema双向→计数字段→格式合规率→元数据对齐→原子变更→示例即契约→注册表同质性→状态通道盘点→消费者-生产者版本契约→权威-副本一致性→Changelog声明真实性验证→基础设施健康检查→跨模块引用一致性）和十九条设计哲学",
+      "summary": "十七步审计流水线（JSON结构→注册表双向→Schema双向→计数字段→格式合规率→元数据对齐→原子变更→示例即契约→注册表同质性→状态通道盘点→消费者-生产者版本契约→权威-副本一致性→Changelog声明真实性验证→基础设施健康检查→跨模块引用一致性→外部系统一致性→subagent分层合规）和二十条设计哲学",
       "when_to_load": "人工执行 qalore 全面审计时（无自动化触发——审计由开发者手动调用，对应规范见 common/handbook-audit.md）"
     }
   },
@@ -509,6 +569,10 @@
       "execution": {
         "file": "tech-stacks/functional/execution.md",
         "when_to_load": "执行测试用例时（qa-execution），获取断言类型定义和执行规则"
+      },
+      "cloud_sync": {
+        "file": "tech-stacks/functional/cloud-sync.md",
+        "when_to_load": "将 story 测试用例同步到云效 TestHub 时（qa-functional-test 的云效通道），获取 API 模板、安全规则和同步前后校验规范"
       }
     }
   },

@@ -31,7 +31,7 @@ synthesis 层写入，单源提炼时无标注。
 - 模块缩写与 TC 前缀一致（如 IMG、PIPE）
 - 序号在模块内全局递增，跨文件（业务逻辑.md 和代码逻辑.md 共享同一序号空间）
 - text adapter 生成断言时分配 ID，从 001 开始；已有文件时从最大序号 +1 开始
-- code adapter 生成断言时分配 ID：读取 context 中 `【qa-understand-mode】` 标记（由 qa-understand 调度层写入）；值为 `multi` 时从 index.json 的 `assert_seq` 获取续接起点（前序适配器已立即更新）；值为 `single` 或不存在时从 index.json 的 `assert_seq` 或业务逻辑.md 的最大序号获取
+- code adapter 生成断言时分配 ID：从 index.json 的 `assert_seq` 直接读取续接起点（多源模式下前序适配器（text 或上一个 code）已立即更新 index.json，因此直接读取即可获取正确起点；单源模式下从 index.json 或业务逻辑.md 的最大序号获取），不依赖 context 标记传递。分配完成后立即更新 index.json 的 `assert_seq`
 - synthesis 识别同一场景后，将 code_logic.md 中对应断言的 ID 改写为与 business_logic.md 相同的值，并在业务逻辑.md 对应断言行追加置信度标注
 
 **同一 assert ID 在两个文件中出现 = 同一场景的不同视角**，是跨文件关联的唯一依据。

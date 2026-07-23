@@ -82,6 +82,99 @@ practices_min_version: "2026-06-15-v18"
 - `tech-stacks/functional/changelog.md`（写入 changelog 时）
 - `tech-stacks/functional/output.md`（生成 .mm 产物时）
 - `tech-stacks/functional/story-formats.md`（读写 story 文件时）
+- `tech-stacks/functional/cloud-sync.md`（同步到云效时，含 subagent 执行约束）
+
+---
+
+## subagent 委托
+
+云效同步涉及 `cloud-sync.md` 中的硬约束规则。
+在长对话 context 中这些规则有被模型忽略的风险。
+条件满足时，通过 Agent 工具委托 subagent 执行，
+利用 subagent 的 prompt 级别优先级保证规则不被遗漏。
+
+### 触发条件
+
+| 条件 | 动作 | 理由 |
+|------|------|------|
+| 操作总数 ≥ 3 条 | 使用 subagent | 批量遗漏一条规则即污染多条 TC |
+| 包含删除操作（即使仅 1 条）| 使用 subagent | 删除不可逆；subagent 强制遵守 cloud-sync.md 的删除安全规则 |
+| 操作总数 1-2 条且无删除 | 可选 | 低风险，出错修复成本小 |
+| 仅验证（只读，无写操作）| 主线直接执行 | 无副作用 |
+
+不触发 subagent 视为偏离 practices。
+
+### 并发模式
+
+当前使用单 subagent 模式：所有云效操作（创建+删除+验证）在同一 Agent 调用内串行完成。
+遵循 cloud-sync.md「并发安全边界」：同一模块只允许一个写操作。
+
+### 调用方式
+
+```
+Agent(
+  subagent_type = "general-purpose",
+  model = "haiku",
+  description = "云效 TC 同步",
+  prompt = "{构造的 prompt}"
+)
+```
+
+### prompt 构造
+
+按顺序拼接以下三段。占位符由本 capability 在调用前替换。
+**三段必须全部包含——不得省略或删减任何一段。**
+
+**第一段（必选）：硬约束**
+
+从 cloud-sync.md 完整复制「subagent 执行约束」章节中「#### 标题前缀」
+到「#### 错误处理」之间的全部内容（含各子标题）。
+
+**第二段（必选）：上下文数据**
+
+从 cloud-sync.md 完整复制「### 标识符速查」和「### API 模板」的全部内容，
+并填入实际值：
+
+```
+【spaceId】{从浏览器页面 URL 提取}
+【assignedTo】{从已有 TC 的 assignedTo.identifier 获取}
+【目录 ID 映射】
+{调用 directory/list API 获取}
+【标签 ID】
+{从 cloud-sync.md 标识符速查获取，或从已有 TC 的 tag 字段提取}
+```
+
+**第三段（必选）：操作列表**
+
+```
+【待创建 TC】（共 N 条）
+{逐条列出，含 TC ID、标题、优先级、版本号、前置条件、测试步骤、预期结果}
+
+【待删除 TC】（共 M 条）
+{逐条列出，含 TC ID、云效 identifier、标题}
+
+【验证】
+上述操作完成后，执行同步后验证（计数/字段/标签）
+```
+
+### 调用时序
+
+1. 若含删除 → 先在主线输出 dry-run 清单并获用户确认
+2. 用户确认后 → 构造 prompt 并调用 Agent
+3. Agent 执行完成 → 展示结构化结果（已完成 + 失败）
+4. 有失败项 → 列出，询问重试或手动处理
+5. Agent 超时 → 展示已完成清单，询问是否继续
+
+### 适用边界
+
+subagent 委托适用于 **执行层面**的可靠性保证。
+当前版本仅覆盖云效同步通道。以下为后续迭代候选（当前不实施）：
+
+| 场景 | 候选理由 | 当前做法 |
+|------|---------|---------|
+| TC 设计写入 story | 格式/计数/前缀规则密集 | 主线执行 |
+| .mm 产物生成 | 纯格式转换，机械可执行 | 主线执行 |
+| 同步后验证（独立触发）| 机械检查 | 合并在云效 subagent 内 |
 
 ---
 
