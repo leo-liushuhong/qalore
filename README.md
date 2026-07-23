@@ -1,307 +1,452 @@
-# qalore — 测试任务网关
+# qalore — 全栈测试工程师网关
 
-> 接收测试任务 → 环境验证 → 意图识别 → 上下文注入 → 交给 capability 执行
->
-> 已建设：测试意图理解、功能测试、用例评审、用例执行。未建设（Phase 2）：自动化、性能、安全、混沌。
+> AI 是主体，框架是支撑。qalore 装备 AI 为全栈测试工程师，不把 AI 变成流水线。
 
----
+## 概述
 
-## 快速索引
+qalore 是一个 Claude Code skill，作为测试任务网关，接收测试任务后完成三件事：
 
-- [网关职责](#网关职责)
-- [三条不可违反的约束](#三条不可违反的约束)
-- [环境验证流程](#环境验证流程)
-- [意图识别与路由](#意图识别与路由)
-- [上下文注入协议](#上下文注入协议)
-- [可用 Capability 列表](#可用-capability-列表)
-- [practices 加载规范](#practices-加载)
-- [快速上手（安装与配置）](#快速上手)
-- [文件包结构](#文件包结构)
-
----
-
-## 网关职责
-
-接收测试任务后，完成三件事：
-
-1. **环境验证** — 路径是否有效、practices 版本是否一致、capability 版本是否兼容
+1. **环境验证** — 验证路径有效性、capability 可用性、版本兼容性
 2. **意图识别** — 对照路由表推断触发哪些 capability，确定执行顺序
-3. **上下文注入** — 向所有被触发的 capability 注入 practices_path、story_path、项目名、practices_version
+3. **上下文注入** — 向被触发的 capability 注入 practices_path、story_path 等变量
 
-**不负责：** capability 内部执行流程、产物格式、story 写入协议——这些由各 capability 和 practices 自主管理。
+**不负责：** 各 capability 内部的执行流程、产物格式、story 写入协议——这些由 capability 和 practices 自主管理。
 
----
-
-## 三条不可违反的约束
-
-1. **路径约束**：practices_path / story_path 必须从 `~/.claude/qalore-config.json` 读取，不得硬编码、推断或猜测
-2. **能力约束**：未在可用列表中的 capability 不得执行，不得用通用测试知识替代
-3. **项目约束**：项目名必须由用户明确（对话中明确提及，或从文档中唯一识别），不得自行假设
-
----
-
-## 环境验证流程
-
-### 1. 读取配置
-
-读 `~/.claude/qalore-config.json`：
-- **不存在**（首次安装）→ 读 skill 包内 `qalore.config.template.json` 获取格式参考，引导用户提供 practices_path / story_path → 生成 config → 继续
-- **存在** → 读取 practices_path / story_path
-
-### 2. 路径验证
-
-- `{practices_path}/index.json` 不存在 → 停止：「practices 未初始化，请参考 skill 包内 practices-bootstrap.md 完成初始化」
-- `{story_path}/` 不存在 → 停止：「story 目录不存在，请创建后重试」
-- 全部通过 → 将两个路径写入 context
-
-### 3. practices 版本一致性验证
-
-读 `{practices_path}/index.json`，校验 `version == changelog[0].version`：
-- 不一致 → 停止，输出版本不一致提示（建议以 changelog[0].version 为准）
-- 一致 → 继续
-
-### 4. capability 版本兼容性验证
-
-对所有已注册 capability（含基础设施），逐一读其 SKILL.md frontmatter 的 `practices_min_version` 字段：
-- `practices_min_version` > 当前 practices version → 停止，告知升级 practices
-- `practices_min_version` ≤ 当前 → 继续
-- 未声明 → 不阻断，输出警告
-
-> 基础设施 capability（qa-token-report，由 Hook 触发）同样参与此检查，不因触发方式不同而跳过。
-
----
-
-## 意图识别与路由
-
-### 项目名识别
-
-- 无法确定 → 暂停确认：「请问这个任务属于哪个项目？当前 story 中已有：{story_path/ 下目录列表}」
-- **推断条件（同时满足才可推断）：**
-  1. 用户明确提及了某个词
-  2. 该词与 story_path/ 下某目录名**字符串完全相等**（大小写一致）
-- 模糊匹配、首字母缩写、语义相近 → 均不得推断，必须暂停确认。多项匹配必须暂停确认
-
-### 模块粒度定义
-
-一个模块 = 用户可独立触发、独立感知结果的最小业务功能单元：
-- 正面：用户能单独描述「我想测 X 的 Y 功能」→ Y 是模块
-- 反面：「整个项目」「所有功能」不是模块；单个 API 端点通常也不是
-- 有疑问时暂停向用户确认
-
-### 新项目处理
-
-`{story_path}/{确认项目名}/` 不存在 → 询问用户提供一句话描述（面向谁、核心功能）→ 创建 `index.json` 初始结构（含 project/description/created/modules:{}）
-
-### 路由表
-
-| 触发意图 | Capability | 前置条件 |
-|---------|-----------|---------|
-| 用户提供信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录 | `qa-understand` | — |
-| 用户需要测试用例，描述含「生成/出用例/全量/测试文件」，或无需求文档但指定模块，或含「更新story/写入story/沉淀到story」 | `qa-functional-test` | 同会话触发了 qa-understand 时，须等其完成 |
-| 用户描述含「评审/review/检查用例/审查用例」，或粘贴了 TC 内容要评审，或含「生成并评审」 | `qa-case-review` | 联动模式下须等 qa-understand 完成 |
-| 用户描述含「执行/跑/运行+用例/测试/TC/模块」 | `qa-execution` | Playwright MCP 已配置 |
-
-### 多 capability 执行顺序
-
-- 同会话同时触发 qa-understand + qa-functional-test → 先执行 qa-understand，等 `【测试意图已提炼】` 交接块产出后再执行 qa-functional-test
-- 同会话同时触发 qa-understand + qa-case-review → 同上
-- 不得并发启动有依赖关系的 capability
-
-### 多模块任务调度
-
-网关完成路由和上下文注入后，不介入模块间调度。多模块任务的执行节奏由 qa-functional-test 自主驱动。
-
----
-
-## 上下文注入协议
-
-触发任何 capability 前，读取其 SKILL.md，在 context 中显式声明：
+## 架构
 
 ```
-practices_path            = {值}
-story_path                = {值}
-确认项目名                 = {值}
-practices_version         = {值}    ← 来自 {practices_path}/index.json 的 version 字段
-playwright_mcp_available  = {true/false}   ← 网关检查 Playwright MCP 工具是否可用
+qalore (网关)
+  ├── qa-understand       测试意图理解与提炼
+  │   ├── adapters/text.md       文本适配器（PRD/需求/口述）
+  │   ├── adapters/code.md       代码适配器（单仓库/多仓库）
+  │   └── adapters/synthesis.md  多源证据聚合综合层
+  ├── qa-functional-test  功能测试用例设计与产物输出
+  ├── qa-case-review      用例评审
+  ├── qa-execution        测试用例执行
+  │   └── cdp_network/           CDP Network MCP Server
+  └── qa-token-report     Token 使用统计（基础设施，Stop Hook 触发）
 ```
 
-多个 capability 同时触发时，各自读 SKILL.md，共享同一套注入变量。
+## 安装与配置
 
----
+### 前置条件
 
-## 可用 Capability 列表
+- Claude Code 已安装
+- Python 3.x（qa-execution 需要 `websocket-client` 和 `requests` 包）
+- Playwright MCP（qa-execution 需要）
 
-### 用户能力（由网关按路由表触发）
-
-#### qa-understand：测试意图理解与提炼
-
-- **路径**：`~/.claude/skills/qalore/capability/qa-understand/SKILL.md`
-- **职责**：将任意信息源（PRD/代码/混合）转化为可测试断言，写入 story 的业务逻辑.md 和代码逻辑.md
-- **核心思考**：三驱动认知框架（假设优先、模型驱动、证据驱动、边界驱动）+ 渐进式阅读策略
-- **适配器**：
-  - `text.md`：文本源（PRD/口述），7 问纵向追问 + 横向波及与覆盖分析
-  - `code.md`：代码源（支持多仓库），五镜头追问法
-  - `synthesis.md`：多源证据聚合，7 种置信度标注
-- **执行约束**：信息范围层级（4 级同心圆，text-only 默认层级 1，上限层级 2）、写入前计数校验
-- **产物**：业务逻辑.md + 代码逻辑.md + 统一交接块 `【测试意图已提炼】`
-
-#### qa-functional-test：功能测试用例设计与产物输出
-
-- **路径**：`~/.claude/skills/qalore/capability/qa-functional-test/SKILL.md`
-- **职责**：以断言集合为输入，设计覆盖正向/边界/异常/上下游的测试用例，产出 story 和 .mm 脑图
-- **核心思考**：用户影响优先——先问「如果这个模块在生产中出问题，用户最先感受到什么损失」
-- **输入来源**（按优先级）：context 交接块 → story 业务逻辑+代码逻辑 → 提示用户先触发 qa-understand
-- **产物**：测试用例.md + .mm 脑图（可选）
-
-#### qa-case-review：用例评审
-
-- **路径**：`~/.claude/skills/qalore/capability/qa-case-review/SKILL.md`
-- **职责**：对测试用例执行多层质量检查，输出问题报告
-- **核心思考**：溯源式质量判断——「这批用例拿去执行，会漏掉什么、卡在哪里」
-- **三层检查**：结构层（可执行性）→ 覆盖层（四维度+断言比对）→ 归因层（追溯根源）
-- **产物**：对话内评审报告（阻断/需改进/建议三级）
-
-#### qa-execution：测试用例执行
-
-- **路径**：`~/.claude/skills/qalore/capability/qa-execution/SKILL.md`
-- **职责**：通过 Playwright MCP 执行测试用例，CDP Network MCP 辅助网络请求验证，产出结构化执行报告
-- **依赖**：Playwright MCP 已配置（网关环境验证阶段检查）
-- **断言类型**：UI 7 种（可见性、文本、值、列表、截图、控制台、网络）+ API 3 种（状态码、响应体、响应头）
-- **产物**：执行报告（逐条用例 PASS/FAIL/SKIP + 步骤级详情）
-
-### 基础设施（由 Hook 自动触发）
-
-| Capability | 路径 | 触发方式 |
-|-----------|------|---------|
-| Token 使用统计 | `~/.claude/skills/qalore/capability/qa-token-report/SKILL.md` | Stop Hook 自动执行 |
-
-### Phase 2（未建设）
-
-以下能力尚未实现，对应的 SKILL.md 文件未创建：
-- 自动化测试、性能测试、安全测试、混沌测试
-
-Phase 2 请求处理：
-1. 告知用户能力尚未建设
-2. 不得用通用知识代替
-3. 告知启用路径：按 practices-bootstrap.md 新建 practices + 新建 capability/qa-{name}/SKILL.md + 更新本文件能力列表
-
----
-
-## practices 加载
-
-### 加载 handbook.md（每次任务必执行）
-
-```
-context 中存在 【practices:handbook.md:loaded】 → 跳过（0 token）
-不存在 → Read({practices_path}/common/handbook.md) → 写入标记
-```
-
-### 标记验证
-
-每次任务开始时验证 `【practices:handbook.md:loaded】`：
-- 不存在 → 重新 Read handbook.md，写入标记
-- 存在 → 继续
-
-其余 practices 文件的 `【practices:*.loaded】` 标记由各 capability 在实际使用前自行验证。
-
-### practices 文件修改
-
-触发条件：用户明确要求变更规范，或 capability 执行中发现需要补充。
-触发时先读 `{practices_path}/common/handbook-practices-ops.md`，按写入协议执行。
-
----
-
-## 快速上手
-
-### 第一步：安装
-
-将 `qalore/` 目录放置到 `~/.claude/skills/qalore/`（Claude Code 自动发现 skills 目录下的技能）。
-
-### 第二步：配置
+### 配置
 
 创建 `~/.claude/qalore-config.json`：
 
 ```json
 {
-  "practices_path": "/absolute/path/to/practices",
-  "story_path": "/absolute/path/to/story"
+  "practices_path": "D:\\Test\\qalore\\practices",
+  "story_path": "D:\\Test\\qalore\\story"
 }
 ```
 
-首次使用时，若 config 不存在，网关会自动引导完成配置。
+首次使用时若配置文件不存在，网关会自动引导完成配置。
 
-### 第三步：初始化 practices
+### practices 初始化
 
-确保 practices 目录结构完整，参考 skill 包内 `practices-bootstrap.md` 完成初始化。practices 目录必须包含核心规范文件。
+参考 skill 包内 `practices-bootstrap.md` 完成 practices 目录初始化。
 
-### 第四步：使用
+### Stop Hook（可选）
 
-在 Claude Code 中直接描述测试任务即可自动触发网关：
+在 `~/.claude/settings.json` 中配置 Token 统计：
 
-```
-"帮我分析用户登录模块的需求文档，沉淀到 story"
-"读 src/auth/ 目录下的代码，更新登录模块的 story"
-"给登录模块出测试用例"
-"评审登录模块的测试用例"
-"执行登录模块的测试用例"
-"给登录模块出全量用例并输出脑图"
-```
-
----
-
-## 文件包结构
-
-```
-qalore/
-├── SKILL.md                              # 网关主文件（本文件）
-├── practices-bootstrap.md                # practices 初始化指南
-├── qalore.config.template.json           # 配置文件模板
-└── capability/
-    ├── qa-understand/                    # 测试意图理解与提炼
-    │   ├── SKILL.md                      # 三驱动 + 渐进式阅读 + 适配器调度
-    │   └── adapters/
-    │       ├── text.md                   # 文本源：7 问追问 + 波及与覆盖分析 + 信息范围层级
-    │       ├── code.md                   # 代码源：五镜头（支持多仓库）
-    │       └── synthesis.md              # 多源证据聚合与置信度判断
-    ├── qa-functional-test/               # 功能测试用例设计与产物输出
-    │   └── SKILL.md
-    ├── qa-case-review/                   # 用例质量评审
-    │   └── SKILL.md
-    ├── qa-execution/                     # 测试用例执行
-    │   ├── SKILL.md
-    │   └── cdp_network/                  # CDP Network MCP
-    └── qa-token-report/                  # Token 使用统计（Stop Hook）
-        └── SKILL.md
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python \"%USERPROFILE%/.claude/skills/qalore/capability/qa-token-report/read_usage.py\""
+      }]
+    }]
+  }
+}
 ```
 
-配套的两个独立目录（不包含在 skill 包内）：
+## 能力矩阵
+
+### 用户能力（由网关按路由表触发）
+
+| Capability | 触发意图 | 核心思考哲学 | 状态 |
+|-----------|---------|------------|------|
+| **qa-understand** | 提供信息输入（PRD/代码/口述），或含理解/提炼/分析意图 | 三驱动认知框架（假设优先 → 模型驱动 → 证据驱动 → 边界驱动） | ✅ 可用 |
+| **qa-functional-test** | 需要测试用例，含「生成/出用例」意图 | 用户影响优先的用例集 | ✅ 可用 |
+| **qa-case-review** | 含「评审/review/检查用例」意图 | 溯源式质量判断（结构层 → 覆盖层 → 归因层） | ✅ 可用 |
+| **qa-execution** | 含「执行/跑/运行 + 用例/测试」意图 | 断言驱动执行（UI + API 双通道） | ✅ 可用 |
+
+### 基础设施
+
+| Capability | 触发方式 | 状态 |
+|-----------|---------|------|
+| **qa-token-report** | Stop Hook 自动执行 | ✅ 可用 |
+
+### 未建设（Phase 2）
+
+- 性能/压力测试
+- 安全测试
+- 混沌测试
+
+## 路由表
+
+| 触发意图 | Capability | 前置条件 |
+|---------|-----------|---------|
+| 用户提供信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录 | `qa-understand` | — |
+| 用户需要测试用例，描述含「生成/出用例/全量/测试文件」 | `qa-functional-test` | 同会话有 qa-understand 时须等其完成 |
+| 用户描述含「评审/review/检查用例/审查用例」 | `qa-case-review` | 联动模式须等 qa-understand 完成 |
+| 用户描述含「执行/跑/运行+用例/测试/TC/模块」 | `qa-execution` | Playwright MCP 已配置 |
+
+**多 capability 执行顺序：** 同会话触发 qa-understand + qa-functional-test（或 qa-case-review）→ 先执行 qa-understand，待交接块产出后再执行下游。不得并发启动有依赖关系的 capability。
+
+## qa-understand：测试意图理解与提炼
+
+将任意信息源转化为可测试的理解，写入 story，供下游 capability 使用。
+
+### 三驱动认知框架
+
+- **假设优先** — 读任何信息源前，先用一句话假设模块"做什么、谁触发、影响什么"
+- **模型驱动** — 每读一段，问：这证实还是推翻了假设？
+- **证据驱动** — 每条论断必须有来源，无来源 = 待验证假设
+- **边界驱动** — 每个系统交互检查两端是否已知；未知 → 主动寻找或标注待确认
+
+### 渐进式阅读策略
+
+1. **导航阶段** — 扫描结构建地图（低成本）
+2. **切片精读** — 按语义单元对假设中的开放问题做深度阅读（按需）
+
+### 适配器体系
+
+| 适配器 | 信息源 | 认知方法 | 写入目标 |
+|--------|--------|---------|---------|
+| **text.md** | PRD/需求/口述 | 7问追问（正常结果/状态/触发者/输入/反馈/改变/失败）+ 波及与覆盖分析 | 业务逻辑.md |
+| **code.md** | 代码文件/目录 | 五镜头追问（入口路径/数据约束/状态转换/副作用链/错误路径） | 代码逻辑.md |
+| **synthesis.md** | 多源聚合 | 识别同一场景 → 按证据一致性分类 → 7种置信度标注 | 统一交接块 |
+
+### 7种置信度标注
+
+| 标注 | 触发条件 | 是否产出断言 |
+|------|---------|------------|
+| `（✓）` | 文本 + 所有代码源确认 | 产出 |
+| `（✓,部分代码确认）` | 文本 + 部分代码源确认 | 产出 |
+| `（待代码确认）` | 仅文本，无代码实现 | 产出 |
+| `（代码独立）` | 仅单一代码源 | 产出 |
+| `（代码独立,多源）` | 多个代码源均有，无文本 | 产出 |
+| `⚠️` | 文本与代码结论矛盾 | **不产出，待确认** |
+| `⚠️(代码)` | 多代码源描述同一场景但结论矛盾 | **不产出，待确认** |
+
+### 信息范围层级（文本适配器）
+
+| 层级 | 范围 | 适用场景 |
+|------|------|---------|
+| 1 | 目标模块 + 1-hop 上下游 + 待确认项 | text-only 起始（安全基线） |
+| 2 | + 测试用例 | text-only 上限 |
+| 3 | + 代码 | text+code 上限 |
+| 4 | + 跨项目 | 用户指定 |
+
+## qa-functional-test：功能测试用例设计与产物输出
+
+以断言集合为输入，设计覆盖正向/边界/异常/上下游的测试用例，产出 story 和 .mm 脑图。
+
+### 核心思考哲学：用户影响优先
+
+> 如果这个模块今天在生产中出问题，用户最先感受到什么损失？
+
+以这个答案定义 2-3 个优先测试场景，然后用断言集合补全覆盖。
+
+### 测试维度
+
+- **正向** — 功能按预期工作
+- **边界** — 输入/状态的极限值
+- **异常** — 错误输入和系统故障
+- **上下游** — 跨模块联动
+
+### 输入来源优先级
+
+1. Context 中的 `【测试意图已提炼】` 交接块（联动模式）
+2. Story 中的业务逻辑.md + 代码逻辑.md
+3. Story 中仅有其中一个文件
+4. 两者均无 → 告知用户先触发 qa-understand
+
+### 存量用例处置
+
+| 情况 | 操作 |
+|------|------|
+| TC 文件不存在 | 全新设计，TC 序号从 001 开始 |
+| TC 文件已存在 + 有新输入 | 增量处理（3.1新增/3.2更新/3.3删除） |
+| TC 文件已存在 + 无新输入 + 仅查看 | 直接输出模式（跳过设计，读 story 直接产出 .mm） |
+
+### 执行后验证（5 项必检）
+
+1. **计数验证** — tc_count、pending_count、assert_seq 与文件实际内容一致
+2. **覆盖验证** — TC 功能点覆盖所有 BL 功能点
+3. **格式验证** — 每条 TC 含 7 个必填字段，TC ID 无重复、无跳号
+4. **语言验证** — 禁止工程语言泄漏（API 调用/组件名/CSS 类名/内部变量）
+5. **断言覆盖验证** — 每条 TC 的 `→ 预期：` 对应 `→ 断言：`
+
+### 产物
+
+- **Story 文件：** 测试用例.md + 测试用例.changelog.md
+- **脑图文件：** .mm 格式（飞书/FreeMind 兼容）
+
+## qa-case-review：用例评审
+
+对测试用例执行多层质量检查，输出问题报告。
+
+### 核心思考哲学：溯源式
+
+> 这批用例拿去执行，会漏掉什么、卡在哪里？
+
+### 三层评审
+
+- **结构层** — 用例本身是否可执行？字段是否完整？每个 `→ 预期：` 是否有 `→ 断言：`？
+- **覆盖层** — 每个功能点是否覆盖了正向/边界/异常/上下游四个维度？
+- **归因层** — 发现问题时追溯根源：用例写法问题 → 执行层；断言遗漏 → 理解层
+
+### 评审模式
+
+| 模式 | 输入 | 基准 |
+|------|------|------|
+| 联动模式 | 同会话交接块 | 三层完整比对 |
+| Story 模式 | Story 中的文件 | 有什么用什么 |
+| 临时模式 | 粘贴 TC 内容 | 仅结构层 + 覆盖层 |
+
+### 结论判定
+
+| 条件 | 结论 |
+|------|------|
+| 阻断 = 0 | 通过 |
+| 阻断 > 0，需改进 ≤ 3 | 需修复后通过 |
+| 阻断 > 0，需改进 > 3 | 不通过 |
+
+## qa-execution：测试用例执行
+
+读取 TC 文件中的断言规则，通过 Playwright MCP + CDP Network MCP 在浏览器中逐条执行，产出执行报告。
+
+### 执行流程
+
+1. 解析执行范围（全部模块 / 单模块 / 单条 TC / 指定优先级）
+2. 读取目标 TC 文件，提取含断言规则的用例
+3. 按优先级排序（P0 → P1 → P2 → P3）
+4. 逐条执行：检查前置条件 → 执行步骤 → 执行断言 → 记录结果
+5. 输出执行报告
+
+### 断言类型（10 种）
+
+**UI 断言（Playwright MCP，7 种）：**
+
+| 类型 | 示例 |
+|------|------|
+| `element-exists` | `element-exists(.new-chat-btn)` |
+| `element-not-exists` | `element-not-exists(.new-chat-btn)` |
+| `element-count` | `element-count(.group-label, 5)` |
+| `element-text` | `element-text(.sidebar-title, "历史记录")` |
+| `element-width` | `element-width(.chat-sidebar, 380)` |
+| `message-contains` | `message-contains("请输入请求消息！")` |
+| `url-contains` | `url-contains("/login")` |
+
+**API 断言（CDP Network MCP，3 种）：**
+
+| 类型 | 示例 |
+|------|------|
+| `api-status` | `api-status(/api/agent/.*/sessions, 200)` |
+| `api-field-exists` | `api-field-exists(/api/agent/.*/sessions, "total")` |
+| `api-field-value` | `api-field-value(/api/agent/.*/sessions, "total", 9)` |
+
+### 前置依赖
+
+- **Playwright MCP** — 必须已配置
+- **CDP Network MCP** — 内嵌于 `cdp_network/server.py`（需 `pip install websocket-client requests`）
+- **TC 文件含断言规则** — 无断言规则 → SKIP
+
+### 执行报告
+
+每次执行覆盖写入 `{模块}-功能-执行报告.md`，格式：
+
+```markdown
+# {模块名} 执行报告
+> 执行时间: {ISO 8601} | 工具: Playwright MCP + CDP Network MCP | 环境: {URL}
+
+| TC ID | 标题 | 结果 | 实测 |
+|-------|------|------|------|
+
+汇总: 总 {n} | PASS {x} | FAIL {y} | SKIP {z} | 通过率 {x/n * 100}%
+```
+
+## qa-token-report：Token 使用统计
+
+由 Claude Code Stop Hook 自动触发。从 transcript JSONL 累加本轮所有 API call 的 usage 数据并打印到对话。
+
+**触发条件：** last_assistant_message 含 qalore 信号词（`TC-`、`.mm`、`用例总计`、`【功能测试执行计划】` 等）→ 统计并输出；否则静默退出。
+
+**输出示例：**
 
 ```
-practices/                                # 测试规范库（跨项目复用）
-├── index.json                            # 版本管理入口
-├── practices-bootstrap.md                # 初始化参考
-├── common/
-│   ├── handbook.md                       # 通用规范（写入协议、评审规范、通用性约束）
-│   ├── handbook-practices-ops.md         # practices 操作规范
-│   └── handbook-audit.md                 # 审计规范（15 步流水线 + 19 条设计哲学）
-├── schemas/
-│   └── story-index.schema.md             # Story index.json Schema 权威定义
-└── tech-stacks/functional/
-    ├── assertions.md                     # 断言规范
-    ├── cases.md                          # 用例规范
-    ├── changelog.md                      # 变更记录规范
-    ├── output.md                         # 产物输出规范
-    ├── story-formats.md                  # 文件格式规范
-    └── execution.md                      # 执行规范（断言定义 + 执行规则）
+────────────────────────────────────────────────────
+Token 统计（本轮 9 次 API call 合计）
 
-story/                                    # 项目测试知识库
-└── {项目名}/
-    ├── index.json                        # 项目全局视图
-    └── {模块名}/
-        ├── {模块名}-功能-业务逻辑.md
-        ├── {模块名}-功能-业务逻辑.changelog.md
-        ├── {模块名}-功能-代码逻辑.md
-        ├── {模块名}-功能-代码逻辑.changelog.md
-        ├── {模块名}-功能-测试用例.md
-        └── {模块名}-功能-测试用例.changelog.md
+  输出（本轮累计）           20,895 tokens
+  缓存写入（本轮累计）       27,534 tokens
+    └ 5m 缓存                27,534 tokens
+  输入（最终上下文）              8 tokens
+  缓存读取                  517,035 tokens
+
+  服务层级             standard
+  响应速度             standard
+────────────────────────────────────────────────────
 ```
+
+## Practices 体系
+
+Practices 是"公司规范"——划定边界，防止失控，但不干涉 AI 的智力发挥。
+
+### 三层架构
+
+```
+practices/
+  index.json              ← 版本管理入口（每次任务必读）
+  common/
+    handbook.md           ← 通用规范（每次任务必加载）
+    handbook-practices-ops.md  ← practices 操作规范（按需加载）
+    handbook-audit.md     ← 审计规范（人工执行时加载）
+  tech-stacks/
+    functional/
+      assertions.md       ← 可测试断言规范
+      cases.md            ← 功能测试用例规范
+      changelog.md        ← 变更记录规范
+      output.md           ← 产物输出规范（.mm 脑图）
+      story-formats.md    ← Story 文件格式规范
+      execution.md        ← 断言类型定义（10 种）和执行规则
+      cloud-sync.md       ← 云效同步通道规范
+  schemas/
+    story-index.schema.md ← Story index.json 权威 Schema
+```
+
+### 核心原则
+
+- **增量原则** — 所有 story 文件只增不删（执行报告除外）
+- **自解释原则** — 每个文件必须能被全新 AI 实例独立读懂
+- **断点恢复** — 每模块完成即写入，会话中断后可继续
+- **渐进式披露** — context 标记按需加载，避免全量读取
+
+## Story 体系
+
+Story 是"项目上下文"——解决 AI 没有持久记忆但项目知识需要持久存在的矛盾。
+
+```
+story/{项目名}/
+  index.json                        ← 项目全局索引
+  {模块名}/
+    {模块名}-功能-业务逻辑.md         ← 按功能点分节
+    {模块名}-功能-业务逻辑.changelog.md
+    {模块名}-功能-代码逻辑.md         ← 按组件分节
+    {模块名}-功能-代码逻辑.changelog.md
+    {模块名}-功能-测试用例.md         ← 测试用例
+    {模块名}-功能-测试用例.changelog.md
+    {模块名}-功能-执行报告.md         ← 执行结果快照
+```
+
+### index.json 结构
+
+```json
+{
+  "project": "项目名",
+  "description": "一句话描述",
+  "created": "YYYY-MM-DD",
+  "last_updated": "YYYY-MM-DD",
+  "modules": {
+    "{模块名}": {
+      "description": "模块描述",
+      "tc_prefix": "TC ID 前缀（注册后不可变）",
+      "mm_short_id": "脑图短 ID",
+      "assert_seq": 0,
+      "depends_on": {},
+      "business_related": [],
+      "code_paths": [],
+      "status": {
+        "business_logic": false,
+        "code_logic": false,
+        "tc_count": 0,
+        "pending_count": 0
+      }
+    }
+  }
+}
+```
+
+## 设计哲学
+
+### qalore 本体五条
+
+1. **AI 是主体，框架是支撑** — 框架只给工具、设边界、提供上下文，不规定每一个动作
+2. **Capability = 思考哲学，不是执行步骤** — 装备 AI 某个专业领域的思考方式
+3. **Practices = 公司规范，不是操作手册** — 划定边界防止失控，不干涉智力发挥
+4. **Story = 项目上下文，不是任务数据** — 以 AI 快速理解为第一优先
+5. **渐进式披露** — 按上下文流转切割，index.json → 内容文件 → changelog 三层按需加载
+
+### 两道确认门槛
+
+1. **执行前确认** — 展示计划，用户确认"做什么"
+2. **写入前确认** — 展示 `【待沉淀】`，用户确认"写什么"
+
+### 上下游断言是唯一真相
+
+跨模块引用写在上下游断言里，`depends_on` 和 `business_related` 从断言聚合重建（完整替换，防止幽灵数据）。
+
+```markdown
+[assert-IMG-006] 【上下游】图片上传 · 上传成功
+  → [内容审核::文件接收] 触发文件接收队列 | upd:v2.0
+```
+
+## 约束规则
+
+### 三条不可违反
+
+1. **路径约束** — practices_path / story_path 必须从 `~/.claude/qalore-config.json` 读取
+2. **能力约束** — 未在可用列表中的 capability 不得执行
+3. **项目约束** — 项目名必须由用户明确，不得自行假设
+
+### 安全规范
+
+- **批量操作安全** — 多条件精确过滤 + Dry-Run 前置 + 禁止全量删除重建
+- **文件操作安全** — JSON 禁止行级 Edit；内容文件必须先 Read 再 Write
+- **临时文件清理** — 任务完成后必须清理所有临时脚本和中间文件
+- **通用性约束** — 禁止在 capability 和 practices 文件中嵌入项目定制内容
+
+## 版本历史
+
+当前 practices 版本：**2026-07-23-v6**
+
+### 近期主要更新
+
+| 版本 | 日期 | 摘要 |
+|------|------|------|
+| v6 | 2026-07-23 | 执行报告写入模式澄清（快照产物例外） |
+| v5 | 2026-07-23 | 拓扑审计修复：context 标记引用修正 + cloud-sync 内部一致性 |
+| v4 | 2026-07-23 | code-repo-count 标记 + 冗余分隔符清理 |
+| v3 | 2026-07-23 | 审计修复：章节注册表补全 |
+| v2 | 2026-07-23 | 新增「临时文件清理规范」 |
+| v1 | 2026-07-23 | subagent 分层体系建设 + audit 升级（17步+20条哲学） |
+
+### 历史演进概览
+
+- **2026-04-10** — 初始版本，规范文件待建设
+- **2026-05-15** — 重大架构升级：内容文件按功能点/组件分节、7种置信度标注、跨模块结构化标签
+- **2026-06-12** — 基础设施重构：capability 分层、context 标记注册表、practices 版本兼容性检查
+- **2026-06-15** — ChatBI 全量审计：TC 语言规范、计数一致性、文件操作规范
+- **2026-06-24** — qa-execution 上线：10 种断言类型、CDP Network MCP
+- **2026-07-14** — 云效通道建设：cloud-sync.md、批量操作安全规范
+- **2026-07-23** — 多轮审计收敛：依赖图补全、合约对齐、临时文件清理
+
+## 项目链接
+
+- **qalore-audit** — 系统一致性审查方法（依赖图驱动 + 六类问题分类）
+- **QALore** — 零侵入 Agent 黑盒评测平台（被测项目示例）
+
+## 许可
+
+qalore 是 Claude Code skill，随 Claude Code 环境使用。
