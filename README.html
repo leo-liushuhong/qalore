@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>qalore — 全栈测试工程师网关</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --card: #273449;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #a78bfa;
+    --good: #34d399;
+    --line: #334155;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
+  header.hero {
+    padding: 96px 0 64px;
+    background: radial-gradient(1200px 500px at 50% -10%, rgba(56,189,248,0.18), transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: 52px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 20px; }
+  h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { font-size: 20px; color: var(--muted); max-width: 720px; }
+  section { padding: 72px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+  .kicker { color: var(--accent2); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 16px; margin-bottom: 36px; max-width: 760px; }
+  .grid { display: grid; gap: 20px; }
+  .grid.cols2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 760px) { .grid.cols2, .grid.cols3 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px;
+  }
+  .card h3 { font-size: 18px; margin-bottom: 10px; color: #fff; }
+  .card p { font-size: 14.5px; color: var(--muted); }
+  .card .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(56,189,248,0.15); color: var(--accent);
+    font-weight: 700; margin-bottom: 12px; font-size: 14px;
+  }
+  .pill {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    background: rgba(56,189,248,0.12); color: var(--accent);
+    font-size: 13px; margin: 0 6px 8px 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.5px; }
+  td { color: var(--text); }
+  td.muted, .muted { color: var(--muted); }
+  code {
+    font-family: "SF Mono", "JetBrains Mono", Menlo, monospace;
+    background: rgba(148,163,184,0.12); padding: 2px 7px; border-radius: 5px;
+    font-size: 0.9em; color: #7dd3fc;
+  }
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; font-size: 14.5px;
+  }
+  .flow .node {
+    background: var(--card); border: 1px solid var(--line); border-radius: 9px;
+    padding: 10px 16px; font-weight: 600;
+  }
+  .flow .arrow { color: var(--accent); font-weight: 700; }
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(56,189,248,0.07);
+    padding: 18px 22px; border-radius: 0 12px 12px 0; margin-top: 24px;
+    font-size: 15px;
+  }
+  .callout strong { color: #fff; }
+  footer { padding: 56px 0 80px; color: var(--muted); font-size: 14px; text-align: center; }
+  .check { color: var(--good); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Testing Engineering Framework</div>
+    <h1>qalore<br><span class="grad">全栈测试工程师网关</span></h1>
+    <p class="lead">让 AI 成为真正的测试工程师 —— 拥有持久记忆、遵守工程规范、熟悉项目上下文，自主判断如何工作，而不是被流水线驱赶。</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Why · 设计动机</div>
+    <h2>三个矛盾，一个答案</h2>
+    <p class="sub">AI 能读懂需求、能写用例、能执行测试，但它有三个与生俱来的缺陷，qalore 正是为补足它们而生。</p>
+    <div class="grid cols3">
+      <div class="card">
+        <div class="num">1</div>
+        <h3>没有持久记忆</h3>
+        <p>每次会话从零开始，项目知识无法沉淀。qalore 用 story 把项目知识「物化」，跨会话、跨模型、跨 agent 协作。</p>
+      </div>
+      <div class="card">
+        <div class="num">2</div>
+        <h3>规范容易漂移</h3>
+        <p>口头约定会变、会忘、会自相矛盾。qalore 用 practices 把规范写成可机器校验的 spec，机器能判定的不靠 AI 自觉。</p>
+      </div>
+      <div class="card">
+        <div class="num">3</div>
+        <h3>能力不可复用</h3>
+        <p>换个项目，测试方法就推倒重来。qalore 用 capability 把「测试的思考方式」沉淀下来，与业务解耦，可迁移。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Design · 设计思想</div>
+    <h2>双螺旋自迭代模型</h2>
+    <p class="sub">qalore 内部有两条螺旋：一条承载业务，一条承载方法，它们通过「断言」完成碱基配对，持续自迭代。</p>
+    <div class="flow">
+      <div class="node">业务螺旋<br><span class="muted">story（唯一业务知识库）</span></div>
+      <div class="arrow">⇌</div>
+      <div class="node">方法螺旋<br><span class="muted">practices + capability（纯 spec）</span></div>
+      <div class="arrow">→</div>
+      <div class="node">碱基配对<br><span class="muted">断言三层映射</span></div>
+    </div>
+    <div class="grid cols3" style="margin-top:20px">
+      <div class="card">
+        <h3>分离</h3>
+        <p>story 是唯一承载业务内容的地方；practices 与 capability 不出现任何业务词，只用占位符描述通用规则。</p>
+      </div>
+      <div class="card">
+        <h3>连接</h3>
+        <p>业务逻辑断言（BL）→ 测试用例断言（TC）→ 执行结果，三层一一映射，信息流动不中断、不失真。</p>
+      </div>
+      <div class="card">
+        <h3>自迭代</h3>
+        <p>审计闭环回馈质量改进；外部审计（audit）再检查 qalore 本身，双螺旋不断逼近更高质量。</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>一句话纲领：</strong>「只有 story 涉及业务内容，qalore + audit 完全是测试 + 企业 spec。」判断一条规范是否越界的唯一标准 —— <strong>换一个被测项目，它还能用吗？</strong>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Method · 设计方法</div>
+    <h2>Spec 而非 Workflow</h2>
+    <p class="sub">qalore 不规定 AI 的每一个动作，而是划定边界、提供工具、注入上下文，把智力发挥空间留给 AI。</p>
+    <div class="grid cols2">
+      <div class="card">
+        <h3>AI 是主体，框架是支撑</h3>
+        <p>AI 像一名专业员工：有技能、守规范、懂背景。框架只给工具、设边界、供上下文。违反这条就是把员工变成流水线。</p>
+      </div>
+      <div class="card">
+        <h3>Capability = 思考哲学</h3>
+        <p>能力的唯一职责是装备 AI 某个专业领域的思考方式。加步骤 ≠ 加能力，只有加思考维度才是。</p>
+      </div>
+      <div class="card">
+        <h3>Practices = 公司规范</h3>
+        <p>划定边界防失控，不干涉边界内的智力发挥。规定「按功能点分节」，不规定「断言写什么」。</p>
+      </div>
+      <div class="card">
+        <h3>渐进式披露</h3>
+        <p>按上下文流转切割，不按角色切割。index.json → 内容文件 → changelog，每层按需加载，流转不中断。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Landing · 落地方法</div>
+    <h2>三层资产 + 机器校验</h2>
+    <p class="sub">设计思想落成三套可维护的文件，再配上一台机器校验脚本，让「正确」可以被自动证明。</p>
+    <div class="grid cols3">
+      <div class="card">
+        <div class="num">P</div>
+        <h3>practices · 规范</h3>
+        <p>通用规范、技术栈规范、schema 权威、机器契约（contracts.json）。写的是「按什么规矩测」。</p>
+      </div>
+      <div class="card">
+        <div class="num">C</div>
+        <h3>capability · 能力</h3>
+        <p>五个测试能力，各自封装一套思考方式。写的是「怎么思考着去测」。</p>
+      </div>
+      <div class="card">
+        <div class="num">S</div>
+        <h3>story · 知识库</h3>
+        <p>项目-模块两级目录，四类文件（业务逻辑/测试用例/代码逻辑/变更日志）。写的是「测什么」。</p>
+      </div>
+    </div>
+    <h2 style="margin-top:48px">版本机制</h2>
+    <table>
+      <tr><th>机制</th><th>作用</th></tr>
+      <tr><td><code>version = {日期}-v{n}</code></td><td>practices 的版本号，与 changelog[0] 强一致</td></tr>
+      <tr><td><code>practices_min_version</code></td><td>每个 capability 声明依赖的最低 practices 版本，网关路由前校验</td></tr>
+      <tr><td>变更四步</td><td>写 changelog → 同步 version → 注册文件类型 → 同步 audit 依赖图</td></tr>
+      <tr><td><code>verify-contracts.py</code></td><td>11 项契约校验，含「audit 依赖图对齐」——版本 gap 由机器暴露，不靠人工审查</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Usage · 使用方法</div>
+    <h2>五个能力，一条流水线</h2>
+    <p class="sub">从「理解需求」到「审计一致性」，五个能力串起完整的测试工程闭环。</p>
+    <table>
+      <tr><th>能力</th><th>职责</th><th>思考方式</th></tr>
+      <tr><td><code>qa-understand</code></td><td>把需求/代码/设计稿转化为可测试断言</td><td>三驱动认知 + 多源证据聚合</td></tr>
+      <tr><td><code>qa-functional-test</code></td><td>以断言为输入，设计覆盖全面的测试用例</td><td>用户影响优先 + 覆盖拓扑</td></tr>
+      <tr><td><code>qa-case-review</code></td><td>对用例做多层质量检查，输出问题报告</td><td>溯源式质量判断</td></tr>
+      <tr><td><code>qa-execution</code></td><td>按断言规则在浏览器逐条执行，产出报告</td><td>断言驱动执行 + 自动化不变式</td></tr>
+      <tr><td><code>qa-audit</code></td><td>全量审计一致性，产出待修复清单</td><td>机器校验 + 语义审计流水线</td></tr>
+    </table>
+    <h2 style="margin-top:48px">快速上手（四步）</h2>
+    <div class="flow">
+      <div class="node">读配置</div>
+      <div class="arrow">→</div>
+      <div class="node">环境验证</div>
+      <div class="arrow">→</div>
+      <div class="node">意图路由</div>
+      <div class="arrow">→</div>
+      <div class="node">上下文注入</div>
+    </div>
+    <div class="callout">
+      <strong>一条硬约束：</strong>未在能力列表中的 capability 不得执行，<strong>不得用通用测试知识替代</strong>。qalore 的价值就在于「方法被显式沉淀、机器可校验、跨会话不漂移」。
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    qalore —— 让 AI 的测试能力可沉淀、可校验、可迁移。
+  </div>
+</footer>
+
+</body>
+</html>

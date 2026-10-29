@@ -1,0 +1,102 @@
+{
+  "contracts_version": "2026-10-29-v3",
+  "authority_note": "本文件是机器可判定契约的唯一权威源。verify-contracts.py 据此校验所有副本（SKILL.md / adapters / practices .md）与 story 数据的一致性。任何副本不得复制本文件中的定义内容，只能引用（写「见 contracts.json#xxx」）。",
+  "assert_seq": {
+    "storage_semantics": "下一个待分配的 assert 序号 = 已分配最大序号 + 1，初始为 1",
+    "allocation_rule": "读 assert_seq 直接作为新 ID 起点，分配完成后 assert_seq = 新最大序号 + 1",
+    "verify_formula": "assert_seq == max(所有 assert ID) + 1"
+  },
+  "assertion_types": {
+    "authority_file": "tech-stacks/functional/execution.md",
+    "count": 28,
+    "types": [
+      "element-exists",
+      "element-not-exists",
+      "element-count",
+      "element-text",
+      "element-width",
+      "element-enabled",
+      "element-disabled",
+      "message-contains",
+      "url-contains",
+      "element-color",
+      "element-background-color",
+      "element-font-size",
+      "element-font-family",
+      "element-font-weight",
+      "element-padding",
+      "element-margin",
+      "element-size",
+      "element-position",
+      "element-border-radius",
+      "console-error-contains",
+      "api-status",
+      "api-field-exists",
+      "api-field-value",
+      "network-contains",
+      "api-request-field-value",
+      "api-code",
+      "db-field-value",
+      "db-row-count"
+    ],
+    "environment_qualifier": "样式断言值支持可选 '@档位' 后缀（如 element-font-size(.title, 14@mobile)）；档位清单由 story/{项目}/dependencies.json 的 environments[].device_profiles 声明，practices 不写死档位值；verify-contracts.py 只校验 '@档位' 在已声明 device_profiles 内"
+  },
+  "counting_formulas": {
+    "tc_count": "grep -c \"^用例 ID：\" {TC文件}",
+    "pending_count": "BL pending 数 + CL pending 数",
+    "bl_header_assertions": "grep -c \"[assert-\" {BL文件}",
+    "tc_header_total": "grep -c \"^用例 ID：\" {TC文件}"
+  },
+  "id_rules": {
+    "tc_prefix": "2-5 个大写字母，注册后不可变",
+    "mm_short_id": "2-5 个小写字母（= TC 前缀全小写），注册后不可变",
+    "tc_id_format": "TC-{PREFIX}-{序号}，全局唯一",
+    "tc_id_continuity": "无重复（唯一）；允许 3.3 删除导致的缺号，ID 不复用"
+  },
+  "dependencies": {
+    "authority_note": "本段是依赖登记（story/{项目}/dependencies.json）机器可判定契约的唯一权威源。verify-contracts.py 据此校验依赖登记数据与访问方法合规性。副本（handbook.md / execution.md / story-formats.md / 各 capability SKILL.md）只引用，不复制定义。",
+    "categories": ["input", "execution", "unverifiable"],
+    "input_source_types": {
+      "authority_file": "qalore:capability/qa-understand/SKILL.md",
+      "count": 3,
+      "types": ["text", "technical", "design"]
+    },
+    "access_methods": {
+      "read-verify": "默认态，无副作用，无需确认（DB=SELECT / Redis=GET / MQ=消费 / 第三方=调用 / 文件=读 / 时间=读 / 配置=读）",
+      "write-mock": "例外态，有副作用，必须满足 safety_fence 全部边界（DB=UPDATE/INSERT / Redis=SET/DEL / MQ=注入 / 第三方=桩 / 文件=上传 / 时间=改字段 / 配置=改开关）"
+    },
+    "safety_fence": {
+      "environment": "目标环境 ∈ 白名单（test/staging），prod 恒排除",
+      "data": "目标数据 ∈ 白名单，下钻到字段，只动本次登记/新建数据",
+      "recoverable": "写前有快照，写后可还原",
+      "declared": "写 mock 在设计期声明于用例前置条件，未声明即非法",
+      "confirmed": "声明经人类评审确认（日期+确认人），未确认即非法"
+    },
+    "permission_shift_left": {
+      "write_mock_legal_iff": ["declared", "confirmed", "recoverable", "in_fence"]
+    },
+    "invariants": {
+      "reference_closure": "每条依赖须被至少一个断言/用例引用；用例引用的依赖必须存在",
+      "secret_masking": "密码/token 不得明文，只允许 secret: 引用或占位符",
+      "prod_exclusion": "environment.id == prod ⟹ executable == false"
+    }
+  },
+  "automation": {
+    "authority_note": "自动化执行能力的机器可判定契约。语义权威定义见 tech-stacks/functional/automation.md，本段只放机器可判定的不变式。",
+    "idempotency": "自动化模式只跑 read-verify 无副作用用例 ⟹ 每次执行不累积脏状态（无副作用=幂等）",
+    "scope_declaration": "自动化入口必须携带非空 {执行范围}（模块/优先级）；执行只覆盖声明范围内用例，范围外用例不执行",
+    "unattended_write_mock": "无人值守/自动化模式 ⟹ 写 mock 一律 SKIP（不执行有副作用用例，只跑 read-verify）",
+    "drift_threshold": "同一 TC 连续 FAIL ≥ 3 次 → 标记疑似断言漂移，进回写清单",
+    "report_path": "报告落盘 story/{项目}/{模块}/{模块}-功能-执行报告.md（可被宿主/用户拉取）"
+  },
+  "external_tools": {
+    "authority_note": "外部工具依赖的唯一权威源。每个工具声明五要素（serves/type/probe/min_version/upgrade），probe 必填（哲学15：声明=强制执行）。verify-contracts.py 校验 probe 必填 + 脚本可探测类；网关据此产出依赖体检报告。",
+    "probe_required": "每个 external_tools 条目必须有可机器执行的 probe 字段，缺 probe = 契约不完整",
+    "tools": {
+      "playwright_mcp": { "serves": ["ui", "console", "api", "style"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
+      "figma_mcp": { "serves": ["design"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
+      "psql": { "serves": ["db"], "type": "cli", "probe": "which psql", "min_version": "14", "upgrade": "brew upgrade libpq" },
+      "python3": { "serves": ["verify-contracts"], "type": "cli", "probe": "python3 --version", "min_version": "3.8", "upgrade": null }
+    }
+  }
+}
