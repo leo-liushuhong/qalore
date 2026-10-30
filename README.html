@@ -13,6 +13,7 @@
     --muted: #94a3b8;
     --accent: #38bdf8;
     --accent2: #a78bfa;
+    --warm: #fbbf24;
     --good: #34d399;
     --line: #334155;
   }
@@ -21,239 +22,496 @@
     font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.75;
+    line-height: 1.8;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 36px; }
   header.hero {
-    padding: 96px 0 64px;
-    background: radial-gradient(1200px 500px at 50% -10%, rgba(56,189,248,0.18), transparent);
+    padding: 108px 0 72px;
+    background: radial-gradient(1200px 540px at 50% -10%, rgba(56,189,248,0.20), transparent);
     border-bottom: 1px solid var(--line);
   }
-  .eyebrow { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
-  h1 { font-size: 52px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 20px; }
+  .eyebrow { color: var(--accent); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 18px; }
+  h1 { font-size: 54px; font-weight: 800; letter-spacing: -1px; line-height: 1.12; margin-bottom: 20px; }
   h1 .grad {
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .lead { font-size: 20px; color: var(--muted); max-width: 720px; }
-  section { padding: 72px 0; border-bottom: 1px solid var(--line); }
+  .lead { font-size: 19px; color: var(--muted); max-width: 780px; }
+  section { padding: 66px 0; border-bottom: 1px solid var(--line); }
   section:last-of-type { border-bottom: none; }
-  .kicker { color: var(--accent2); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .kicker { color: var(--accent2); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
   h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
-  .sub { color: var(--muted); font-size: 16px; margin-bottom: 36px; max-width: 760px; }
-  .grid { display: grid; gap: 20px; }
-  .grid.cols2 { grid-template-columns: repeat(2, 1fr); }
-  .grid.cols3 { grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 760px) { .grid.cols2, .grid.cols3 { grid-template-columns: 1fr; } }
+  .sub { color: var(--muted); font-size: 15.5px; margin-bottom: 34px; max-width: 820px; }
+  h3 { font-size: 19px; margin-bottom: 14px; color: #fff; }
+  .grid { display: grid; gap: 18px; }
+  .grid.c2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 800px) { .grid.c2, .grid.c3 { grid-template-columns: 1fr; } }
   .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 26px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px; padding: 22px;
   }
-  .card h3 { font-size: 18px; margin-bottom: 10px; color: #fff; }
-  .card p { font-size: 14.5px; color: var(--muted); }
-  .card .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 8px;
-    background: rgba(56,189,248,0.15); color: var(--accent);
-    font-weight: 700; margin-bottom: 12px; font-size: 14px;
+  .card h4 { font-size: 16px; margin-bottom: 8px; color: #fff; }
+  .card p, .card li { font-size: 14px; color: var(--muted); }
+  .card ul { padding-left: 18px; margin-top: 6px; }
+  .card li { margin: 4px 0; }
+  .tag {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    background: rgba(167,139,250,0.16); color: var(--accent2);
+    font-size: 12px; font-weight: 600; margin-bottom: 10px;
   }
-  .pill {
-    display: inline-block; padding: 4px 12px; border-radius: 999px;
-    background: rgba(56,189,248,0.12); color: var(--accent);
-    font-size: 13px; margin: 0 6px 8px 0;
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
-  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: 0.5px; }
+  .tag.blue { background: rgba(56,189,248,0.16); color: var(--accent); }
+  .tag.warm { background: rgba(251,191,36,0.16); color: var(--warm); }
+  .tag.green { background: rgba(52,211,153,0.16); color: var(--good); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--accent); font-weight: 600; font-size: 12.5px; letter-spacing: 0.5px; }
   td { color: var(--text); }
-  td.muted, .muted { color: var(--muted); }
   code {
     font-family: "SF Mono", "JetBrains Mono", Menlo, monospace;
-    background: rgba(148,163,184,0.12); padding: 2px 7px; border-radius: 5px;
-    font-size: 0.9em; color: #7dd3fc;
+    background: rgba(148,163,184,0.13); padding: 2px 7px; border-radius: 5px;
+    font-size: 0.88em; color: #7dd3fc;
   }
+  .cap {
+    border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 26px;
+    background: var(--panel);
+  }
+  .cap-head {
+    padding: 22px 26px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(90deg, rgba(56,189,248,0.07), transparent);
+  }
+  .cap-head .cn { font-size: 15px; color: var(--accent); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .cap-head h3 { margin-bottom: 6px; font-size: 21px; }
+  .cap-head .cd { color: var(--muted); font-size: 14px; }
+  .cap-body { padding: 22px 26px; }
   .flow {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px; font-size: 14.5px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: 20px; font-size: 13.5px;
   }
   .flow .node {
-    background: var(--card); border: 1px solid var(--line); border-radius: 9px;
-    padding: 10px 16px; font-weight: 600;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 14px; font-weight: 600; text-align: center;
   }
   .flow .arrow { color: var(--accent); font-weight: 700; }
+  .axiom {
+    text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 30px 20px; color: #fff;
+    background: linear-gradient(90deg, rgba(56,189,248,0.12), rgba(167,139,250,0.12));
+    border-radius: 13px; margin: 8px 0;
+  }
+  .axiom .hl { color: var(--accent); }
   .callout {
-    border-left: 3px solid var(--accent);
-    background: rgba(56,189,248,0.07);
-    padding: 18px 22px; border-radius: 0 12px 12px 0; margin-top: 24px;
-    font-size: 15px;
+    border-left: 3px solid var(--accent); background: rgba(56,189,248,0.07);
+    padding: 18px 22px; border-radius: 0 12px 12px 0; margin-top: 22px; font-size: 14.5px;
   }
   .callout strong { color: #fff; }
-  footer { padding: 56px 0 80px; color: var(--muted); font-size: 14px; text-align: center; }
-  .check { color: var(--good); font-weight: 700; }
+  .muted { color: var(--muted); }
+  footer { padding: 52px 0 80px; color: var(--muted); font-size: 14px; text-align: center; }
+  .stamp { display: inline-flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; color: var(--text);
+  }
 </style>
 </head>
 <body>
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Testing Engineering Framework</div>
-    <h1>qalore<br><span class="grad">全栈测试工程师网关</span></h1>
-    <p class="lead">让 AI 成为真正的测试工程师 —— 拥有持久记忆、遵守工程规范、熟悉项目上下文，自主判断如何工作，而不是被流水线驱赶。</p>
+    <div class="eyebrow">全栈测试工程师网关 · Full-stack Testing Gateway</div>
+    <h1>让 AI 的测试能力<br><span class="grad">可沉淀、可校验、可迁移</span></h1>
+    <p class="lead">qalore 不是又一个「AI 写用例」的工具，而是一套把测试工程的方法论、规范与项目知识写成文件、交给模型执行、再让机器持续校验的体系。五个能力覆盖从需求理解到全量审计的完整闭环。</p>
   </div>
 </header>
 
+<!-- 01 现状 -->
 <section>
   <div class="wrap">
-    <div class="kicker">Why · 设计动机</div>
-    <h2>三个矛盾，一个答案</h2>
-    <p class="sub">AI 能读懂需求、能写用例、能执行测试，但它有三个与生俱来的缺陷，qalore 正是为补足它们而生。</p>
-    <div class="grid cols3">
+    <div class="kicker">01 · Landscape 2026</div>
+    <h2>2026 年，测试正在被重写</h2>
+    <p class="sub">过去半年，几个信号同时出现，说明「Agentic Testing」已从概念进入成熟市场。</p>
+    <div class="grid c3">
       <div class="card">
-        <div class="num">1</div>
-        <h3>没有持久记忆</h3>
-        <p>每次会话从零开始，项目知识无法沉淀。qalore 用 story 把项目知识「物化」，跨会话、跨模型、跨 agent 协作。</p>
+        <div class="tag warm">品类确立</div>
+        <h4>Agentic QA 有了官方定义</h4>
+        <p>Gartner 2026 年发布「Agentic 软件质量保证平台」魔力象限，UiPath、Tricentis、SmartBear、LambdaTest 等厂商集体押注「AI QA Agent」。</p>
       </div>
       <div class="card">
-        <div class="num">2</div>
-        <h3>规范容易漂移</h3>
-        <p>口头约定会变、会忘、会自相矛盾。qalore 用 practices 把规范写成可机器校验的 spec，机器能判定的不靠 AI 自觉。</p>
+        <div class="tag blue">认知转向</div>
+        <h4>AI 从工具变成队友</h4>
+        <p>Google Cloud《AI Agent Trends 2026》：AI 不再是 copilot，而是目标驱动、能自主规划行动的 teammate。QA 战略从「执行用例」转向「风险智能」。</p>
       </div>
       <div class="card">
-        <div class="num">3</div>
-        <h3>能力不可复用</h3>
-        <p>换个项目，测试方法就推倒重来。qalore 用 capability 把「测试的思考方式」沉淀下来，与业务解耦，可迁移。</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="kicker">Design · 设计思想</div>
-    <h2>双螺旋自迭代模型</h2>
-    <p class="sub">qalore 内部有两条螺旋：一条承载业务，一条承载方法，它们通过「断言」完成碱基配对，持续自迭代。</p>
-    <div class="flow">
-      <div class="node">业务螺旋<br><span class="muted">story（唯一业务知识库）</span></div>
-      <div class="arrow">⇌</div>
-      <div class="node">方法螺旋<br><span class="muted">practices + capability（纯 spec）</span></div>
-      <div class="arrow">→</div>
-      <div class="node">碱基配对<br><span class="muted">断言三层映射</span></div>
-    </div>
-    <div class="grid cols3" style="margin-top:20px">
-      <div class="card">
-        <h3>分离</h3>
-        <p>story 是唯一承载业务内容的地方；practices 与 capability 不出现任何业务词，只用占位符描述通用规则。</p>
-      </div>
-      <div class="card">
-        <h3>连接</h3>
-        <p>业务逻辑断言（BL）→ 测试用例断言（TC）→ 执行结果，三层一一映射，信息流动不中断、不失真。</p>
-      </div>
-      <div class="card">
-        <h3>自迭代</h3>
-        <p>审计闭环回馈质量改进；外部审计（audit）再检查 qalore 本身，双螺旋不断逼近更高质量。</p>
+        <div class="tag green">技术定型</div>
+        <h4>Skill 与 MCP 分工清晰</h4>
+        <p>Skill 承载「知识与 SOP」（大脑/剧本），MCP 承载「连接与执行」（手/接口）。950+ MCP server、agentskills.io 跨平台标准、MCP 进入 CNCF——基础设施已就绪。</p>
       </div>
     </div>
     <div class="callout">
-      <strong>一句话纲领：</strong>「只有 story 涉及业务内容，qalore + audit 完全是测试 + 企业 spec。」判断一条规范是否越界的唯一标准 —— <strong>换一个被测项目，它还能用吗？</strong>
+      <strong>但厂商都在做「黑盒平台」：</strong>把 AI 包装成一个替人测试的 SaaS。qalore 走的是另一条路——<strong>不封装能力，而是沉淀能力</strong>。方法论、规范、项目知识全部写成文件，模型只是执行者，机器负责校验。这正是 2026 年被验证的「Skill 路线」在测试领域的落地。
     </div>
   </div>
 </section>
 
+<!-- 02 定位与架构 -->
 <section>
   <div class="wrap">
-    <div class="kicker">Method · 设计方法</div>
-    <h2>Spec 而非 Workflow</h2>
-    <p class="sub">qalore 不规定 AI 的每一个动作，而是划定边界、提供工具、注入上下文，把智力发挥空间留给 AI。</p>
-    <div class="grid cols2">
-      <div class="card">
-        <h3>AI 是主体，框架是支撑</h3>
-        <p>AI 像一名专业员工：有技能、守规范、懂背景。框架只给工具、设边界、供上下文。违反这条就是把员工变成流水线。</p>
-      </div>
-      <div class="card">
-        <h3>Capability = 思考哲学</h3>
-        <p>能力的唯一职责是装备 AI 某个专业领域的思考方式。加步骤 ≠ 加能力，只有加思考维度才是。</p>
-      </div>
-      <div class="card">
-        <h3>Practices = 公司规范</h3>
-        <p>划定边界防失控，不干涉边界内的智力发挥。规定「按功能点分节」，不规定「断言写什么」。</p>
-      </div>
-      <div class="card">
-        <h3>渐进式披露</h3>
-        <p>按上下文流转切割，不按角色切割。index.json → 内容文件 → changelog，每层按需加载，流转不中断。</p>
-      </div>
-    </div>
-  </div>
-</section>
+    <div class="kicker">02 · Architecture</div>
+    <h2>一个网关，五个能力，两层资产</h2>
+    <p class="sub">qalore 是「网关 + 能力」结构：网关做环境验证、意图识别、上下文注入，把任务路由到具体能力；能力按 practices 规范执行，产物写入 story。</p>
 
-<section>
-  <div class="wrap">
-    <div class="kicker">Landing · 落地方法</div>
-    <h2>三层资产 + 机器校验</h2>
-    <p class="sub">设计思想落成三套可维护的文件，再配上一台机器校验脚本，让「正确」可以被自动证明。</p>
-    <div class="grid cols3">
-      <div class="card">
-        <div class="num">P</div>
-        <h3>practices · 规范</h3>
-        <p>通用规范、技术栈规范、schema 权威、机器契约（contracts.json）。写的是「按什么规矩测」。</p>
-      </div>
-      <div class="card">
-        <div class="num">C</div>
-        <h3>capability · 能力</h3>
-        <p>五个测试能力，各自封装一套思考方式。写的是「怎么思考着去测」。</p>
-      </div>
-      <div class="card">
-        <div class="num">S</div>
-        <h3>story · 知识库</h3>
-        <p>项目-模块两级目录，四类文件（业务逻辑/测试用例/代码逻辑/变更日志）。写的是「测什么」。</p>
-      </div>
-    </div>
-    <h2 style="margin-top:48px">版本机制</h2>
-    <table>
-      <tr><th>机制</th><th>作用</th></tr>
-      <tr><td><code>version = {日期}-v{n}</code></td><td>practices 的版本号，与 changelog[0] 强一致</td></tr>
-      <tr><td><code>practices_min_version</code></td><td>每个 capability 声明依赖的最低 practices 版本，网关路由前校验</td></tr>
-      <tr><td>变更四步</td><td>写 changelog → 同步 version → 注册文件类型 → 同步 audit 依赖图</td></tr>
-      <tr><td><code>verify-contracts.py</code></td><td>11 项契约校验，含「audit 依赖图对齐」——版本 gap 由机器暴露，不靠人工审查</td></tr>
-    </table>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="kicker">Usage · 使用方法</div>
-    <h2>五个能力，一条流水线</h2>
-    <p class="sub">从「理解需求」到「审计一致性」，五个能力串起完整的测试工程闭环。</p>
-    <table>
-      <tr><th>能力</th><th>职责</th><th>思考方式</th></tr>
-      <tr><td><code>qa-understand</code></td><td>把需求/代码/设计稿转化为可测试断言</td><td>三驱动认知 + 多源证据聚合</td></tr>
-      <tr><td><code>qa-functional-test</code></td><td>以断言为输入，设计覆盖全面的测试用例</td><td>用户影响优先 + 覆盖拓扑</td></tr>
-      <tr><td><code>qa-case-review</code></td><td>对用例做多层质量检查，输出问题报告</td><td>溯源式质量判断</td></tr>
-      <tr><td><code>qa-execution</code></td><td>按断言规则在浏览器逐条执行，产出报告</td><td>断言驱动执行 + 自动化不变式</td></tr>
-      <tr><td><code>qa-audit</code></td><td>全量审计一致性，产出待修复清单</td><td>机器校验 + 语义审计流水线</td></tr>
-    </table>
-    <h2 style="margin-top:48px">快速上手（四步）</h2>
     <div class="flow">
-      <div class="node">读配置</div>
-      <div class="arrow">→</div>
-      <div class="node">环境验证</div>
-      <div class="arrow">→</div>
-      <div class="node">意图路由</div>
-      <div class="arrow">→</div>
-      <div class="node">上下文注入</div>
+      <div class="node">用户输入</div><div class="arrow">→</div>
+      <div class="node">网关<br><span class="muted">环境验证 · 意图路由 · 上下文注入</span></div><div class="arrow">→</div>
+      <div class="node">注入 Practices<br><span class="muted">规范边界</span></div><div class="arrow">→</div>
+      <div class="node">路由到能力<br><span class="muted">自主编排</span></div><div class="arrow">→</div>
+      <div class="node">写入 Story<br><span class="muted">机器校验</span></div>
     </div>
+
+    <div class="grid c2" style="margin-top:26px">
+      <div class="card">
+        <div class="tag blue">五个能力</div>
+        <h4>覆盖测试全链路</h4>
+        <p><code>qa-understand</code> 理解提炼 → <code>qa-functional-test</code> 设计用例 → <code>qa-case-review</code> 评审 → <code>qa-execution</code> 自动执行 → <code>qa-audit</code> 全量审计。每一步都有机器校验兜底。</p>
+      </div>
+      <div class="card">
+        <div class="tag warm">两层资产</div>
+        <h4>Practices 规范 · Story 知识</h4>
+        <p>Practices 定义「什么是好」——纯文本规范，版本化演进；Story 沉淀「这个项目怎么样」——每个模块的业务逻辑、代码逻辑、测试用例三元组。模型升级不影响它们，换模型它们还在。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 能力一：意图理解 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">03 · Capability 1</div>
+    <h2>测试意图理解与提炼 <code style="font-size:16px">qa-understand</code></h2>
+    <p class="sub">把任意信息源——需求文档、代码、数据库 schema、设计稿——转化为可测试的断言。这是整个链路的地基：断言错了，后面全错。</p>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">CORE COGNITION</div>
+        <h3>三驱动认知框架</h3>
+        <div class="cd">回答「为什么读、何时停、如何识别边界」的认知姿态，全程有效。</div>
+      </div>
+      <div class="cap-body">
+        <div class="grid c2">
+          <div class="card">
+            <h4>假设优先</h4>
+            <p>读之前先假设「这个模块做什么、谁触发、影响什么」，读是验证和修正假设，不是从零积累。停止条件是：假设中所有已知交互都有了来源证据。</p>
+          </div>
+          <div class="card">
+            <h4>证据驱动</h4>
+            <p>每条论断必须有来源。任何「我认为是这样的」都是待验证假设，不是断言。</p>
+          </div>
+          <div class="card">
+            <h4>模型驱动</h4>
+            <p>每读一段，问——这证实还是推翻了假设的哪个部分？</p>
+          </div>
+          <div class="card">
+            <h4>边界驱动</h4>
+            <p>每个系统交互都有两端。遇到边界判断另一端是否已知：已知则记录 <code>[模块::功能点]</code>，关键但未知则主动追踪，不关键则标注「链路断点」。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">ADAPTERS</div>
+        <h3>三类信息源适配器</h3>
+        <div class="cd">按需加载，不预加载；多源顺序执行，最后统一综合。</div>
+      </div>
+      <div class="cap-body">
+        <table>
+          <tr><th>适配器</th><th>信息源</th><th>写入目标</th><th>粒度上限</th></tr>
+          <tr><td><code>text</code> 文本</td><td>PRD / 需求文档 / 官方文档 / 口述 / URL</td><td>业务逻辑.md</td><td>规则级</td></tr>
+          <tr><td><code>code</code> 技术</td><td>代码 demo / 接口设计 / DB schema / git 代码（支持 N 个仓库）</td><td>代码逻辑.md</td><td>设计期表级 → 产物期字段级</td></tr>
+          <tr><td><code>design</code> 设计</td><td>Figma 设计稿</td><td>业务逻辑.md</td><td>组件级</td></tr>
+        </table>
+        <div class="callout" style="margin-top:16px">
+          <strong>测试左移的两期模式：</strong>同一个技术适配器覆盖两个成熟度阶段——<strong>设计思路期</strong>（技术评审时，只有接口/DB 设计思路，产出契约级断言）→ <strong>实际产物期</strong>（有 git 代码 / DB schema 后，下钻到字段级实现断言）。测试在代码写出之前就开始。
+        </div>
+      </div>
+    </div>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">MULTI-SOURCE</div>
+        <h3>多源聚合与置信度标注</h3>
+        <div class="cd">文本 + 代码 + 设计的任意组合，逐源标注，冲突显式化。</div>
+      </div>
+      <div class="cap-body">
+        <p style="color:var(--muted);font-size:14px;margin-bottom:14px">每条断言带置信度标注，供下游用例设计和执行分流使用：</p>
+        <div class="stamp">
+          <span class="pill"><code>✓</code> 已确认</span>
+          <span class="pill"><code>✓部分代码确认</code></span>
+          <span class="pill"><code>待代码确认</code></span>
+          <span class="pill"><code>代码独立</code>（单源）</span>
+          <span class="pill"><code>代码独立,多源</code></span>
+          <span class="pill"><code>⚠️</code> 文本-代码冲突</span>
+          <span class="pill"><code>⚠️(代码)</code> 多源代码冲突</span>
+        </div>
+        <div class="callout">
+          <strong>冲突不掩盖：</strong>当文本说的和代码做的不一致，不强行合并，而是标注 <code>⚠️</code> 冲突，暂停让用户确认以哪个为准。这是「证伪式协作」的第一道关卡——发现矛盾，而不是假装一致。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 能力二：用例设计 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">04 · Capability 2</div>
+    <h2>功能测试用例设计 <code style="font-size:16px">qa-functional-test</code></h2>
+    <p class="sub">以断言集合为输入，设计覆盖正向/边界/异常/上下游的用例，并产出可执行的测试产物。</p>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">COVERAGE TOPOLOGY</div>
+        <h3>覆盖拓扑：断言是节点，用例是展开</h3>
+        <div class="cd">禁止把断言 1:1 转译为用例。</div>
+      </div>
+      <div class="cap-body">
+        <p style="color:var(--muted);font-size:14px;margin-bottom:14px">每条断言先识别其变量维度，再沿维度拓扑展开：</p>
+        <div class="grid c3">
+          <div class="card"><h4>六个变量维度</h4><p>主体 / 客体 / 动作 / 约束 / 通道 / 场景</p></div>
+          <div class="card"><h4>四个测试维度</h4><p>正向 / 边界 / 异常 / 上下游</p></div>
+          <div class="card"><h4>双通道入口</h4><p>前端 UI + 后端 API 直调，缺一不可</p></div>
+        </div>
+        <div class="callout">
+          <strong>用户影响优先：</strong>设计前先问一句——「如果这个模块今天在生产中出问题，用户最先感受到什么损失？」以答案定义 2-3 个优先场景，为它们设计多角度用例；高风险的 <code>⚠️</code> 和 <code>待代码确认</code> 断言额外追加高优先级用例。
+        </div>
+      </div>
+    </div>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">WRITE MOCK · 权限左移</div>
+        <h3>写操作的权限左移四件套</h3>
+        <div class="cd">测「过期时刷新」这种边界，需要 mock 数据——但写操作必须有纪律。</div>
+      </div>
+      <div class="cap-body">
+        <div class="flow">
+          <div class="node">设计期<br><span class="muted">声明写 mock</span></div><div class="arrow">→</div>
+          <div class="node">评审期<br><span class="muted">人类确认</span></div><div class="arrow">→</div>
+          <div class="node">写入用例<br><span class="muted">前置条件</span></div><div class="arrow">→</div>
+          <div class="node">执行期<br><span class="muted">只强制不问人</span></div>
+        </div>
+        <p style="color:var(--muted);font-size:13.5px;margin-top:14px">未声明的写 mock 一律不产出（留给执行期机器拦截）；声明了但未确认的，标注「待确认」交给评审处理。</p>
+      </div>
+    </div>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">POST-WRITE VERIFICATION</div>
+        <h3>写入后五项机器验证</h3>
+        <div class="cd">每次写用例后必执行，任一项不通过即暂停。</div>
+      </div>
+      <div class="cap-body">
+        <table>
+          <tr><th>验证</th><th>检查内容</th></tr>
+          <tr><td>1. 计数</td><td>tc_count / pending_count / assert_seq 与 index.json 一致</td></tr>
+          <tr><td>2. 覆盖</td><td>功能点第一级覆盖 + 「断言 × 变量组合」第二级覆盖</td></tr>
+          <tr><td>3. 格式</td><td>每条 TC 含全部 7 个必填字段，ID 无重复、无跳号</td></tr>
+          <tr><td>4. 语言</td><td>禁止工程语言（API 调用 / 组件名 / CSS 类名 / 内部变量）泄漏进用户视角用例</td></tr>
+          <tr><td>5. 断言覆盖</td><td>每条 <code>→ 预期</code> 至少对应一个 <code>→ 断言</code>，类型合法</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 能力三：用例评审 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">05 · Capability 3</div>
+    <h2>用例评审 <code style="font-size:16px">qa-case-review</code></h2>
+    <p class="sub">评审的目标不是找格式问题，而是回答一个问题：<strong>这批用例拿去执行，会漏掉什么、卡在哪里？</strong></p>
+
+    <div class="grid c3">
+      <div class="card">
+        <div class="tag blue">结构层</div>
+        <h4>可执行吗</h4>
+        <p>字段是否完整？每个触发性步骤是否有对应预期？每个 <code>→ 预期</code> 是否有对应 <code>→ 断言</code>？</p>
+      </div>
+      <div class="card">
+        <div class="tag green">覆盖层</div>
+        <h4>该测的都测了吗</h4>
+        <p>每个功能点是否覆盖正向/边界/异常/上下游四维度？每条断言是否有对应用例？「断言 × 变量组合」是否展开？双通道是否覆盖？</p>
+      </div>
+      <div class="card">
+        <div class="tag warm">归因层</div>
+        <h4>根源在哪一层</h4>
+        <p>用例写法问题 → 设计层缺陷；断言没被设计进来 → 理解层遗漏。定位根因，而不是停在表象。</p>
+      </div>
+    </div>
+
     <div class="callout">
-      <strong>一条硬约束：</strong>未在能力列表中的 capability 不得执行，<strong>不得用通用测试知识替代</strong>。qalore 的价值就在于「方法被显式沉淀、机器可校验、跨会话不漂移」。
+      <strong>写 mock 五围栏审查：</strong>评审阶段对用例里的写 mock 声明逐条核对五道安全围栏——环境白名单 / 数据白名单（字段级）/ 可还原（快照）/ 已声明 / 待人类确认。五围栏齐全才标记「已确认」；围栏缺失即阻断。「副作用是否可接受」是「应不应该」问题，由人类拍板，AI 只做形式校验。
+    </div>
+  </div>
+</section>
+
+<!-- 06 能力四：自动化执行 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">06 · Capability 4</div>
+    <h2>自动化测试执行 <code style="font-size:16px">qa-execution</code></h2>
+    <p class="sub">读取用例里的断言规则，通过 Playwright 在真实浏览器里逐条执行，产出执行报告。断言是「可执行的规格」，不是给人读的文字。</p>
+
+    <div class="cap">
+      <div class="cap-head">
+        <div class="cn">ASSERTIONS</div>
+        <h3>28 种断言类型，五类全覆盖</h3>
+        <div class="cd">UI / Console / 视觉样式 / API / DB，全部走统一的可验证语法。</div>
+      </div>
+      <div class="cap-body">
+        <table>
+          <tr><th>类别</th><th>示例</th></tr>
+          <tr><td>UI</td><td><code>element-exists(.primary-btn)</code> · <code>element-count(.item, 5)</code> · <code>element-text(.title, "标题")</code> · <code>url-contains("/login")</code></td></tr>
+          <tr><td>Console</td><td><code>console-error-contains("Uncaught TypeError")</code></td></tr>
+          <tr><td>视觉样式</td><td><code>element-color(.title, "rgb(24,144,255)")</code> · <code>element-font-size(.title, 16)</code> · <code>element-border-radius(.card, 8)</code></td></tr>
+          <tr><td>API</td><td><code>api-status(/api/*/list, 200)</code> · <code>api-field-value(/api/*/list, "total", 9)</code></td></tr>
+          <tr><td>DB</td><td><code>db-field-value(库, 表, ID, 字段, "值")</code> · <code>db-row-count(库, 表, 条件, 3)</code>（psql 只读 SELECT）</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid c2" style="margin-top:20px">
+      <div class="card">
+        <div class="tag blue">双模式分流</div>
+        <h4>验证模式 vs 校准模式</h4>
+        <p>高置信度断言走<strong>验证模式</strong>（正常 pass/fail）；低置信度断言（<code>待代码确认</code>/<code>⚠️</code>）走<strong>校准模式</strong>——首次执行不判 FAIL，产出「校准差异报告」，按「推理失真 / 实现漂移 / 文档不完整」三分类归因。避免把「断言本身没写准」误判成「代码有 bug」。</p>
+      </div>
+      <div class="card">
+        <div class="tag warm">无人值守</div>
+        <h4>自动化五条不变式</h4>
+        <p><strong>幂等</strong>（只跑无副作用用例）· <strong>范围声明</strong>（校验执行范围非空）· <strong>只读安全</strong>（含写 mock 自动 SKIP）· <strong>漂移保护</strong>（同一 TC 连续 FAIL ≥ 3 次标记「疑似断言漂移」）· <strong>失败可见</strong>（报告落盘可拉取）。</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>待回写项：</strong>执行不只是跑用例，还持续发现「断言与实测不符」「端点漂移」等问题，写入【待回写项】清单——作为后续回写 story 的可追踪来源。执行本身也在反向修正知识库。
+    </div>
+  </div>
+</section>
+
+<!-- 07 能力五：全量审计 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">07 · Capability 5 + Audit Skill</div>
+    <h2>审计 <code style="font-size:16px">qa-audit</code> · <code style="font-size:16px">qalore-audit</code></h2>
+    <p class="sub">qalore 最特别的能力：不是测业务，而是测自己。<code>qa-audit</code>（内建能力）做全量审计，独立 skill <code>qalore-audit</code> 做变更驱动定点审查——持续发现体系自身的漂移与不一致。</p>
+
+    <div class="grid c2">
+      <div class="card">
+        <div class="tag green">机器校验 · 11 项契约</div>
+        <h4>能判定的不靠 AI 自觉</h4>
+        <p>assert_seq 数据 / 断言类型数据 / assert_seq 副本语义 / 断言类型计数副本 / 计数字段 / ID 规则 / 版本一致性 / 依赖登记（prod 排除·秘密脱敏·写 mock 确认）/ 外部工具 / @档位合法性 / 依赖图对齐。脚本一跑，漂移立即暴露。</p>
+      </div>
+      <div class="card">
+        <div class="tag blue">语义审计 · 19 步流水线</div>
+        <h4>脚本判不了的，人工判断兜底</h4>
+        <p>原子变更验证（跨模块成对改动）/ 示例即契约（文档示例 ↔ 真实数据）/ Changelog 真实性（「声称已修」↔「实际状态」）/ 跨模块引用一致性 / subagent 分层合规 / 环境可用性一致性 / 依赖一致性。</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>两套审计，分工明确：</strong><code>qa-audit</code>（内建能力）做<strong>全量审计</strong>——19 步流水线 + 11 项机器校验；<code>qalore-audit</code>（独立 skill）做<strong>变更驱动定点审查</strong>——沿依赖图只查受影响下游，归入七类问题（合约不一致 / 传播遗漏 / 术语陈旧 / 机制模糊 / 结构破损 / 时序错误 / 分层越界）。两者共享版本锚点（机器强制对齐），不重复审计同一维度。
+    </div>
+  </div>
+</section>
+
+<!-- 08 治理层 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">08 · Governance</div>
+    <h2>治理层：Practices 规范与 Story 知识</h2>
+    <p class="sub">五个能力是「怎么做」，治理层回答「按什么标准做、关于什么东西做」。这是 qalore 迭代最深、也最不可替代的部分。</p>
+
+    <div class="grid c2">
+      <div class="card">
+        <div class="tag blue">Practices · 三层规则</div>
+        <h4>规范像代码一样版本化</h4>
+        <p><strong>common</strong>（什么是好的产物）· <strong>tech-stacks</strong>（断言/用例/执行的格式与规则）· <strong>schemas</strong>（结构的权威定义）。每次变更带 <code>YYYY-MM-DD-v{n}</code> 版本号 + changelog，能力声明 <code>practices_min_version</code> 做版本兼容检查——<strong>规范漂移会被机器发现，而不是靠记忆。</strong></p>
+      </div>
+      <div class="card">
+        <div class="tag warm">Story · 知识三元组</div>
+        <h4>每个模块三份文件</h4>
+        <p><strong>业务逻辑</strong>（需求说什么）· <strong>代码逻辑</strong>（代码实际做什么）· <strong>测试用例</strong>（如何验证）。断言级关联（assert_seq 全局序号）、跨模块上下游标签、跨会话持久化、断点可恢复。外加 changelog、评审记录、执行报告——知识持续累积，不因换模型而丢失。</p>
+      </div>
+    </div>
+
+    <div class="axiom" style="margin-top:26px">
+      方法论（能力）会随模型退化，<span class="hl">规范（Practices）与知识（Story）永不退化</span>。
+    </div>
+  </div>
+</section>
+
+<!-- 09 完整闭环 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">09 · Double Helix</div>
+    <h2>双螺旋：业务链 × 方法链，审计自迭代</h2>
+    <p class="sub">qalore 不是单向流水线，而是两条知识链相互缠绕、通过「断言」配对、通过「审计」自迭代的闭环。</p>
+
+    <div class="grid c2">
+      <div class="card">
+        <div class="tag green">螺旋一 · 业务链</div>
+        <h4>Story 是唯一业务知识库</h4>
+        <p>业务逻辑 / 测试用例 / 代码逻辑 / 变更日志，按「项目 → 模块」组织。业务知识随测试持续沉淀，不因换模型而丢失。</p>
+      </div>
+      <div class="card">
+        <div class="tag blue">螺旋二 · 方法链</div>
+        <h4>qalore = Practices + Capability</h4>
+        <p>纯测试 + 企业 spec，只承载测试方法、契约与哲学。严禁参杂业务内容——业务内容一旦流入，即破坏双螺旋分离。</p>
+      </div>
+    </div>
+
+    <div class="axiom" style="margin-top:22px">
+      碱基配对：<span class="hl">BL 断言 → TC 断言 → 执行断言</span>（三层一一映射，可追溯）
+    </div>
+
+    <div class="flow" style="margin-top:22px">
+      <div class="node">qalore<br><span class="muted">practices · capability · story</span></div><div class="arrow">⇄</div>
+      <div class="node">audit<br><span class="muted">qa-audit 全量 · qalore-audit 定点</span></div>
+    </div>
+
+    <div class="callout">
+      <strong>自迭代闭环：</strong>qa-audit / qalore-audit 审计 qalore 自身 → 发现问题 → 修复规范 → verify-contracts.py 机器校验 → 再审计。qalore 每次变更同步 audit 依赖图；audit 审查后回馈更新 qalore。<strong>测试体系自己也在被测。</strong>
+    </div>
+  </div>
+</section>
+
+<!-- 10 收尾 -->
+<section>
+  <div class="wrap">
+    <div class="kicker">10 · Why this path</div>
+    <h2>为什么这条路是对的</h2>
+    <div class="grid c2">
+      <div class="card">
+        <h4>Skill 路线被 2026 验证</h4>
+        <p>当厂商在造「黑盒 AI 测试平台」时，业界同时验证了另一条路：<strong>Skills 击败 Prompts</strong>、<strong>Claude Code Skills 主导 2026</strong>、<strong>agentskills.io 跨平台标准</strong>。qalore 的「纯文本规范 + Skill 能力 + MCP 执行」架构，正好站在这条被验证的路线上。</p>
+      </div>
+      <div class="card">
+        <h4>约束驱动，而非角色驱动</h4>
+        <p>「你是测试工程师」是模糊的角色扮演；「每条断言至少对应一条用例、每条用例有可观察预期、所有异常路径有覆盖」是可逐条验证的约束。qalore 把后者做成了机器可校验的规范——这是它区别于所有「提示词测试助手」的根本。</p>
+      </div>
+    </div>
+    <div class="axiom" style="margin-top:24px">
+      AI 扩展信息处理，人留下做判断。<br><span class="hl">qalore 让「判断的标准」可以被沉淀、被校验、被迁移。</span>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    qalore —— 让 AI 的测试能力可沉淀、可校验、可迁移。
+    qalore · 全栈测试工程师网关 —— 五个能力 × 两层资产 × 双螺旋自迭代
   </div>
 </footer>
 
