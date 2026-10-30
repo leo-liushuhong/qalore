@@ -40,7 +40,7 @@ practices_min_version: "2026-10-29-v4"
 
 **权限层（写 mock 五围栏审查）：**
 - 扫描用例「前置条件」中的写 mock 声明，逐条核对安全围栏五边界（见 `contracts.json#dependencies.safety_fence`）：环境白名单 / 数据白名单（字段级）/ 可还原（快照）/ 已声明 / 待人类确认。
-- 五围栏齐全且副作用可接受 → 标记「已确认·日期·确认人」（确认人是人类，AI 只做形式校验）。
+- 五围栏齐全且副作用可接受 → 标记「已确认·日期·确认人」（确认人是人类，AI 只做形式校验），并写入 `{story_path}/{项目}/dependencies.json` 的 `write_mocks` 数组（字段 id / target / method / confirmed_by / confirmed_date，格式见 schemas/story-index.schema.md「依赖登记」）。
 - 围栏缺失 → 列为阻断（用例无法执行）；副作用是否可接受是「应不应该」问题，由人类拍板，AI 不替人决策。
 
 **评审基准优先级：**

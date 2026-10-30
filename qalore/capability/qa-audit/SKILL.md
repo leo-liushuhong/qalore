@@ -29,7 +29,7 @@ practices_min_version: "2026-10-29-v7"
    → 覆盖 11 项：assert_seq 数据 / 断言类型数据 / assert_seq 副本语义 /
      断言类型计数副本 / 计数字段（tc_count·pending_count）/ ID 规则 / index.json 版本一致性 /
      依赖登记（prod 排除·秘密脱敏·写 mock 确认标记）/ 外部工具（probe 必填·cli 探测）/
-    @档位合法性 / audit 依赖图对齐（practices version == dependency-map 对齐版本）
+    @档位合法性 / audit 依赖图对齐（practices version == dependency-map 对齐版本，且 audit 版本字段存在且格式合法）
    → 记录全部 ❌ 项，作为审计报告第一部分
 
 2. 语义审计（脚本无法覆盖的部分）：
@@ -68,6 +68,7 @@ practices_min_version: "2026-10-29-v7"
 | 依赖登记 | ✅/❌ |
 | 外部工具 | ✅/❌ |
 | @档位 | ✅/❌ |
+| audit 依赖图对齐 | ✅/❌ |
 
 ## 二、语义审计发现
 | 严重级别 | 步骤 | 位置 | 问题 | 建议修复 |
@@ -83,6 +84,6 @@ practices_min_version: "2026-10-29-v7"
 ## 约束
 
 - **只读诊断**：本 capability 不直接修改 story/practices 文件。发现的问题进入「待修复清单」，由用户确认后再执行修复。
-- **严重级别**：P0 = 阻断级（版本不一致、JSON 损坏、机器校验失败）；P1 = 数据漂移/契约断裂；P2 = 规范自身缺陷；P3 = 建议级完善。判定规则见 handbook.md「评审规范」。
+- **严重级别**：P0 = 阻断级（版本不一致、JSON 损坏、机器校验失败）；P1 = 数据漂移/契约断裂；P2 = 规范自身缺陷；P3 = 建议级完善。
 - **范围**：全量审计覆盖 practices + 全部 story 项目；用户指定单项目/单模块时缩小范围。
 - **不得用通用测试知识替代**：审计方法只能来自 handbook-audit.md，不得自行发明检查项。

@@ -17,7 +17,7 @@
 |------|------|------------|
 | **存在与结构** | 页面上有哪些组件？哪些应该出现/不出现？ | UI 存在性断言（element-exists / element-not-exists / element-count） |
 | **文案与状态** | 组件显示什么文案？有哪些状态（默认/禁用/选中/加载）？ | UI 文本/状态断言（element-text / element-enabled / element-disabled） |
-| **样式与视觉** | 组件的颜色/字号/字体/间距/尺寸/圆角与设计稿是否一致？ | 视觉样式断言（element-color / element-background-color / element-font-size / element-font-family / element-font-weight / element-padding / element-margin / element-size / element-position / element-border-radius） |
+| **样式与视觉** | 组件的颜色/字号/字体/间距/尺寸/圆角与设计稿是否一致？ | 视觉样式断言（element-color / element-background-color / element-font-size / element-font-family / element-font-weight / element-padding / element-margin / element-size / element-position / element-border-radius）；仅校验宽度时用 UI 断言 `element-width`（width-only，视觉断言 `element-size` 为宽高同时校验） |
 | **交互与反馈** | 用户操作后有什么反馈？弹窗/提示/跳转？ | 交互反馈断言（message-contains / url-contains） |
 
 > 样式断言值支持 `@档位` 后缀（如 `element-font-size(.title, 16@mobile)`）以覆盖多机型/系统兼容，档位清单见 dependencies.json 的 `environments[].device_profiles`。
@@ -26,6 +26,7 @@
 - 四镜头对每个组件/页面全部执行，设计稿有明确呈现 → 记为断言；无明确呈现 → 写入待确认项，不猜测
 - 设计稿只描述「应该长什么样」，不描述「内部怎么实现」——数据逻辑/接口契约不属于本适配器范围，由技术适配器（code.md）负责
 - 停止阅读：当前页面的所有组件都已建立「存在/文案/样式/交互」四镜头模型
+- **不可测约束识别**：同 text.md「追问原则」——设计稿中遇到「等不了时间的场景」（时间维度超出可等待范围）或「官方硬逻辑」时，改记 `DEP-{PREFIX}-{seq}` 不可测约束条目（格式见 story-formats.md「统一交接块格式」）
 
 ---
 
@@ -38,7 +39,7 @@
 - 层级 1 — 目标模块 BL 文件 + 1-hop 上下游 + 待确认项（安全基线）
 - 层级 2 — + 测试用例；层级 3 — + 代码；层级 4 — + 跨项目
 
-默认起始层级 1，上限层级 2（design-only 模式）。升级规则见 text.md「信息范围层级」章节。
+默认起始层级 1，上限层级 2（design 适配器无论单源或多源组合均不读代码——其任务是提取设计期望而非对照实现，层级 3 的代码读取由 code 适配器负责）。升级规则见 text.md「信息范围层级」章节。
 
 ---
 
@@ -59,7 +60,7 @@
 
 ## 产出
 
-**单源（仅设计适配器运行）：** 输出【待沉淀】声明，格式遵循 `{practices_path}/common/handbook.md`「story 写入协议」：
+**单源（仅设计适配器运行）：** 先输出【测试意图已提炼】交接块（格式见 story-formats.md「统一交接块格式」，供 qa-functional-test / qa-case-review 消费），再输出【待沉淀】声明（格式遵循 `{practices_path}/common/handbook.md`「story 写入协议」）：
 
 ```
 【待沉淀】
@@ -68,6 +69,7 @@
 | {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{模块}/ | {新建/3.1新增/3.2更新} | {UI 断言变更摘要} |
 | {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（设计稿）{操作摘要} |
 | index.json | {story_path}/{项目}/ | patch | {变更字段摘要} |
+| dependencies.json | {story_path}/{项目}/ | patch | inputs={交接块「输入依赖」条目}，unverifiable={交接块「不可测约束」DEP 条目}（有则更新，无则不改；格式见 schemas/story-index.schema.md「依赖登记」） |
 ```
 
 **写入规程：**

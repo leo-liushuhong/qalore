@@ -9,7 +9,7 @@ practices_min_version: "2026-06-12-v11"
 
 # qa-token-report：Token 使用统计
 
-> **DSH 说明**：本 capability 为 Claude Code 专属（依赖 Claude Code 的 Stop Hook），DeepSeek Harness 无对应机制，**在 DSH 下不生效**。文件随 skill 整体迁移保留，仅供 Claude Code 侧继续使用；下方 `~/.claude/settings.json`、`%USERPROFILE%/.claude/...` 均为 Claude Code 环境路径，勿在 DSH 下执行。
+> **DSH 说明**：本 capability 为 Claude Code 专属（依赖 Claude Code 的 Stop Hook），DeepSeek Harness 无对应机制，**在 DSH 下不生效**。文件随 skill 整体迁移保留；Claude Code 侧 skill 已废弃，本 capability 随之不再维护；下方 `~/.claude/settings.json`、`%USERPROFILE%/.claude/...` 均为 Claude Code 环境路径，勿在 DSH 下执行。
 
 ## 前置说明
 

@@ -13,7 +13,7 @@ description: >
 practices_min_version: "2026-10-29-v4"
 ---
 
-> **DSH 迁移说明**：本 skill 已从 Claude Code 迁移至 DeepSeek Harness，Claude Code 侧原 skill 仍保留。资源目录 = 本 skill 根目录（加载时由系统注入的 `Base directory`）；`capability/`、`adapters/` 均为相对此目录的相对路径。配置读取 `~/.dsh/qalore-config.json`；practices 与 story 与 Claude Code 版**共享同一套**（路径见该 config，勿另建副本）。qa-execution 依赖 Playwright MCP（UI/Console/API/样式断言统一走 Playwright，已废弃 CDP Network MCP）；qa-token-report 为 Claude Code 专属（依赖 Stop Hook），DSH 下不生效。
+> **DSH 迁移说明**：本 skill 已从 Claude Code 迁移至 DeepSeek Harness，Claude Code 侧原 skill 已废弃（不再维护）。资源目录 = 本 skill 根目录（加载时由系统注入的 `Base directory`）；`capability/`、`adapters/` 均为相对此目录的相对路径。配置读取 `~/.dsh/qalore-config.json`；practices 与 story 与 Claude Code 版**共享同一套**（路径见该 config，勿另建副本）。qa-execution 依赖 Playwright MCP（UI/Console/API/样式断言统一走 Playwright，已废弃 CDP Network MCP）；qa-token-report 为 Claude Code 专属（依赖 Stop Hook），DSH 下不生效。
 
 # qalore：测试任务网关
 
@@ -229,6 +229,8 @@ context 标记规范（格式、规则）见 handbook.md「context 标记规范�
 触发条件：用户明确要求变更规范，或 capability 执行中发现需要补充。绝大多数日常任务不涉及此步骤。
 
 触发时先 Read `{practices_path}/common/handbook-practices-ops.md`，按其中「practices 写入协议」执行；practices/index.json 的版本管理规则见同文件「practices/index.json 维护规范」章节。
+
+结构性变更（新增 capability、改变 practices 分层、调整 story 格式）前，先 Read `{practices_path}/common/qalore-design-philosophy.md` 确认方向与设计核心一致（AI 是主体 / capability=思考哲学 / practices=公司规范 / story=项目上下文 / 渐进式披露）。
 
 ---
 
