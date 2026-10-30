@@ -28,7 +28,7 @@ qalore 依赖的外部工具（MCP / CLI / Python 包）统一在此登记，机
 ```
 【依赖体检报告】
 ✅ playwright_mcp（MCP 已接线）
-❌ figma_mcp（未接线 → 设计类断言降级为文本描述）
+✅ figma_mcp（MCP 已接线）
 ✅ psql（≥14）
 ✅ python3（≥3.8）
 ```
