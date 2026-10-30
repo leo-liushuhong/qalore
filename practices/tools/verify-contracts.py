@@ -76,6 +76,10 @@ def check_assertion_types(story, contracts):
     """校验 story 里实际使用的断言类型都在 contracts 定义范围内。"""
     problems = []
     defined = set(contracts["assertion_types"]["types"])
+    # count 与 types 实际数量必须一致（防止加类型忘 bump count）
+    declared_count = contracts["assertion_types"].get("count")
+    if declared_count is not None and declared_count != len(defined):
+        problems.append(f"[断言类型] contracts count={declared_count} != types 实际 {len(defined)}")
     used = set()
     for f in glob.glob(os.path.join(story, "**", "*.md"), recursive=True):
         with open(f, encoding="utf-8") as fh:
@@ -120,9 +124,11 @@ def check_assertion_type_copies(practices, skill, contracts):
     expected_count = contracts["assertion_types"]["count"]
     skill_dir = skill if skill else ""
 
-    # 检查 cases.md / qa-execution / qa-functional-test 里的"N 种"引用
+    # 检查 cases.md / execution.md / handbook.md / qa-execution / qa-functional-test 里的"N 种"引用
     targets = [
         os.path.join(practices, "tech-stacks", "functional", "cases.md"),
+        os.path.join(practices, "tech-stacks", "functional", "execution.md"),
+        os.path.join(practices, "common", "handbook.md"),
         os.path.join(skill_dir, "capability", "qa-execution", "SKILL.md"),
         os.path.join(skill_dir, "capability", "qa-functional-test", "SKILL.md"),
     ]
@@ -131,10 +137,7 @@ def check_assertion_type_copies(practices, skill, contracts):
             continue
         with open(f, encoding="utf-8") as fh:
             txt = fh.read()
-        # 找"X 种"的声明
-        for m in re.findall(r"(\d+)\s*种(?!\s*断言类型的)", txt):
-            pass
-        # 更精确：找"定义的 N 种范围内"或"N 种"等
+        # 找"定义的 N 种范围内"或"N 种断言"等
         counts = re.findall(r"(\d+)\s*种(?:范围|断言)", txt)
         for c in counts:
             if int(c) != expected_count:
@@ -364,6 +367,10 @@ def check_audit_alignment(practices):
     av = m.group(1)
     if pv != av:
         problems.append(f"[audit] 依赖图对齐版本 {av} ≠ practices version {pv}（gap：qalore 已更新，audit 依赖图未同步）")
+    # audit 版本（自声明演进版本）也必须存在且格式正确，防止被误删或改坏
+    m2 = re.search(r"audit 版本\*\*[：:]\s*`([0-9]{4}-[0-9]{2}-[0-9]{2}-v[0-9]+)`", content)
+    if not m2:
+        problems.append(f"[audit] 依赖图头部缺少「audit 版本」声明：{dm}")
     return 1, problems
 
 

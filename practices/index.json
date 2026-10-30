@@ -1,8 +1,96 @@
 {
-  "version": "2026-10-29-v8",
+  "version": "2026-10-30-v10",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-10-30-v10",
+      "changed_files": [
+        "common/handbook-dependencies.md",
+        "qalore:SKILL.md"
+      ],
+      "summary": "依赖体检报告示例 figma_mcp 状态更新：figma MCP 已在 DSH 环境接通（此前仅 playwright 接线），示例从「未接线 → 降级为文本描述」改为「已接线」，与 playwright_mcp 状态一致；同时统一此前「安装指引」与「降级为文本描述」两处措辞差异"
+    },
+    {
+      "version": "2026-10-30-v9",
+      "date": "2026-10-30",
+      "summary": "双螺旋第十轮审查修复（模块名泄漏收尾）：cases.md 覆盖拓扑示例「空/非空{目录名}」——「{目录名}」是 story 里 某真实模块（占位符已隐藏），属类型7 分层越界（业务模块名出现在 qalore 层）。替换为同义但非模块名的「空/非空目录」，消除最后 1 处模块名泄漏。至此 40 个真实模块名在 qalore/audit 层全部零泄漏（框架术语豁免项除外）",
+      "changed_files": [
+        "tech-stacks/functional/cases.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v8",
+      "date": "2026-10-30",
+      "summary": "双螺旋第九轮审查修复（示例 TC ID 前缀统一占位符）：① handbook.md 用 `[assert-{真实前缀}-001]` 作示例，而 该前缀是 story 里某模块的真实 tc_prefix（真实 TC ID 泄漏，类型7 分层越界）；② story-formats.md / synthesis.md / code.md 用 `[assert-{示例前缀}-xxx]` 作示例，该示例前缀虽非真实前缀，但与已清洗的 qalore-design-philosophy.md（用 {PREFIX}）不一致。统一把 19 处示例断言 ID 前缀（19 处示例前缀）替换为 `{PREFIX}` 占位符，与 issue-taxonomy 类型7 的占位符约定（TC-{PREFIX}-{seq}）及 L1 修复对齐",
+      "changed_files": [
+        "tech-stacks/functional/story-formats.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "qalore:capability/qa-understand/adapters/code.md",
+        "common/handbook.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v7",
+      "date": "2026-10-30",
+      "summary": "双螺旋第八轮审查修复（孤儿断言类型）：design.md「样式与视觉」镜头补 `element-width`（UI 断言·仅校验宽度）——此前该镜头覆盖「尺寸」但只产出视觉断言 element-size（宽高同时校验），导致 execution.md 定义的 UI 第 9 种断言 element-width（width-only）成为孤儿类型（有定义、有 cases.md 示例、但无任何适配器产出）。补上后 28 种断言类型全部有产出路径：design 显式产出 19 种（8 UI + element-width + 10 视觉），其余 9 种（Console 1 + API 6 + DB 2）由 code/text 适配器抽象类别映射",
+      "changed_files": [
+        "qalore:capability/qa-understand/adapters/design.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v6",
+      "date": "2026-10-30",
+      "summary": "双螺旋第七轮审查修复（机器校验工具自身缺陷）：① verify-contracts.py check_assertion_types（第 2 项）补校验 contracts.json assertion_types.count == len(types)，防止「加了断言类型却忘 bump count」的计数漂移（此前无机器兜底）；② check_assertion_type_copies（第 4 项）删除死代码（`for m in re.findall(...): pass` 无功能残留），并扩展校验目标——补 execution.md（28 种范围内）与 handbook.md（28 种断言类型）两处「N 种」声明，此前只查 cases.md/qa-execution/qa-functional-test 三处，漏检另外两处",
+      "changed_files": [
+        "tools/verify-contracts.py"
+      ]
+    },
+    {
+      "version": "2026-10-30-v5",
+      "date": "2026-10-30",
+      "summary": "双螺旋第六轮审查修复（废弃标记反向同步 + 描述滞后）：① gateway「DSH 迁移说明」与 qa-token-report「DSH 说明」的「Claude Code 侧原 skill 仍保留」改为「已废弃（不再维护）」，消除上一轮标记废弃后未反向同步的语义矛盾（类型3 术语陈旧：改了状态却漏改反向声明）；② qa-audit 机器校验描述补「audit 版本字段存在且格式合法」（第 11 项扩展后描述滞后）。audit 侧同步：③ dependency-map 外部配置注记「仍保留」改「已废弃」",
+      "changed_files": [
+        "qalore:SKILL.md",
+        "qalore:capability/qa-token-report/SKILL.md",
+        "qalore:capability/qa-audit/SKILL.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v4",
+      "date": "2026-10-30",
+      "summary": "双螺旋第五轮审查修复（副本债务 + audit 版本强制）：① verify-contracts.py check_audit_alignment（第 11 项）扩展校验——在「对齐版本」之外新增「audit 版本」存在性+格式校验，防止 audit 自声明演进版本被误删或改坏（此前 audit 版本只靠手动递增、无机器兜底，违反哲学15 声明=强制执行）。audit 侧同步（external，不在 practices changed_files 内）：② Claude Code 侧旧 skill（~/.claude/skills/qalore/）标记废弃——frontmatter description 与正文顶部各加「已废弃·已迁移至 DSH」声明，消除「看似可用实则残缺」（缺 qa-audit、CDP 未废弃、practices_min_version 停留在 2026-04-10-v1）的误导",
+      "changed_files": [
+        "tools/verify-contracts.py"
+      ]
+    },
+    {
+      "version": "2026-10-30-v3",
+      "date": "2026-10-30",
+      "summary": "双螺旋第四轮审查修复（design-philosophy 补全 + 依赖图补段）：① qalore-design-philosophy.md「Capability=思考哲学」补全——补 qa-execution（自动化五不变式 + 验证/校准模式分流）与 qa-audit（十九步 + 二十一条哲学 + verify 机器校验）两项能力哲学描述，qa-understand 补「四镜头（设计信息源）」；② 三驱动元素命名对齐实际 SKILL.md——「阅读姿态」→「假设优先」、「模型自检」→「产出断言前」（此前抽象层命名与实际 capability 定义不一致）。audit 侧同步：③ dependency-map.md 补「practices/common/qalore-design-philosophy.md」producer 段（gateway 结构性变更前必读 + 五 capability 描述同步 + 分层越界比对），此前只有变更影响速查表引用、缺 producer 主机制；④ 删除陈旧渲染产物 README.html（README.md 多次更新后的残留，无契约引用）",
+      "changed_files": [
+        "common/qalore-design-philosophy.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v2",
+      "date": "2026-10-30",
+      "summary": "双螺旋第三轮审查修复（闭环逻辑层 4 项）：① L1 分层越界——qalore-design-philosophy.md 清洗真实业务值（assert-{示例前缀}-003→{PREFIX}-003、{功能名A}/{功能名B}/{功能名C}/{数值}→占位符），新增文件移入 practices/common/（从 audit-main 迁入，消除审计层业务泄漏）；② L4 接线——该文件注册 index.json（common 段）+ gateway「practices 文件修改」补结构性变更前必读引用 + dependency-map 三处 capability 同步基准路径更新为 practices/common/；③ L2 路由——qalore-audit 注册为独立 DSH skill（SKILL.md 移入 ~/.dsh/skills/qalore-audit/，依赖图/问题分类数据留 audit_path，SKILL.md 补 audit_path 定位）；④ L3 版本——audit 工具加自身版本号「audit 版本」（dependency-map 头）+ 晋级标准「3 个版本」澄清为「3 个 qalore practices 版本」。audit 侧同步：README 结构表更新（SKILL.md 已注册为 skill）、qalore-audit-design-philosophy.md 晋级标准同步澄清",
+      "changed_files": [
+        "common/qalore-design-philosophy.md",
+        "common/handbook.md",
+        "qalore:SKILL.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v1",
+      "date": "2026-10-30",
+      "summary": "双螺旋第二轮审查修复（audit 驱动，3 处语义漂移 + 2 处规范补强）：① handbook.md「外部审计闭环」补「分工边界」——qa-audit 做全量审计（十九步 + verify-contracts.py 11 项机器校验，机器可判定契约与 story 数据一致性），qalore-audit 做变更驱动定点审查（依赖图 + 七类问题），消除两层审计职责重叠的机制模糊；② qa-audit/SKILL.md 报告模板补第 11 项「audit 依赖图对齐」（此前 11 项机器校验只列 10 行）。audit 侧同步修复（external 工具目录，不在 practices changed_files 内）：③ dependency-map.md execution.md 消费描述 10 种→28 种断言类型（术语陈旧，与 contracts.json/execution.md 对齐）；④ qalore-audit/SKILL.md frontmatter Phase 2→Phase 1（与正文 roadmap/README 晋级标准一致，未达 3 版本验证门槛）；⑤ issue-taxonomy.md 已废弃术语表补「CDP Network MCP→Playwright MCP」条目（CDP 已废弃，登记以防残留）",
+      "changed_files": [
+        "common/handbook.md",
+        "qalore:capability/qa-audit/SKILL.md"
+      ]
+    },
     {
       "version": "2026-10-29-v8",
       "date": "2026-10-29",
@@ -796,6 +884,11 @@
       "file": "common/handbook-dependencies.md",
       "summary": "外部工具依赖规范：五要素（serves/type/probe/min_version/upgrade）、探测分层（脚本可探测→verify-contracts check#9；MCP可探测→网关体检）、首次体检、更新与版本契约",
       "when_to_load": "网关依赖体检、qa-audit 步骤18 机器探测、首次使用排查外部工具时（按需加载）"
+    },
+    "qalore-design-philosophy": {
+      "file": "common/qalore-design-philosophy.md",
+      "summary": "qalore 设计哲学（5 条设计核心：AI是主体 / capability=思考哲学 / practices=公司规范 / story=项目上下文 / 渐进式披露；第二部分为详细设计原则）",
+      "when_to_load": "修改 capability / practices / story 结构前（方向一致性判断时，按需加载）"
     }
   },
   "tech_stacks": {
