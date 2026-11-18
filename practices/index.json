@@ -1,8 +1,107 @@
 {
-  "version": "2026-10-30-v10",
+  "version": "2026-11-18-v1",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-11-18-v1",
+      "date": "2026-11-18",
+      "summary": "测试报告能力补全（4 项）：① report.md 补「测试结果可信度标准」（结果四态 PASS/FAIL/本期不做/待确认 + 证据链 + 三判据：可追溯/有证据/有对比）；② report.md 补「结论判定标准」（通过率门槛 + 遗留缺陷 → 验证通过/基本通过/不通过 三态，机器判定不手写）；③ report.md 补「标准报告模板」（十大章完整可复制模板 + 结构说明表，占位符脱敏，补全「模板适配规则」引用的未定义概念）；④ 通过率口径统一：PASS/(PASS+FAIL)，SKIP/本期不做不参与分母（修正 qa-execution 报告格式旧口径 x/n）。qa-execution 补待回写项四标准（准入/沉淀/可信度/入库，覆盖缺口 3.1 新增路由 qa-understand 实测反哺）；qa-understand 补实测反哺触发条件；handbook 补临时文件 vs 测试数据边界区分。",
+      "changed_files": [
+        "tech-stacks/functional/report.md",
+        "common/handbook.md",
+        "qalore:capability/qa-report/SKILL.md",
+        "qalore:capability/qa-execution/SKILL.md",
+        "qalore:capability/qa-understand/SKILL.md"
+      ]
+    },
+    {
+      "version": "2026-11-12-v1",
+      "date": "2026-11-12",
+      "summary": "跨租户能力执行复盘驱动的 8 项自迭代优化（撤回错误的「用例数≥断言数」伪契约，改为机制澄清 + 补机器校验 + 跨平台适配）：① cases.md 覆盖拓扑补「通道轴 UI/API 是独立变量组合、须拆独立用例」强制 + 走查示例（修复 AI 把收敛读成压缩导致欠展开）；② qa-functional-test / qa-case-review 同步传播通道轴独立用例表述；③ contracts.json 补 cl_header_assertions 公式 + verify-contracts.py 补 BL/CL/TC 文件头计数校验（补消费已声明契约，修复计数手工易错）；④ external_tools probe 语义从 shell 命令改为探测目标（工具名）+ verify-contracts.py 改 shutil.which/sys.executable 跨平台探测（修复 Windows which/python3 误报）；⑤ story-index.schema.md + cases.md 澄清 tc_prefix/mm_short_id 可模块创建时预注册（修复 qa-understand 写断言先于 qa-functional-test 注册的时序矛盾）；⑥ feishu-mindnote.md 补 wiki 节点 title ≠ 根节点 text 概念区分；⑦ synthesis.md 补 BL/CL 共享 ID 分配走查示例；⑧ lark-cli skill（外部）补 Windows 通路、qalore gateway DSH 迁移说明补沙箱权限提示。",
+      "changed_files": [
+        "contracts.json",
+        "tools/verify-contracts.py",
+        "schemas/story-index.schema.md",
+        "tech-stacks/functional/cases.md",
+        "tech-stacks/functional/feishu-mindnote.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "qalore:SKILL.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v14",
+      "date": "2026-11-12",
+      "summary": "双螺旋迭代：新增 qa-report（测试报告）与 qa-data-prep（测试资源生命周期）两个 capability + 断言体系修复 + 审计闭环打通。① 新增 qa-report（报告=四权威来源聚合不现编数据）+ report.md 报告字段契约 + contracts.json 新增 defects 契约 + external_tools 注册 yunxiao_mcp/office_xlsx；② 新增 qa-data-prep（测试数据是资产，资源生命周期闭环）+ data-prep.md + contracts.json 新增 data_fixtures 契约（factory/instance/policy）+ automation.fixtures_mode 两态（复用 vs 自动化幂等）；③ 断言体系：execution.md 澄清 message-contains 仅限 toast（字段标签用 element-text）+ api-field-value 支持嵌套路径（顶层向后兼容）+ 归因三分类扩四分类（新增产品口径变更/方向反转）+ 置信度标注必填（无标注默认验证）；④ verify-contracts.py 新增第13项（断言语义启发式，非阻断）+ 第14项（data_fixtures/defects 结构）；⑤ gateway 补路由/能力列表/环境标注/写回后审计提醒（批次边界）/校准默认注入；⑥ story 层修复明文密码债务（脱敏）。audit 侧同步：dependency-map 对齐版本 v14 + 新增 report/data-prep producer 段 + 12→14 项；issue-taxonomy 沉淀3个漂移模式（断言方向反转/api-field-value 顶层局限/message-contains 语义误用，均归类于既有类型）。",
+      "changed_files": [
+        "contracts.json",
+        "tools/verify-contracts.py",
+        "schemas/story-index.schema.md",
+        "tech-stacks/functional/execution.md",
+        "tech-stacks/functional/automation.md",
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/report.md",
+        "tech-stacks/functional/data-prep.md",
+        "common/handbook.md",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-report/SKILL.md",
+        "qalore:capability/qa-data-prep/SKILL.md",
+        "qalore:capability/qa-execution/SKILL.md",
+        "qalore:capability/qa-audit/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md",
+        "qalore:capability/qa-understand/SKILL.md",
+        "qalore:capability/qa-understand/adapters/design.md",
+        "story:{项目名}/dependencies.json"
+      ]
+    },
+    {
+      "version": "2026-10-30-v13",
+      "date": "2026-11-11",
+      "summary": "修复渐进式披露断层：design-philosophy 第一部分补 3 个关键视角——① qa-functional-test 覆盖拓扑补「先识别需求引入的全部变量维度」（修复新类型/枚举变量维度未贯穿各功能点的系统性缺口）；② qa-understand 产出断言前补「口径收敛审视」（明确→产出，模糊/矛盾→待确认，修复未定口径被当已定写断言）；③ qa-case-review 补「评审先归类」（覆盖缺口/口径未收敛/设计错误，修复点对点修补遗漏）。三个视角此前已在 cases.md 覆盖拓扑「变量识别方法」/ qa-understand「产出断言前」/ qa-case-review「覆盖层」详细规范中存在，但未进入快速入门决策框架，导致 AI 建立决策框架时漏触发",
+      "changed_files": [
+        "common/qalore-design-philosophy.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v12",
+      "date": "2026-11-10",
+      "summary": "飞书思维笔记输出格式规范化 + lark-cli 最快通路固化（三通道输出闭环）：① feishu-mindnote.md 重构——标题规范 + 4 层层级（模块分区=功能点，与 .mm/云效同义）+ 节点规则（P0→highlight=olive 颜色标记、多步骤拆分、预期结果挂执行步骤下）+ 输出前格式对齐（读模板+最小样本确认）+ lark-cli 最快通路（drive +inspect 解包 → wiki 节点 API 建 mindnote → mindnotes nodes create/list）；② qa-functional-test 补 3 处闭环（practices 列表补 feishu-mindnote.md + 执行前确认产物输出补「飞书思维笔记」+ 产出写入声明补飞书产物行）；③ contracts.json lark_cli 补 install_hint（含 node 不在 PATH 的兜底）；④ handbook-dependencies.md 补「lark-cli 安装与 PATH」章节；⑤ cases.md 补「前置条件资源解耦」强约束（只写角色抽象+边界值+场景状态，禁硬编码环境/租户/账号）",
+      "changed_files": [
+        "tech-stacks/functional/feishu-mindnote.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "contracts.json",
+        "common/handbook-dependencies.md",
+        "tech-stacks/functional/cases.md"
+      ]
+    },
+    {
+      "version": "2026-10-30-v11",
+      "date": "2026-11-10",
+      "summary": "模块容器（module_group）一等能力落地（项目→容器可选→模块，支持递归嵌套）：① contracts.json 新增 module_group 段（判别不变式 kind↔sub_modules↔tc_prefix 互斥）+ automation.report_path 补容器链 + external_tools 注册 lark_cli（飞书思维笔记通道）；② story-index.schema.md 新增「模块容器」章节 + 字段所有权补容器级 3 行；③ verify-contracts.py 新增 iter_leaf_modules 递归 walker，重写 assert_seq/计数字段/ID 规则三项校验 + 新增第 12 项 module_group 结构校验（11→12 项）；④ 新增 feishu-mindnote.md（飞书思维笔记输出通道规范，容器→中间节点）；⑤ 全链路（handbook/story-formats/output/cloud-sync/adapters/五 capability）路径补容器链、模块粒度「两级→两级+可选容器」；⑥ 清理 cloud-sync.md 与 story-formats.md 残留业务泄漏（真实 TC 前缀，类型7 分层越界）；⑦ verify-contracts.py 补 Windows 兼容（load_paths/check_audit_alignment 改用 utf-8-sig 容忍 config BOM；顶部强制 stdout/stderr UTF-8，否则 Windows 默认 GBK 无法输出 ✅/❌ emoji）",
+      "changed_files": [
+        "contracts.json",
+        "schemas/story-index.schema.md",
+        "tools/verify-contracts.py",
+        "common/handbook.md",
+        "common/handbook-audit.md",
+        "tech-stacks/functional/story-formats.md",
+        "tech-stacks/functional/output.md",
+        "tech-stacks/functional/cloud-sync.md",
+        "tech-stacks/functional/feishu-mindnote.md",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-understand/adapters/text.md",
+        "qalore:capability/qa-understand/adapters/code.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "qalore:capability/qa-understand/adapters/design.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-case-review/SKILL.md",
+        "qalore:capability/qa-execution/SKILL.md",
+        "qalore:capability/qa-audit/SKILL.md"
+      ]
+    },
     {
       "version": "2026-10-30-v10",
       "changed_files": [
@@ -14,7 +113,7 @@
     {
       "version": "2026-10-30-v9",
       "date": "2026-10-30",
-      "summary": "双螺旋第十轮审查修复（模块名泄漏收尾）：cases.md 覆盖拓扑示例「空/非空{目录名}」——「{目录名}」是 story 里 某真实模块（占位符已隐藏），属类型7 分层越界（业务模块名出现在 qalore 层）。替换为同义但非模块名的「空/非空目录」，消除最后 1 处模块名泄漏。至此 40 个真实模块名在 qalore/audit 层全部零泄漏（框架术语豁免项除外）",
+      "summary": "双螺旋第十轮审查修复（模块名泄漏收尾）：cases.md 覆盖拓扑示例「空/非空文件夹」——「文件夹」是 story 里某真实模块（占位符已隐藏），属类型7 分层越界（业务模块名出现在 qalore 层）。替换为同义但非模块名的「空/非空目录」，消除最后 1 处模块名泄漏。至此 40 个真实模块名在 qalore/audit 层全部零泄漏（框架术语豁免项除外）",
       "changed_files": [
         "tech-stacks/functional/cases.md"
       ]
@@ -22,7 +121,7 @@
     {
       "version": "2026-10-30-v8",
       "date": "2026-10-30",
-      "summary": "双螺旋第九轮审查修复（示例 TC ID 前缀统一占位符）：① handbook.md 用 `[assert-{真实前缀}-001]` 作示例，而 该前缀是 story 里某模块的真实 tc_prefix（真实 TC ID 泄漏，类型7 分层越界）；② story-formats.md / synthesis.md / code.md 用 `[assert-{示例前缀}-xxx]` 作示例，该示例前缀虽非真实前缀，但与已清洗的 qalore-design-philosophy.md（用 {PREFIX}）不一致。统一把 19 处示例断言 ID 前缀（19 处示例前缀）替换为 `{PREFIX}` 占位符，与 issue-taxonomy 类型7 的占位符约定（TC-{PREFIX}-{seq}）及 L1 修复对齐",
+      "summary": "双螺旋第九轮审查修复（示例 TC ID 前缀统一占位符）：① handbook.md 用 `[assert-KB-001]` 作示例，而 KB 是 story 里 kb 模块的真实 tc_prefix（真实 TC ID 泄漏，类型7 分层越界）；② story-formats.md / synthesis.md / code.md 用 `[assert-IMG-xxx]` 作示例，IMG 虽非真实前缀，但与已清洗的 qalore-design-philosophy.md（用 {PREFIX}）不一致。统一把 19 处示例断言 ID 前缀（18 处 IMG + 1 处 KB）替换为 `{PREFIX}` 占位符，与 issue-taxonomy 类型7 的占位符约定（TC-{PREFIX}-{seq}）及 L1 修复对齐",
       "changed_files": [
         "tech-stacks/functional/story-formats.md",
         "qalore:capability/qa-understand/adapters/synthesis.md",
@@ -75,7 +174,7 @@
     {
       "version": "2026-10-30-v2",
       "date": "2026-10-30",
-      "summary": "双螺旋第三轮审查修复（闭环逻辑层 4 项）：① L1 分层越界——qalore-design-philosophy.md 清洗真实业务值（assert-{示例前缀}-003→{PREFIX}-003、{功能名A}/{功能名B}/{功能名C}/{数值}→占位符），新增文件移入 practices/common/（从 audit-main 迁入，消除审计层业务泄漏）；② L4 接线——该文件注册 index.json（common 段）+ gateway「practices 文件修改」补结构性变更前必读引用 + dependency-map 三处 capability 同步基准路径更新为 practices/common/；③ L2 路由——qalore-audit 注册为独立 DSH skill（SKILL.md 移入 ~/.dsh/skills/qalore-audit/，依赖图/问题分类数据留 audit_path，SKILL.md 补 audit_path 定位）；④ L3 版本——audit 工具加自身版本号「audit 版本」（dependency-map 头）+ 晋级标准「3 个版本」澄清为「3 个 qalore practices 版本」。audit 侧同步：README 结构表更新（SKILL.md 已注册为 skill）、qalore-audit-design-philosophy.md 晋级标准同步澄清",
+      "summary": "双螺旋第三轮审查修复（闭环逻辑层 4 项）：① L1 分层越界——qalore-design-philosophy.md 清洗真实业务值（assert-IMG-003→{PREFIX}-003、图片上传/内容审核/文件接收/5MB→占位符），新增文件移入 practices/common/（从 audit-main 迁入，消除审计层业务泄漏）；② L4 接线——该文件注册 index.json（common 段）+ gateway「practices 文件修改」补结构性变更前必读引用 + dependency-map 三处 capability 同步基准路径更新为 practices/common/；③ L2 路由——qalore-audit 注册为独立 DSH skill（SKILL.md 移入 ~/.dsh/skills/qalore-audit/，依赖图/问题分类数据留 audit_path，SKILL.md 补 audit_path 定位）；④ L3 版本——audit 工具加自身版本号「audit 版本」（dependency-map 头）+ 晋级标准「3 个版本」澄清为「3 个 qalore practices 版本」。audit 侧同步：README 结构表更新（SKILL.md 已注册为 skill）、qalore-audit-design-philosophy.md 晋级标准同步澄清",
       "changed_files": [
         "common/qalore-design-philosophy.md",
         "common/handbook.md",
@@ -932,6 +1031,16 @@
         "file": "tech-stacks/functional/cloud-sync.md",
         "when_to_load": "将 story 测试用例同步到测试管理平台 时（qa-functional-test 的测试平台同步通道），获取 API 模板、安全规则和同步前后校验规范",
         "summary": "测试管理平台 同步：API 模板、安全规则、同步前后校验"
+      },
+      "report": {
+        "file": "tech-stacks/functional/report.md",
+        "when_to_load": "产出需求级测试报告时（qa-report），获取报告字段契约、四权威来源、机器重算规则、模板适配规则",
+        "summary": "测试报告规范：报告字段契约（字段↔权威来源映射）、四权威来源、机器重算、模板适配、数据来源追踪表"
+      },
+      "data_prep": {
+        "file": "tech-stacks/functional/data-prep.md",
+        "when_to_load": "测试数据准备时（qa-data-prep），获取资源生命周期（factory/instance/policy）格式契约、两态策略、登记时机、验收清单",
+        "summary": "测试资源生命周期规范：factory/instance/policy 格式契约、生命周期闭环、两态策略、验收清单"
       }
     }
   },

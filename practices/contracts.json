@@ -1,5 +1,5 @@
 {
-  "contracts_version": "2026-10-29-v3",
+  "contracts_version": "2026-10-30-v14",
   "authority_note": "本文件是机器可判定契约的唯一权威源。verify-contracts.py 据此校验所有副本（SKILL.md / adapters / practices .md）与 story 数据的一致性。任何副本不得复制本文件中的定义内容，只能引用（写「见 contracts.json#xxx」）。",
   "assert_seq": {
     "storage_semantics": "下一个待分配的 assert 序号 = 已分配最大序号 + 1，初始为 1",
@@ -39,12 +39,14 @@
       "db-field-value",
       "db-row-count"
     ],
-    "environment_qualifier": "样式断言值支持可选 '@档位' 后缀（如 element-font-size(.title, 14@mobile)）；档位清单由 story/{项目}/dependencies.json 的 environments[].device_profiles 声明，practices 不写死档位值；verify-contracts.py 只校验 '@档位' 在已声明 device_profiles 内"
+    "environment_qualifier": "样式断言值支持可选 '@档位' 后缀（如 element-font-size(.title, 14@mobile)）；档位清单由 story/{项目}/dependencies.json 的 environments[].device_profiles 声明，practices 不写死档位值；verify-contracts.py 只校验 '@档位' 在已声明 device_profiles 内",
+    "api_field_value_nesting": "api-field-value 支持嵌套路径（如 data.records[0].{字段}），顶层字段向后兼容（字段名不含 '.' 时仍按顶层取值）；语义权威见 execution.md"
   },
   "counting_formulas": {
     "tc_count": "grep -c \"^用例 ID：\" {TC文件}",
     "pending_count": "BL pending 数 + CL pending 数",
     "bl_header_assertions": "grep -c \"[assert-\" {BL文件}",
+    "cl_header_assertions": "grep -c \"[assert-\" {CL文件}",
     "tc_header_total": "grep -c \"^用例 ID：\" {TC文件}"
   },
   "id_rules": {
@@ -52,6 +54,13 @@
     "mm_short_id": "2-5 个小写字母（= TC 前缀全小写），注册后不可变",
     "tc_id_format": "TC-{PREFIX}-{序号}，全局唯一",
     "tc_id_continuity": "无重复（唯一）；允许 3.3 删除导致的缺号，ID 不复用"
+  },
+  "module_group": {
+    "authority_note": "模块容器（module_group）的机器可判定不变式。容器只做分组，不承载断言/用例；verify-contracts.py 据此校验 story index.json 的容器结构合法性与递归遍历。",
+    "discriminator": "kind == 'module_group' ⟺ 有 sub_modules ⟺ 无 tc_prefix/mm_short_id/assert_seq/status",
+    "leaf_invariant": "无 kind（叶子模块）⟺ 无 sub_modules ⟺ 有 tc_prefix",
+    "container_forbidden": ["tc_prefix", "mm_short_id", "assert_seq", "status"],
+    "nesting": "sub_modules 可递归嵌套容器（建议 ≤2 层）；叶子模块内容文件路径 = story/{项目}/{容器链}/{叶子模块}/{叶子模块}-功能-*.md"
   },
   "dependencies": {
     "authority_note": "本段是依赖登记（story/{项目}/dependencies.json）机器可判定契约的唯一权威源。verify-contracts.py 据此校验依赖登记数据与访问方法合规性。副本（handbook.md / execution.md / story-formats.md / 各 capability SKILL.md）只引用，不复制定义。",
@@ -81,22 +90,44 @@
       "prod_exclusion": "environment.id == prod ⟹ executable == false"
     }
   },
+  "data_fixtures": {
+    "authority_note": "测试资源生命周期（factory/instance/policy）的机器可判定契约。语义权威见 tech-stacks/functional/data-prep.md，本段只放机器可判定的不变式；分层边界：factory 的 entry/payload_template/verify 真实值只出现在 story/{项目}/dependencies.json，practices 层只放占位符。",
+    "invariants": {
+      "factory_reference": "instance.factory_id 必须指向存在的 factory.id",
+      "state_enum": "instance.state ∈ {active, stale, cleaned}",
+      "acceptance_enum": "instance.acceptance_status ∈ {pending, accepted, rejected}",
+      "fingerprint_nonempty": "instance.fingerprint 必须为非空对象",
+      "channel_enum": "factory.channel ∈ {api, ui, db}"
+    }
+  },
+  "defects": {
+    "authority_note": "外部缺陷系统登记的机器可判定契约。语义权威见 tech-stacks/functional/report.md，本段只放机器可判定的不变式；真实 bug_id/title/status 只出现在 story/{项目}/dependencies.json 的 defects 段。",
+    "invariants": {
+      "bug_id_required": "defects[].bug_id 必填非空",
+      "source_required": "defects[].source 必填（外部缺陷系统标识）",
+      "status_required": "defects[].status 必填"
+    }
+  },
   "automation": {
     "authority_note": "自动化执行能力的机器可判定契约。语义权威定义见 tech-stacks/functional/automation.md，本段只放机器可判定的不变式。",
     "idempotency": "自动化模式只跑 read-verify 无副作用用例 ⟹ 每次执行不累积脏状态（无副作用=幂等）",
     "scope_declaration": "自动化入口必须携带非空 {执行范围}（模块/优先级）；执行只覆盖声明范围内用例，范围外用例不执行",
     "unattended_write_mock": "无人值守/自动化模式 ⟹ 写 mock 一律 SKIP（不执行有副作用用例，只跑 read-verify）",
     "drift_threshold": "同一 TC 连续 FAIL ≥ 3 次 → 标记疑似断言漂移，进回写清单",
-    "report_path": "报告落盘 story/{项目}/{模块}/{模块}-功能-执行报告.md（可被宿主/用户拉取）"
+    "report_path": "报告落盘 story/{项目}/{容器链}/{叶子模块}/{叶子模块}-功能-执行报告.md（可被宿主/用户拉取）",
+    "fixtures_mode": "交互模式 data_fixtures 实例可复用+保留供验收；自动化模式实例只作只读参照，造数走隔离重建（不依赖现成数据，跑完不残留脏态）"
   },
   "external_tools": {
-    "authority_note": "外部工具依赖的唯一权威源。每个工具声明五要素（serves/type/probe/min_version/upgrade），probe 必填（哲学15：声明=强制执行）。verify-contracts.py 校验 probe 必填 + 脚本可探测类；网关据此产出依赖体检报告。",
-    "probe_required": "每个 external_tools 条目必须有可机器执行的 probe 字段，缺 probe = 契约不完整",
+    "authority_note": "外部工具依赖的唯一权威源。每个工具声明五要素（serves/type/probe/min_version/upgrade），probe 必填（哲学15：声明=强制执行）；install_hint 为可选字段，声明未安装时的安装命令（含 PATH 兜底）。verify-contracts.py 校验 probe 必填 + 脚本可探测类；网关据此产出依赖体检报告。",
+    "probe_required": "每个 external_tools 条目必须有 probe 字段（探测目标：type=cli 时为工具名，供 verify 用 shutil.which 跨平台探测，python3 用 sys.executable；type=mcp/skill 时为'网关查工具列表/技能列表'声明），缺 probe = 契约不完整",
     "tools": {
       "playwright_mcp": { "serves": ["ui", "console", "api", "style"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
       "figma_mcp": { "serves": ["design"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
-      "psql": { "serves": ["db"], "type": "cli", "probe": "which psql", "min_version": "14", "upgrade": "brew upgrade libpq" },
-      "python3": { "serves": ["verify-contracts"], "type": "cli", "probe": "python3 --version", "min_version": "3.8", "upgrade": null }
+      "psql": { "serves": ["db"], "type": "cli", "probe": "psql", "min_version": "14", "upgrade": "brew upgrade libpq" },
+      "python3": { "serves": ["verify-contracts"], "type": "cli", "probe": "python3", "min_version": "3.8", "upgrade": null },
+      "lark_cli": { "serves": ["feishu-mindnote"], "type": "cli", "probe": "lark-cli", "min_version": "1.0.96", "upgrade": "pnpm add @larksuite/cli@1.0.96", "install_hint": "未安装时 pnpm add @larksuite/cli；node 不在 PATH 时用 node.exe 直跑 <包>/scripts/run.js" },
+      "yunxiao_mcp": { "serves": ["defects"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
+      "office_xlsx": { "serves": ["report-template"], "type": "skill", "probe": "网关查 skill 列表", "min_version": null, "upgrade": "重新安装 office 套件" }
     }
   }
 }
