@@ -15,6 +15,7 @@ qalore 依赖的外部工具（MCP / CLI / Python 包）统一在此登记，机
 | `probe` | **可机器执行的探测方式**（必填，缺 probe = 契约不完整） |
 | `min_version` | 最低版本（无约束为 null） |
 | `upgrade` | 升级路径（无则 null） |
+| `install_hint` | 未安装时的安装命令（可选，含 PATH 兜底） |
 
 ## 探测分层
 
@@ -40,3 +41,10 @@ qalore 依赖的外部工具（MCP / CLI / Python 包）统一在此登记，机
 ## 版本契约
 
 像 `practices_min_version` 一样，外部工具用 `min_version` 声明最低版本，不兼容时网关/审计告警。
+
+## lark-cli 安装与 PATH
+
+- lark-cli = npm 包 `@larksuite/cli`，配置在 `~/.lark-cli/config.json`（含 appId + keychain 引用的 appSecret）。
+- 未安装 → `pnpm add @larksuite/cli@1.0.96`（可装临时目录，不必全局）。
+- Windows 下 `lark-cli.CMD` 依赖 PATH 里的 node；node 不在 PATH 时报「'node' 不是命令」→ 用完整 node.exe 路径运行 `<包>/scripts/run.js`（bin 入口见 package.json）。
+- keychain 引用的 appSecret 在 Windows 可正常读取，无需额外配置。

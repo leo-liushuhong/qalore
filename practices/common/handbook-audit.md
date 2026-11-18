@@ -77,7 +77,7 @@
   → 找不到 = Schema 遗漏
 ```
 
-**适用范围**：`schemas/story-index.schema.md` Schema ↔ 全部 `story/{项目}/index.json`（含 `kind=product_router` 的产品级路由文件）。
+**适用范围**：`schemas/story-index.schema.md` Schema ↔ 全部 `story/{项目}/index.json`（含 `kind=product_router` 的产品级路由文件）。模块容器（module_group）判别不变式由 verify-contracts.py 第 12 项机器校验。
 
 **product_router 专项**（2026-10-22 起，配合 schema 新增 product_router 定义）：
 ```
@@ -121,7 +121,7 @@
   - assert_seq 操作语义 ← text.md / code.md / qa-functional-test 中的分配指令应为「读续接起点直接作新 ID，分配后设为新最大 + 1」（见 contracts.json#assert_seq），不得出现「读最大序号再 +1」的旧描述
 ```
 
-**适用范围**：全部 `story/{项目}/index.json` 的 `status` 字段 + 对应的内容文件。
+**适用范围**：全部 `story/{项目}/index.json` 的**叶子模块** `status` 字段（递归展开 module_group 的 sub_modules，容器无 status）+ 对应的内容文件。
 
 ---
 
@@ -207,7 +207,7 @@
   → tc_count 的变更量 = TC 文件中用例 ID 净增减？
 ```
 
-**适用范围**：全部 story/{项目}/index.json 的计数字段 + 对应的 changelog 和内容文件。
+**适用范围**：全部 story/{项目}/index.json 的**叶子模块**计数字段（递归展开 module_group 的 sub_modules，容器无计数字段）+ 对应的 changelog 和内容文件。
 
 **与步骤4（C）的区别**：步骤4 检查"当前值是否等于源推导值"（静态快照），本步骤检查"两个字段是否在同一个变更事件中一起更新了"（动态一致性）。
 
@@ -440,8 +440,8 @@
    — 存在未被删除的引用 → 标记「模块内波及遗漏：{断言ID} 仍引用已废弃的 {对象}」
 
 4. 静态悬空引用扫描（不依赖删除/重命名事件，2026-10-27 起）：
-   — 对每个模块的 `business_related`（格式 {模块名}::{功能点名}）与 `depends_on`（key = 模块名）
-   — 提取被引用模块名，检查其是否存在于当前项目 index.json 的 `modules` 中
+   — 对每个**叶子模块**的 `business_related`（格式 {模块名}::{功能点名}）与 `depends_on`（key = 模块名）；引用目标「模块名」恒为**叶子模块名**（容器不作为引用目标）
+   — 提取被引用模块名，检查其是否存在于当前项目 index.json 的叶子模块集合中（递归展开 module_group 的 sub_modules）
    — 不存在 → 标记「悬空引用：{源模块} → {目标模块}（目标模块不存在）」
    — 被引用模块存在时，对 `business_related` 的功能点名（"::" 后段）在该模块 BL 中搜索
      → 无匹配断言行 → 标记「悬空功能点引用：{源模块} → {目标模块}::{功能点名}」
@@ -472,9 +472,9 @@
 **方向 A：数据一致性（story ↔ 测试平台）**
 
 ```
-1. 逐模块读取测试平台目录列表 API，获取每个模块的 TC 数
-2. 与 story index.json 中对应模块的 tc_count 比对
-3. 对于每个模块：
+1. 逐叶子模块读取测试平台目录列表 API（容器对应父目录、叶子模块对应子目录），获取每个叶子模块的 TC 数
+2. 与 story index.json 中对应叶子模块的 tc_count 比对（递归展开 module_group 的 sub_modules）
+3. 对于每个叶子模块：
    — count 不一致 → 标记具体差值
    — 读取平台 TC 列表，检查 type 字段缺失率（必须为 0）
    — 检查 tag 字段缺失率（必须为 0）
