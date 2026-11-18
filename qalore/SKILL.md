@@ -5,7 +5,7 @@ description: >
   1. 收到测试相关任务（生成用例、需求分析、覆盖率检查、用例评审等）
   2. 涉及读写 story 的操作——story 是本 skill 管理的结构化测试知识库（路径存于
      ~/.dsh/qalore-config.json），含业务逻辑/测试用例/代码逻辑/变更日志四类文件，
-     按项目-模块两级目录组织。用户说「更新story/沉淀/写入story」时必须调用本 skill，
+     按项目-模块两级目录组织（模块可嵌套在容器 module_group 下）。用户说「更新story/沉淀/写入story」时必须调用本 skill，
      不得自行在其他路径创建文件代替。
   已建设能力：测试意图理解、功能测试、用例评审、自动化测试执行、全量审计。未建设（Phase 2）：性能、安全、混沌。
   执行前必须先读 ~/.dsh/qalore-config.json 获取 practices 和 story 路径，
@@ -13,7 +13,7 @@ description: >
 practices_min_version: "2026-10-29-v4"
 ---
 
-> **DSH 迁移说明**：本 skill 已从 Claude Code 迁移至 DeepSeek Harness，Claude Code 侧原 skill 已废弃（不再维护）。资源目录 = 本 skill 根目录（加载时由系统注入的 `Base directory`）；`capability/`、`adapters/` 均为相对此目录的相对路径。配置读取 `~/.dsh/qalore-config.json`；practices 与 story 与 Claude Code 版**共享同一套**（路径见该 config，勿另建副本）。qa-execution 依赖 Playwright MCP（UI/Console/API/样式断言统一走 Playwright，已废弃 CDP Network MCP）；qa-token-report 为 Claude Code 专属（依赖 Stop Hook），DSH 下不生效。
+> **DSH 迁移说明**：本 skill 已从 Claude Code 迁移至 DeepSeek Harness，Claude Code 侧原 skill 已废弃（不再维护）。资源目录 = 本 skill 根目录（加载时由系统注入的 `Base directory`）；`capability/`、`adapters/` 均为相对此目录的相对路径。配置读取 `~/.dsh/qalore-config.json`；practices 与 story 与 Claude Code 版**共享同一套**（路径见该 config，勿另建副本）。qa-execution 依赖 Playwright MCP（UI/Console/API/样式断言统一走 Playwright，已废弃 CDP Network MCP）；qa-token-report 为 Claude Code 专属（依赖 Stop Hook），DSH 下不生效。**DSH 沙箱提示**：若 `story_path`/`practices_path`/`audit_path` 位于会话工作区之外，写 story/practices/audit 文件需 `danger-full-access` 权限（每次写入会触发授权），建议在 DSH 中把会话工作区指向 story 所在目录以避免反复授权。
 
 # qalore：测试任务网关
 
@@ -110,6 +110,10 @@ practices_min_version: "2026-10-29-v4"
 - 反面：「整个项目」「所有功能」不是模块；单个 API 端点通常也不是，除非业务语义完全独立
 - 有疑问时暂停向用户确认，不自行决定粒度
 
+**模块容器（module_group，可选）：**
+- 容器 = 按菜单/功能域对模块的分组，**不是模块**，不承载断言/用例（无 tc_prefix/assert_seq/status）
+- 用户描述「按某菜单/某分组组织」或现有 story 已存在容器时使用；判别不变式见 schema 与 contracts.json#module_group
+
 识别项目名后检查 story 目录：
 - `{story_path}/{确认项目名}/` 不存在（新项目）→ 询问用户：
   「{项目名} 是新项目，请提供一句话描述（面向谁、核心功能），确认后新建 story。」
@@ -123,17 +127,22 @@ practices_min_version: "2026-10-29-v4"
 | 用户提供了任何形式的信息输入（PRD/需求文档/代码/混合），或描述含理解/提炼/阅读/沉淀/分析/记录类意图 | `qa-understand` | — |
 | 用户需要测试用例，描述含「生成/出用例/全量/测试文件」，或无需求文档但指定模块，或描述含「更新story/写入story/沉淀到story」 | `qa-functional-test` | 同会话触发了 qa-understand 时，须等其完成 |
 | 用户描述含「评审/review/检查用例/审查用例」，或粘贴了 TC 内容要评审，或描述含「生成并评审」 | qa-case-review | 联动模式下须等 qa-understand 完成 |
+| 用户描述含「造数据/准备数据/前置数据/缺数据」，或 qa-execution 扫描出 SKIP/FAIL 前置缺口时联动 | `qa-data-prep` | — |
 | 用户描述含「执行/跑/运行+用例/测试/TC/模块」 | `qa-execution` | Playwright MCP 已配置（网关环境验证阶段检查） |
+| 用户描述含「测试报告/测试总结/出具报告/输出测试报告/测试报告模板」 | `qa-report` | qa-execution 完成后（聚合执行结果） |
 | 用户描述含「审计/体检/全面检查/审计 story/审计 practices/检查一致性/查漂移」 | `qa-audit` | — |
 
 **多 capability 执行顺序约束：**
 - 同会话同时触发 qa-understand 和 qa-functional-test → 先执行 qa-understand，待 `【测试意图已提炼】` 交接块产出后，再执行 qa-functional-test
 - 同会话同时触发 qa-understand 和 qa-case-review（联动模式）→ 同上，先执行 qa-understand
+- qa-data-prep 在 qa-execution 前（造数前置）；qa-report 在 qa-execution 后（需求级聚合）
 - 不得并发启动有依赖关系的 capability
 
 无匹配项 → 向用户说明无法识别意图，请求澄清，不猜测执行。
 
 **多模块任务调度：** 网关完成路由和上下文注入后，不介入模块间的迭代调度。多模块任务的执行节奏（逐模块推进、何时输出产物）由 qa-functional-test 自主驱动，遵循 handbook.md「多模块任务规范」章节。
+
+**写回后审计提醒（批次边界）：** 本会话若产生 story 变更（断言修改/用例新增/changelog 追加），任务收尾时必须声明是否已触发 qa-audit（story 一致性审计）；未触发需说明理由。practices/capability 变更时另触发 qalore-audit（系统自迭代审计）。此提醒在「任务收尾」批次边界触发，非逐条 edit 触发。
 
 ---
 
@@ -149,8 +158,10 @@ practices_version = {值}    ← 来自 {practices_path}/index.json 的 version 
 playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是否在可用工具列表中
 	db_psql_available = {true/false}  ← 依赖体检：psql 是否可用；不可用时 qa-execution 的 DB 断言全部 SKIP
 	figma_mcp_available = {true/false}  ← 依赖体检：Figma MCP 是否在可用工具列表中；不可用时 qa-understand 的 design 适配器降级为文本描述
+	yunxiao_mcp_available = {true/false}  ← 依赖体检：缺陷系统 MCP 是否在可用工具列表中；不可用时 qa-report 的缺陷数据标「待拉取」
 执行环境 URL        = {用户提供，或从 story/{项目}/dependencies.json 的 environments[].web_url 读取（fallback：story/index.json 的 test_url 字段）}
 依赖登记            = {story/{项目}/dependencies.json 的路径（不存在时为 null，各 capability 按需读取）}
+置信度标注必填      = {true}  ← 断言产出契约：qa-understand/qa-functional-test 产出断言时必标置信度；qa-execution 按标注分流（低置信度→校准，高置信度→验证，无标注默认验证）
 ```
 
 多个 capability 同时触发时，各自读取 SKILL.md，共享同一套注入变量。
@@ -174,6 +185,8 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 | 用例评审 | `capability/qa-case-review/SKILL.md` | ✅ 可用 |
 | 自动化测试执行 | `capability/qa-execution/SKILL.md` | ✅ 可用 |
 | 全量审计 | `capability/qa-audit/SKILL.md` | ✅ 可用 |
+| 测试数据准备 | `capability/qa-data-prep/SKILL.md` | ✅ 可用 |
+| 测试报告产出 | `capability/qa-report/SKILL.md` | ✅ 可用 |
 
 ### 基础设施（由 Hook 自动触发，不由网关路由）
 
@@ -187,6 +200,7 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 |-----------|-------------|------------------------|
 | qa-understand / qa-functional-test / qa-case-review / qa-audit | ✅ 完整 | ✅ 完整 |
 | qa-execution | ✅ 完整（Playwright 全覆盖 UI/Console/API/样式） | ✅ 完整（Playwright 全覆盖 UI/Console/API/样式；DB 断言依赖 psql） |
+| qa-data-prep / qa-report | ✅ 完整 | ✅ 完整（qa-report 依赖缺陷系统 MCP + office 套件；qa-data-prep 依赖执行环境与造数通道） |
 | qa-token-report | ✅ 完整（Stop Hook 触发） | ❌ 不生效（依赖 Stop Hook，DSH 无此机制） |
 
 > 上表是「声明」——其与「目标环境实际接线」的一致性由 qa-audit 的步骤18（环境可用性一致性，机器探测）校验，漂移时以审计报告为准。
