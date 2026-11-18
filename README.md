@@ -41,12 +41,14 @@ qalore/
 │   ├── schemas/                   # schema 权威定义（story/index.json 结构）
 │   ├── contracts.json             # 机器契约（外部工具、自动化不变式、依赖登记）
 │   ├── index.json                 # 版本 + changelog（增量读取入口）
-│   └── tools/verify-contracts.py  # 机器校验脚本（11 项）
-├── capability/                    # 能力（思考方式，5 个用户能力 + 1 个基础设施）
+│   └── tools/verify-contracts.py  # 机器校验脚本（14 项）
+├── capability/                    # 能力（思考方式，7 个用户能力 + 1 个基础设施）
 │   ├── qa-understand/             # 测试意图理解与提炼（含 text/code/design 适配器 + synthesis）
 │   ├── qa-functional-test/        # 功能测试用例设计与产物输出
 │   ├── qa-case-review/            # 用例评审
 │   ├── qa-execution/              # 自动化测试执行
+│   ├── qa-report/                 # 测试报告产出
+│   ├── qa-data-prep/              # 测试数据准备（资源生命周期）
 │   ├── qa-audit/                  # 全量审计
 │   └── qa-token-report/           # Token 统计（基础设施，由 Stop Hook 触发）
 └── story/                         # 业务知识库（项目-模块两级，唯一承载业务内容）
@@ -79,6 +81,8 @@ qalore/
 | 需要测试用例，「生成/出用例/更新story」 | qa-functional-test |
 | 「评审/审查用例」 | qa-case-review |
 | 「执行/跑+用例/测试」 | qa-execution |
+| 「测试报告/测试总结/出具报告/输出测试报告」 | qa-report |
+| 「造数据/准备数据/前置数据/缺数据」 | qa-data-prep |
 | 「审计/体检/检查一致性/查漂移」 | qa-audit |
 
 ### 4. 上下文注入
@@ -87,7 +91,7 @@ qalore/
 
 ---
 
-## 五个能力（一句话各做什么）
+## 七个能力（一句话各做什么）
 
 | 能力 | 职责 | 思考方式 |
 |------|------|---------|
@@ -95,6 +99,8 @@ qalore/
 | **qa-functional-test** | 以断言为输入，设计覆盖正向/边界/异常/上下游的用例 | 用户影响优先 + 覆盖拓扑 |
 | **qa-case-review** | 对用例做多层质量检查，输出问题报告 | 溯源式质量判断 |
 | **qa-execution** | 按 TC 的断言规则在浏览器里逐条执行，产出执行报告 | 断言驱动执行 + 自动化不变式 |
+| **qa-report** | 聚合四权威来源产出需求级测试报告，每字段绑定唯一来源 | 报告=聚合不现编 + 机器重算 |
+| **qa-data-prep** | 测试资源生命周期管理（识别缺口→造数→登记→复用→回收） | 测试数据是资产，不是消耗品 |
 | **qa-audit** | 全量审计 practices/story 的一致性，产出待修复清单 | 机器校验 + 语义审计流水线（19 步） |
 
 **未建设能力**（Phase 2）：性能、安全、混沌。请求时明确告知不支持，不得用通用测试知识替代。
@@ -105,7 +111,7 @@ qalore/
 
 ## 机器校验（verify-contracts.py）
 
-`tools/verify-contracts.py` 提供 11 项契约校验，机器能判定的不靠 AI 直觉：
+`tools/verify-contracts.py` 提供 14 项契约校验，机器能判定的不靠 AI 直觉：
 
 1. assert_seq 数据
 2. 断言类型数据
@@ -118,6 +124,9 @@ qalore/
 9. 外部工具（probe 必填 + CLI 探测）
 10. @档位合法性
 11. **audit 依赖图对齐**（practices version == audit 依赖图「对齐版本」，版本 gap 由机器暴露）
+12. module_group 结构（容器判别不变式 + 递归遍历）
+13. 断言语义启发式（message-contains 误用等，非阻断）
+14. 资源/缺陷登记（data_fixtures / defects 结构）
 
 ---
 
@@ -136,7 +145,7 @@ qalore 整体遵循「双螺旋自迭代」模型，并配套一个独立的审�
 
 | 审计 | 归属 | 职责 |
 |------|------|------|
-| **qa-audit** | qalore 内建能力 | 全量审计：19 步流水线 + verify-contracts.py 11 项机器校验，覆盖机器可判定契约与 story 数据一致性 |
+| **qa-audit** | qalore 内建能力 | 全量审计：19 步流水线 + verify-contracts.py 14 项机器校验，覆盖机器可判定契约与 story 数据一致性 |
 | **qalore-audit** | 独立 skill（已注册 DSH） | 变更驱动定点审查：沿依赖图只查受影响下游（七类问题闭合集），不全量重读 |
 
 两者共享版本锚点（机器强制对齐，见 verify 第 11 项），不重复审计同一维度：qalore 每次变更后同步 audit 的依赖图，audit 审查 qalore 后回馈更新 qalore。
