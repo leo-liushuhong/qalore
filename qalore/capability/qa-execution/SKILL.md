@@ -3,7 +3,7 @@ name: qa-execution
 description: >
   自动化测试执行。读取 TC 文件中的断言规则，通过 Playwright MCP
   在浏览器中逐条执行（UI/Console/API/样式断言统一走 Playwright，废弃 CDP Network MCP），产出执行报告。不修改 TC 文件。
-practices_min_version: "2026-10-29-v4"
+practices_min_version: "2026-11-18-v1"
 ---
 
 # qa-execution：自动化测试执行
@@ -27,12 +27,13 @@ practices_min_version: "2026-10-29-v4"
 - **依赖登记**：读取 `{story_path}/{项目}/dependencies.json`（存在时），获取执行环境/测试账号/DB；不存在 → 依赖资源的断言降级为 SKIP
 - **DB 断言**：`db_psql_available=true`（网关注入）才可执行；false → DB 断言全部 SKIP
 - **TC 文件含断言规则**：无断言规则 → SKIP + 提示「请通过 qa-functional-test 更新 TC」
+- **执行环境准备**：执行前显式声明浏览器上下文隔离策略——新建 isolatedContext 避免与其它会话窗口冲突；按 URL pattern 定位页面而非固定索引（contexts 索引会漂移）；目标应用在 iframe 内时通过 frame 定位。前置缺口（SKIP/FAIL 缺数据）时联动 qa-data-prep 造数
 
 ## 执行流程
 
 ```
 1. 解析用户意图，确定执行范围：
-   - 全部模块 → 遍历 story/{项目}/ 下所有模块目录
+   - 全部模块 → 遍历 story/{项目}/ 下所有叶子模块目录（递归展开 module_group 的 sub_modules）
    - 单模块 → 仅该模块
    - 单条 TC → 仅该 TC
    - 指定优先级 → 仅执行匹配优先级的 TC
@@ -69,7 +70,7 @@ practices_min_version: "2026-10-29-v4"
 | `element-width` | `element-width(.side-panel, 380)` |
 | `element-enabled` | `element-enabled(.submit-btn)` |
 | `element-disabled` | `element-disabled(.submit-btn)` |
-| `message-contains` | `message-contains("提示文案")` |
+| `message-contains` | `message-contains("提示文案")`（仅限 toast，字段标签用 `element-text`） |
 | `url-contains` | `url-contains("/login")` |
 
 **Console 断言（Playwright MCP）：**
@@ -99,7 +100,7 @@ practices_min_version: "2026-10-29-v4"
 |------|------|
 | `api-status` | `api-status(/api/{resource}/.*/list, 200)` |
 | `api-field-exists` | `api-field-exists(/api/{resource}/.*/list, "total")` |
-| `api-field-value` | `api-field-value(/api/{resource}/.*/list, "total", 9)` |
+| `api-field-value` | `api-field-value(/api/{resource}/.*/list, "data.records[0].{字段}", 9)`（支持嵌套路径，顶层字段向后兼容） |
 | `network-contains` | `network-contains(/api/{resource}/list)` |
 | `api-request-field-value` | `api-request-field-value(/api/{resource}/.*/create, "type", "draft")` |
 | `api-code` | `api-code(/api/{resource}/.*/create, 2000)` |
@@ -115,7 +116,7 @@ practices_min_version: "2026-10-29-v4"
 
 ## 执行报告格式
 
-每次执行**覆盖写入** `{story_path}/{项目}/{模块}/{模块}-功能-执行报告.md`：
+每次执行**覆盖写入** `{story_path}/{项目}/{容器链}/{模块}/{模块}-功能-执行报告.md`（**文件模式，默认**）。用户明确要求「不产生文件，对话里评审」时切换**对话模式**：结果仅在对话中呈现，不落盘任何文件。
 
 ```markdown
 # {模块名} 执行报告
@@ -128,7 +129,7 @@ practices_min_version: "2026-10-29-v4"
 | TC-{PREFIX}-003 | 新建按钮 | PASS | 组件A显示/组件B隐藏 |
 | TC-{PREFIX}-004 | 空输入校验 | PASS | "提示文案" |
 
-汇总: 总 {n} | PASS {x} | FAIL {y} | SKIP {z} | 通过率 {x/n * 100}%
+汇总: 总 {n} | PASS {x} | FAIL {y} | SKIP {z} | 通过率 {x/(x+y) * 100}%（SKIP 不参与分母）
 ```
 
 ## 【待回写项】声明
@@ -145,6 +146,35 @@ practices_min_version: "2026-10-29-v4"
 ```
 
 【待回写项】与【待沉淀】分离：【待沉淀】是本次执行产物的写入声明，【待回写项】是"本次执行暴露了 story 中哪些内容已过时、需后续任务回写"的追踪清单。二者都写入执行报告，但【待回写项】是**发现清单**，不直接修改 story 文件。
+
+### 待回写项四标准
+
+**准入标准（什么能进）：**
+
+| 类型 | 判据 | 证据要求 |
+|------|------|---------|
+| 断言漂移 | 已有断言实测 FAIL（实测值 ≠ 预期值） | 附实测值（API 响应 / trace / DB / 截图） |
+| 覆盖缺口 | 实测发现 story 无对应功能点/断言 | 附新场景实测证据（端点/字段/行为） |
+
+不满足判据（无实测证据的「疑似」）不得准入，降级为观察记录，不写入【待回写项】。
+
+**沉淀标准（怎么回流成 story）：**
+
+| 类型 | 回写操作 | 执行者 |
+|------|---------|--------|
+| 断言漂移 | 3.2 更新 / 3.3 删除 | 执行者直接回写（走 handbook「断言变更规则」） |
+| 覆盖缺口 | 3.1 新增 | 路由 qa-understand「实测反哺」子流程（理解→断言→用例→收敛，实测为准，需求未覆盖以开发实现为准） |
+
+**可信度标准（怎么保证真实）：**
+- 每条绑定实测证据（具体端点/字段/值），不允许「推测」
+- 覆盖缺口新增的断言置信度标注「实测确认」
+- 无实测证据 → 不沉淀
+
+**入库标准（怎么符合 qalore 入库）：**
+- 断言格式：`[assert-{PREFIX}-{seq}] 【维度】对象·条件→预期 | upd:版本`
+- 计数一致性：assert_seq = max+1，tc_count = grep 实际（见 handbook「计数一致性规范」）
+- changelog 同步：3.1/3.2/3.3 均写 changelog
+- 置信度标注必填
 
 ## 【待沉淀】声明
 
@@ -165,14 +195,14 @@ practices_min_version: "2026-10-29-v4"
 - **范围声明**：校验入口 `{执行范围}` 非空；执行只覆盖声明范围内用例，范围外用例不执行
 - **只读安全**：只跑 `read-verify` 无副作用用例；含写 mock 的用例自动 SKIP（不执行有副作用用例）
 - **漂移保护**：同一 TC 连续 FAIL ≥ 3 次 → 标记「疑似断言漂移」→ 进【待回写项】清单
-- **失败可见**：报告落盘 `{story_path}/{项目}/{模块}/{模块}-功能-执行报告.md`，可被宿主/用户拉取
+- **失败可见**：报告落盘 `{story_path}/{项目}/{容器链}/{模块}/{模块}-功能-执行报告.md`，可被宿主/用户拉取
 - 低置信度断言（校准模式）只做「校准采集」，不判 FAIL
 
 触发源（DSH schedule / cron / CI / Hook）由宿主环境提供，本 capability 不规定触发器。
 
 ## 验证模式 vs 校准模式
 
-执行时分两模式（分流依据：qa-understand/qa-functional-test 的置信度标注）：
+执行时分两模式（分流依据：qa-understand/qa-functional-test 的置信度标注，标注是断言产出契约的必填项）：
 
-- **验证模式**（高置信度断言）：正常 pass/fail，任一断言 FAIL → TC FAIL
-- **校准模式**（低置信度断言 `待代码确认`/`⚠️`/新 feature 推理断言）：首次执行不判 FAIL，产出「校准差异报告」（格式见 story-formats.md），按三分类归因（推理失真/实现漂移/文档不完整）分流处置
+- **验证模式**（高置信度断言 `✓` 等，或无标注时默认）：正常 pass/fail，任一断言 FAIL → TC FAIL
+- **校准模式**（低置信度断言 `待代码确认`/`⚠️`/新 feature 推理断言）：首次执行不判 FAIL，产出「校准差异报告」（格式见 story-formats.md），按四分类归因（推理失真/实现漂移/文档不完整/产品口径变更）分流处置
