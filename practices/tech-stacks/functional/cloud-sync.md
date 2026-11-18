@@ -120,7 +120,7 @@ GET /platform/webapi/workitem/directory/list?spaceType=TestRepo&spaceIdentifier=
 
 > ⚠️ 实测修正（2026-08-17）：此接口为 **GET**（非 POST）。返回结构 `{code, result:[{identifier, displayName, parentIdentifier, workitemCount, children}]}`，字段名是 `displayName`（不是 `name`）。
 
-每个模块对应一个 directory，`identifier` 字段用于创建 TC 时的 `directoryIdentifier`。
+每个叶子模块对应一个 directory；模块容器（module_group）对应父目录，其下每个子模块对应子目录。`identifier` 字段用于创建 TC 时的 `directoryIdentifier`（叶子模块目录 ID）。
 
 ### 获取模块 TC 列表
 
@@ -206,7 +206,7 @@ Body: {
 
 批量操作（删除、查重）必须使用至少三条件联合过滤：
 1. 标签（如 `tag` 不含 V2.1.2）
-2. 标题正则（如 `/TC-(AGT|ACF|SYS|FIM)-\d{3}:/`）
+2. 标题正则（如 `/TC-{PREFIX}-\d{3}:/`）
 3. 目录 ID（限定模块范围）
 
 **禁止单条件过滤。**
@@ -216,7 +216,7 @@ Body: {
 | 不可用操作 | Fallback |
 |-----------|---------|
 | 更新 TC | 在同步计划中列出需更新的条目，用户手动在测试平台 UI 编辑 |
-| 创建模块目录 | 在同步计划中提示用户手动创建，TC 可先建在根目录 |
+| 创建目录 | 在同步计划中提示用户手动创建（容器目录 / 模块目录），TC 可先建在根目录 |
 | 获取标签 ID | 在同步计划中要求用户提供，暂停等待 |
 
 ---
@@ -229,7 +229,7 @@ Body: {
 
 | 检查项 | 方法 |
 |--------|------|
-| 模块 TC 数 | 逐模块对比 `listByDirectory` 返回的 count 与 story index.json `tc_count` |
+| 模块 TC 数 | 逐叶子模块对比 `listByDirectory` 返回的 count 与 story index.json `tc_count` |
 | 全量 TC 数 | 根目录 count 与 `sum(index.json tc_count)` 一致 |
 
 ### 2. 字段完整性验证
@@ -304,7 +304,7 @@ Body: {
 
 所有创建/删除操作完成后必须逐条执行：
 
-1. **计数验证**：调用 directory/list API，逐模块对比 `workitemCount` 与 story `tc_count`
+1. **计数验证**：调用 directory/list API，逐叶子模块对比 `workitemCount` 与 story `tc_count`
 2. **字段完整性验证**：抽查每个模块至少 3 条 TC（不足 3 条则查全部），
    调用 listByDirectory 获取 TC 详情，确认 tc.type、tag、tc.priority 均非空
 3. **标签分布验证**：新增 TC 的 tag 与预期版本 identifier 一致

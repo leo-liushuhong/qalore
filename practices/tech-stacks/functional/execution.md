@@ -22,8 +22,10 @@ qa-execution 的执行标准：断言类型定义、MCP 工具映射、执行规
 | `element-width` | `element-width(selector, px)` | CSS 选择器 + 像素值 | `el.offsetWidth === px` |
 | `element-enabled` | `element-enabled(selector)` | CSS 选择器，元素可用（未 disabled） | `!document.querySelector(selector)?.disabled` |
 | `element-disabled` | `element-disabled(selector)` | CSS 选择器，元素禁用（disabled） | `document.querySelector(selector)?.disabled === true` |
-| `message-contains` | `message-contains("text")` | 期望文本（不含选择器，固定查 `.el-message__content`） | `.el-message__content` 任一 `.includes("text")` |
+| `message-contains` | `message-contains("text")` | 期望文本（不含选择器，固定查 `.el-message__content`）；**仅限 toast 提示** | `.el-message__content` 任一 `.includes("text")` |
 | `url-contains` | `url-contains("text")` | 期望 URL 片段 | `page.url().includes("text")` |
+
+> **`message-contains` 仅限 toast**：它固定查 `.el-message__content`（toast 容器）。字段标签 / Tab 名 / 详情字段 / 卡片文案等**元素文本**必须用 `element-text(selector, "text")`，不得用 `message-contains`。反例：`message-contains("{字段值}")` 验证详情字段是错误用法，正确为 `element-text(.{详情容器}, "{字段值}")`。
 
 ### 视觉样式断言（由 Playwright MCP 执行，校验与设计稿一致）
 
@@ -56,7 +58,7 @@ qa-execution 的执行标准：断言类型定义、MCP 工具映射、执行规
 |------|------|---------|---------|
 | `api-status` | `api-status(pattern, code)` | URL 正则 + HTTP 状态码 | `browser_network_request` → `response.status === code` |
 | `api-field-exists` | `api-field-exists(pattern, "field")` | URL 正则 + JSON 字段名 | `browser_network_request(part="response-body")` → `JSON.parse(body)[field] !== undefined` |
-| `api-field-value` | `api-field-value(pattern, "field", val)` | URL 正则 + JSON 字段名 + 期望值 | `browser_network_request(part="response-body")` → `JSON.parse(body)[field] === val` |
+| `api-field-value` | `api-field-value(pattern, "path", val)` | URL 正则 + JSON 字段路径 + 期望值。路径支持嵌套（如 `data.records[0].{字段}`）；顶层字段向后兼容（路径不含 `.`/`[]` 时按顶层取值） | 按路径解析 `JSON.parse(body)`：含 `.`/`[]` 时逐层取值，否则顶层取值；结果 === val |
 | `network-contains` | `network-contains(pattern)` | URL 正则，捕获到匹配该 pattern 的网络请求 | `browser_network_requests` 列表含匹配 URL 的请求 |
 | `api-request-field-value` | `api-request-field-value(pattern, "field", val)` | URL 正则 + JSON 字段名 + 期望值（请求体） | `browser_network_request(part="request-body")` → `JSON.parse(body)[field] === val` |
 | `api-code` | `api-code(pattern, code)` | URL 正则 + 业务码（区分业务成功/业务拦截，二者可能同为 HTTP 200） | `browser_network_request(part="response-body")` → `JSON.parse(body).code === code` |
@@ -150,12 +152,15 @@ DB 断言（`db-field-value` / `db-row-count`）默认只读 SELECT；需要写 
 
 **校准模式**（低置信度断言：`待代码确认` / `⚠️` / 新 feature 推理断言）：首次执行不判 FAIL，产出「校准差异报告」。
 
-三分类归因不变式：
+> **置信度标注是断言产出契约的必填项**（qa-understand/qa-functional-test 产出断言时必标）。qa-execution 按标注分流：低置信度 → 校准模式，高置信度（`✓` 等）→ 验证模式。标注缺失属于上游产出缺陷（由 qa-audit 审计告警），qa-execution 对无标注断言默认按验证模式执行。
+
+四分类归因不变式：
 
 | 归因 | 判据 | 处置 |
 |------|------|------|
 | 推理失真 | 实测值能被文档另一种解释覆盖 | 自动改断言（可回写） |
 | 实现漂移/文档过时 | 实测值与文档明确矛盾 | 上报，人拍板报 bug 还是改文档 |
 | 文档输入不完整 | 文档根本没写该细节 | 回写待确认项 |
+| 产品口径变更/方向反转 | 断言预期方向与实测相反（如「必展示」vs「条件不展示」），非文档缺陷而是产品口径未收敛 | 上报，人确认口径后回写断言；不判 FAIL |
 
 校准差异报告格式见 story-formats.md「校准差异报告」章节。
