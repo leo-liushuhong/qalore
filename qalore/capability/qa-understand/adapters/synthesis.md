@@ -72,6 +72,18 @@
 
 ---
 
+## BL/CL 共享 ID 分配走查示例
+
+多源模式下，业务逻辑.md（BL）与代码逻辑.md（CL）共享同一 assert ID 空间，synthesis 负责「同一场景」ID 对齐。完整走查（假设 {PREFIX} 为模块前缀）：
+
+1. **text 适配器**：产出 BL 断言，分配 ID `{PREFIX}-001`～`{PREFIX}-010`（10 条），分配后立即更新 index.json `assert_seq=11`。
+2. **code 适配器**：从 index.json 读 `assert_seq=11` 作续接起点，产出 CL 断言，分配 ID `{PREFIX}-011`～`{PREFIX}-020`（10 条），分配后更新 `assert_seq=21`。
+3. **synthesis 识别同一场景**：CL 中 `{PREFIX}-012` 与 BL 中 `{PREFIX}-003` 描述同一场景 → 把 CL 的 `{PREFIX}-012` **改写为 `{PREFIX}-003`**（与 BL 同 ID），并在 BL 的 `{PREFIX}-003` 断言行追加置信度标注（如 `（✓）`）。
+4. **代码独立断言**：CL 中 `{PREFIX}-018` 无对应 BL 文本 → 保留独立 ID `{PREFIX}-018`，并**追加到 BL 的「代码独立断言」节**（BL 自包含）。
+5. **最终 assert_seq** = max(全部 ID) + 1 = `{PREFIX}-020` + 1 = `21`（若第 3 步改写导致 `{PREFIX}-012` 消失、`{PREFIX}-003` 复用，max 仍为 `{PREFIX}-020`，assert_seq 不变）。
+
+> 关键：改写 ID 不会新增序号，只是「CL 的某条断言复用 BL 已分配的 ID」。改写后 CL 中不再有 `{PREFIX}-012`，只有 `{PREFIX}-003`（与 BL 同 ID = 同一场景两个视角）。
+
 ## 冲突展示规范
 
 冲突摘要在【待沉淀】上方先行输出，必须说明**具体分歧点**，不能只说"不一致"：
@@ -145,10 +157,10 @@
 【待沉淀】
 | 文件 | 路径 | 操作 | 变更摘要 |
 |------|------|------|---------|
-| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {功能点变更摘要} |
-| {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
-| {模块名}-功能-代码逻辑.md | {story_path}/{项目}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {组件变更摘要} |
-| {模块名}-功能-代码逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
+| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{容器链}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {功能点变更摘要} |
+| {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{容器链}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
+| {模块名}-功能-代码逻辑.md | {story_path}/{项目}/{容器链}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {组件变更摘要} |
+| {模块名}-功能-代码逻辑.changelog.md | {story_path}/{项目}/{容器链}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
 | index.json | {story_path}/{项目}/ | patch | pending_count={合计}，depends_on={有更新时}，business_related={有更新时}（assert_seq 已由各适配器执行过程中实时更新，此处不重复声明） |
 | dependencies.json | {story_path}/{项目}/ | patch | inputs={交接块「输入依赖」条目}，unverifiable={交接块「不可测约束」DEP 条目}（有则更新，无则不改；格式见 schemas/story-index.schema.md「依赖登记」） |
 

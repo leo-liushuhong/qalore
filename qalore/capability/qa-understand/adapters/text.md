@@ -112,7 +112,7 @@
 规则遵循 story-formats.md「断言 ID 规范」（权威来源）：
 - 从 index.json 的 `assert_seq` 读取续接起点（= 下一个待分配的 assert 序号），直接作为新 ID 起点（语义见 contracts.json#assert_seq）
 - **分配完成后立即更新 index.json 的 `assert_seq`**（设为新最大序号 + 1）。此更新不等【待沉淀】统一写入——立即执行，确保后续适配器（代码适配器）或 context 压缩恢复时读到正确的续接起点
-- 更新方式：Read index.json → 修改 `modules.{模块名}.assert_seq` → Write 回文件（仅改此字段，不触及其他字段）
+- 更新方式：Read index.json → 修改 `modules.{容器链}.{模块名}.assert_seq`（嵌套模块经 `{容器名}.sub_modules` 下钻，无容器时 = `modules.{模块名}.assert_seq`）→ Write 回文件（仅改此字段，不触及其他字段）
 - 多源场景下【待沉淀】由 synthesis 统一输出，本节不单独输出
 
 ---
@@ -142,8 +142,8 @@
 【待沉淀】
 | 文件 | 路径 | 操作 | 变更摘要 |
 |------|------|------|---------|
-| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {功能点变更摘要，如：新增「格式校验」(3条)，更新「图片上传」(1条)} |
-| {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
+| {模块名}-功能-业务逻辑.md | {story_path}/{项目}/{容器链}/{模块}/ | {新建/3.1新增/3.2更新/3.3删除} | {功能点变更摘要，如：新增「格式校验」(3条)，更新「图片上传」(1条)} |
+| {模块名}-功能-业务逻辑.changelog.md | {story_path}/{项目}/{容器链}/{模块}/ | 只增不删 | {YYYY-MM-DD}（{来源描述}）{操作摘要} |
 | index.json | {story_path}/{项目}/ | {新建条目/patch} | {变更字段摘要} |
 | dependencies.json | {story_path}/{项目}/ | patch | inputs={交接块「输入依赖」条目}，unverifiable={交接块「不可测约束」DEP 条目}（有则更新，无则不改；格式见 schemas/story-index.schema.md「依赖登记」） |
 
