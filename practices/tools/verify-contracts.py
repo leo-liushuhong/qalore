@@ -21,10 +21,15 @@ import glob
 
 CONFIG_PATH = os.path.expanduser("~/.dsh/qalore-config.json")
 
+# Windows 下 stdout/stderr 默认编码为 GBK，无法输出 ✅/❌ emoji；强制 UTF-8
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 
 def load_paths():
     """从 qalore-config.json 读取 practices_path / story_path（路径约束）。"""
-    with open(CONFIG_PATH, encoding="utf-8") as f:
+    with open(CONFIG_PATH, encoding="utf-8-sig") as f:
         cfg = json.load(f)
     practices = cfg.get("practices_path")
     story = cfg.get("story_path")
@@ -44,8 +49,21 @@ def load_contracts(practices):
         return json.load(f)
 
 
+def iter_leaf_modules(modules, path=()):
+    """递归遍历 modules，yield (容器链, 叶子模块字典)。
+
+    容器（含 sub_modules）不产出，仅下钻；叶子模块（无 sub_modules）产出。
+    容器链为路径组件元组（容器名... + 叶子模块名），叶子模块名 = chain[-1]。
+    """
+    for name, m in modules.items():
+        if isinstance(m, dict) and "sub_modules" in m:
+            yield from iter_leaf_modules(m["sub_modules"], path + (name,))
+        else:
+            yield path + (name,), m
+
+
 def check_assert_seq_data(story):
-    """校验 story 数据：assert_seq == max(assert ID) + 1。"""
+    """校验 story 数据：assert_seq == max(assert ID) + 1（递归遍历叶子模块）。"""
     problems = []
     total = 0
     for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
@@ -54,12 +72,13 @@ def check_assert_seq_data(story):
         if d.get("kind") == "product_router":
             continue
         base = os.path.dirname(jf)
-        for mname, m in d.get("modules", {}).items():
+        rel = os.path.relpath(jf, story)
+        for chain, m in iter_leaf_modules(d.get("modules", {})):
             if "assert_seq" not in m:
                 continue
             total += 1
             mx = 0
-            mdir = os.path.join(base, mname)
+            mdir = os.path.join(base, *chain)
             for mf in glob.glob(os.path.join(mdir, "*-功能-*.md")):
                 with open(mf, encoding="utf-8") as f:
                     ids = re.findall(r"\[assert-[A-Z]+-(\d+)\]", f.read())
@@ -67,8 +86,7 @@ def check_assert_seq_data(story):
                     mx = max(mx, max(int(x) for x in ids))
             expect = mx + 1
             if m["assert_seq"] != expect:
-                rel = os.path.relpath(jf, story)
-                problems.append(f"[assert_seq 数据] {rel}/{mname}: assert_seq={m['assert_seq']}, 应为 {expect}")
+                problems.append(f"[assert_seq 数据] {rel}/{'/'.join(chain)}: assert_seq={m['assert_seq']}, 应为 {expect}")
     return total, problems
 
 
@@ -146,7 +164,7 @@ def check_assertion_type_copies(practices, skill, contracts):
 
 
 def check_counting_formulas(story):
-    """校验计数字段：tc_count / pending_count 与源数据一致（审计步骤4 C）。"""
+    """校验计数字段：tc_count / pending_count 与源数据一致（审计步骤4 C，递归遍历叶子模块）。"""
     problems = []
     total = 0
     for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
@@ -155,10 +173,11 @@ def check_counting_formulas(story):
         if d.get("kind") == "product_router":
             continue
         base = os.path.dirname(jf)
-        for mname, m in d.get("modules", {}).items():
+        rel = os.path.relpath(jf, story)
+        for chain, m in iter_leaf_modules(d.get("modules", {})):
             st = m.get("status", {})
-            mdir = os.path.join(base, mname)
-            rel = os.path.relpath(jf, story)
+            mname = chain[-1]
+            mdir = os.path.join(base, *chain)
 
             # tc_count ← TC 文件「用例 ID：」行数
             if "tc_count" in st:
@@ -170,7 +189,7 @@ def check_counting_formulas(story):
                         actual = sum(1 for ln in fh if ln.startswith("用例 ID："))
                 if actual != st["tc_count"]:
                     problems.append(
-                        f"[tc_count] {rel}/{mname}: 声明 {st['tc_count']}, 实际 {actual}"
+                        f"[tc_count] {rel}/{'/'.join(chain)}: 声明 {st['tc_count']}, 实际 {actual}"
                     )
 
             # pending_count ← BL + CL 中 [pending] 行数
@@ -183,13 +202,48 @@ def check_counting_formulas(story):
                             pend += sum(1 for ln in fh if "[pending]" in ln)
                 if pend != st["pending_count"]:
                     problems.append(
-                        f"[pending_count] {rel}/{mname}: 声明 {st['pending_count']}, 实际 {pend}"
+                        f"[pending_count] {rel}/{'/'.join(chain)}: 声明 {st['pending_count']}, 实际 {pend}"
+                    )
+
+            # BL/CL 头「断言：N 条」← 文件实际 [assert- 行数（contracts counting_formulas.bl/cl_header_assertions）
+            for kind in ("业务逻辑", "代码逻辑"):
+                p = os.path.join(mdir, f"{mname}-功能-{kind}.md")
+                if os.path.exists(p):
+                    with open(p, encoding="utf-8") as fh:
+                        lines = fh.readlines()
+                    actual_assert = sum(1 for ln in lines if "[assert-" in ln)
+                    header_decl = None
+                    for ln in lines[:3]:
+                        m2 = re.search(r"断言：(\d+) 条", ln)
+                        if m2:
+                            header_decl = int(m2.group(1))
+                            break
+                    if header_decl is not None and header_decl != actual_assert:
+                        problems.append(
+                            f"[header_assertions] {rel}/{'/'.join(chain)}/{kind}: 头部声明 {header_decl}, 实际 {actual_assert}"
+                        )
+
+            # TC 头「用例总数：N 条」← 文件实际「用例 ID：」行数（contracts counting_formulas.tc_header_total）
+            tcfile = os.path.join(mdir, f"{mname}-功能-测试用例.md")
+            if os.path.exists(tcfile):
+                with open(tcfile, encoding="utf-8") as fh:
+                    lines = fh.readlines()
+                actual_tc = sum(1 for ln in lines if ln.startswith("用例 ID："))
+                header_decl = None
+                for ln in lines[:3]:
+                    m2 = re.search(r"用例总数：(\d+) 条", ln)
+                    if m2:
+                        header_decl = int(m2.group(1))
+                        break
+                if header_decl is not None and header_decl != actual_tc:
+                    problems.append(
+                        f"[header_tc_total] {rel}/{'/'.join(chain)}/{mname}: 头部声明 {header_decl}, 实际 {actual_tc}"
                     )
     return total, problems
 
 
 def check_id_rules(story, contracts):
-    """校验 ID 规则：tc_prefix / mm_short_id 格式 + TC ID 格式与唯一性（审计步骤4/5）。"""
+    """校验 ID 规则：tc_prefix / mm_short_id 格式 + TC ID 格式与唯一性（审计步骤4/5，递归遍历叶子模块）。"""
     problems = []
     id_rules = contracts["id_rules"]
     for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
@@ -199,19 +253,20 @@ def check_id_rules(story, contracts):
             continue
         base = os.path.dirname(jf)
         rel = os.path.relpath(jf, story)
-        for mname, m in d.get("modules", {}).items():
+        for chain, m in iter_leaf_modules(d.get("modules", {})):
+            mname = chain[-1]
             tp = m.get("tc_prefix")
             if tp is not None and not re.fullmatch(r"[A-Z]{2,5}", tp):
-                problems.append(f"[tc_prefix] {rel}/{mname}: '{tp}' 不符合 {id_rules['tc_prefix']}")
+                problems.append(f"[tc_prefix] {rel}/{'/'.join(chain)}: '{tp}' 不符合 {id_rules['tc_prefix']}")
 
             msid = m.get("mm_short_id")
             if msid is not None:
                 if not re.fullmatch(r"[a-z]{2,5}", msid):
-                    problems.append(f"[mm_short_id] {rel}/{mname}: '{msid}' 不符合 {id_rules['mm_short_id']}")
+                    problems.append(f"[mm_short_id] {rel}/{'/'.join(chain)}: '{msid}' 不符合 {id_rules['mm_short_id']}")
                 elif tp and msid != tp.lower():
-                    problems.append(f"[mm_short_id] {rel}/{mname}: '{msid}' != tc_prefix 小写 '{tp.lower()}'")
+                    problems.append(f"[mm_short_id] {rel}/{'/'.join(chain)}: '{msid}' != tc_prefix 小写 '{tp.lower()}'")
 
-            tcfile = os.path.join(base, mname, f"{mname}-功能-测试用例.md")
+            tcfile = os.path.join(base, *chain, f"{mname}-功能-测试用例.md")
             if os.path.exists(tcfile):
                 with open(tcfile, encoding="utf-8") as fh:
                     seqs = []
@@ -220,13 +275,13 @@ def check_id_rules(story, contracts):
                             tid = ln.strip().split("：", 1)[1].strip()
                             mtc = re.fullmatch(r"TC-([A-Z]{2,5})-(\d+)", tid)
                             if not mtc:
-                                problems.append(f"[tc_id_format] {rel}/{mname}: '{tid}' 不符合 TC-{{PREFIX}}-{{seq}}")
+                                problems.append(f"[tc_id_format] {rel}/{'/'.join(chain)}: '{tid}' 不符合 TC-{{PREFIX}}-{{seq}}")
                             else:
                                 if tp and mtc.group(1) != tp:
-                                    problems.append(f"[tc_id_format] {rel}/{mname}: '{tid}' 前缀 {mtc.group(1)} != tc_prefix {tp}")
+                                    problems.append(f"[tc_id_format] {rel}/{'/'.join(chain)}: '{tid}' 前缀 {mtc.group(1)} != tc_prefix {tp}")
                                 seqs.append(int(mtc.group(2)))
                     if len(seqs) != len(set(seqs)):
-                        problems.append(f"[tc_id_continuity] {rel}/{mname}: 存在重复用例序号")
+                        problems.append(f"[tc_id_continuity] {rel}/{'/'.join(chain)}: 存在重复用例序号")
     return problems
 
 
@@ -293,8 +348,8 @@ def check_dependencies(story, contracts):
 
 
 def check_external_tools(contracts):
-    """校验 external_tools：probe 必填（硬校验）；cli 类工具实际探测（软报告，不阻断）。"""
-    import subprocess
+    """校验 external_tools：probe 必填（硬校验）；cli 类工具跨平台探测（软报告，不阻断）。"""
+    import shutil
     problems = []
     tools = contracts.get("external_tools", {}).get("tools", {})
     for name, t in tools.items():
@@ -303,11 +358,10 @@ def check_external_tools(contracts):
             problems.append(f"[external_tools] {name} 缺 probe 字段（违反 probe_required）")
             continue
         if t.get("type") == "cli":
-            try:
-                r = subprocess.run(probe, shell=True, capture_output=True, text=True, timeout=10)
-                ok = r.returncode == 0
-            except Exception:
-                ok = False
+            if name == "python3":
+                ok = True  # verify 本身由 python 解释器运行，python 必然可用
+            else:
+                ok = shutil.which(probe) is not None
             print(f"    · {name}: {probe} → {'✅ 可用' if ok else '❌ 不可用（首次使用需安装）'}")
     return len(tools), problems
 
@@ -345,7 +399,7 @@ def check_audit_alignment(practices):
     本检查让这个 gap 由机器自动暴露，而非靠人工审查发现。
     """
     problems = []
-    with open(CONFIG_PATH, encoding="utf-8") as f:
+    with open(CONFIG_PATH, encoding="utf-8-sig") as f:
         cfg = json.load(f)
     audit_path = cfg.get("audit_path")
     if not audit_path:
@@ -372,6 +426,111 @@ def check_audit_alignment(practices):
     if not m2:
         problems.append(f"[audit] 依赖图头部缺少「audit 版本」声明：{dm}")
     return 1, problems
+
+
+def check_module_group_structure(story):
+    """校验 module_group 结构不变式（contracts.json#module_group）：kind↔sub_modules↔tc_prefix 互斥一致。"""
+    problems = []
+    total = 0
+    for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
+        with open(jf, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("kind") == "product_router":
+            continue
+        rel = os.path.relpath(jf, story)
+
+        def walk(modules, path=()):
+            nonlocal total
+            for name, m in modules.items():
+                chain = "/".join(path + (name,))
+                if "sub_modules" in m:
+                    total += 1
+                    if m.get("kind") != "module_group":
+                        problems.append(f"[module_group] {rel}/{chain}: 有 sub_modules 但 kind != 'module_group'")
+                    for forbidden in ("tc_prefix", "mm_short_id", "assert_seq", "status"):
+                        if forbidden in m:
+                            problems.append(f"[module_group] {rel}/{chain}: 容器不得含 {forbidden}")
+                    walk(m["sub_modules"], path + (name,))
+                else:
+                    if m.get("kind") == "module_group":
+                        problems.append(f"[module_group] {rel}/{chain}: kind='module_group' 但无 sub_modules")
+
+        walk(d.get("modules", {}))
+    return total, problems
+
+
+def check_assertion_semantics(story):
+    """断言语义弱启发式（非阻断）：message-contains 疑似字段标签误用 + api-field-value 嵌套语法。
+
+    注意：这是弱启发式，不承诺 100% 拦截。message-contains 是「toast 专用」，字段标签/详情/Tab
+    应用 element-text（语义权威见 execution.md）。此检查只做关键词级提示，供人工复核。
+    """
+    warnings = []
+    field_keywords = ["字段", "标签", "详情", "次数", "来源", "版本", "状态", "Tab", "tab"]
+    for f in glob.glob(os.path.join(story, "**", "*.md"), recursive=True):
+        with open(f, encoding="utf-8") as fh:
+            txt = fh.read()
+        for m in re.finditer(r"message-contains\(\s*[\"']([^\"']+)[\"']\s*\)", txt):
+            arg = m.group(1)
+            if any(k in arg for k in field_keywords):
+                warnings.append(f"[断言语义] {os.path.relpath(f, story)}: message-contains(\"{arg}\") 疑似字段标签误用（应用 element-text）")
+        for m in re.finditer(r"api-field-value\([^,]+,\s*[\"']([^\"']+)[\"']", txt):
+            path = m.group(1)
+            if ("[" in path or "]" in path) and path.count("[") != path.count("]"):
+                warnings.append(f"[断言语义] {os.path.relpath(f, story)}: api-field-value 嵌套路径括号不配对：\"{path}\"")
+    return len(warnings), warnings
+
+
+def check_data_fixtures_defects(story, contracts):
+    """校验依赖登记扩展：data_fixtures（factory_id 引用/枚举/fingerprint）+ defects（必填字段）。
+
+    机器可判定不变式见 contracts.json#data_fixtures 与 contracts.json#defects。
+    """
+    problems = []
+    total = 0
+    valid_states = {"active", "stale", "cleaned"}
+    valid_accept = {"pending", "accepted", "rejected"}
+    valid_channels = {"api", "ui", "db"}
+    for df in glob.glob(os.path.join(story, "**", "dependencies.json"), recursive=True):
+        rel = os.path.relpath(df, story)
+        try:
+            with open(df, encoding="utf-8") as f:
+                d = json.load(f)
+        except Exception:
+            continue
+        fixtures = d.get("data_fixtures", {})
+        if not isinstance(fixtures, dict):
+            problems.append(f"[data_fixtures] {rel}: data_fixtures 应为对象")
+            continue
+        if not fixtures:
+            continue
+        total += 1
+        factories = fixtures.get("factories", [])
+        factory_ids = {x.get("id") for x in factories if isinstance(x, dict) and x.get("id")}
+        for fc in factories:
+            if isinstance(fc, dict) and fc.get("channel") and fc["channel"] not in valid_channels:
+                problems.append(f"[data_fixtures] {rel}: factory '{fc.get('id')}' channel 非法：{fc['channel']}")
+        for inst in fixtures.get("instances", []):
+            if not isinstance(inst, dict):
+                continue
+            iid = inst.get("id", "?")
+            fid = inst.get("factory_id")
+            if fid and fid not in factory_ids:
+                problems.append(f"[data_fixtures] {rel}: instance '{iid}' 的 factory_id '{fid}' 不存在")
+            if inst.get("state") and inst["state"] not in valid_states:
+                problems.append(f"[data_fixtures] {rel}: instance '{iid}' state 非法：{inst['state']}")
+            if inst.get("acceptance_status") and inst["acceptance_status"] not in valid_accept:
+                problems.append(f"[data_fixtures] {rel}: instance '{iid}' acceptance_status 非法：{inst['acceptance_status']}")
+            fp = inst.get("fingerprint")
+            if not (isinstance(fp, dict) and fp):
+                problems.append(f"[data_fixtures] {rel}: instance '{iid}' fingerprint 缺失或为空")
+        for defect in d.get("defects", []):
+            if not isinstance(defect, dict):
+                continue
+            for req in ("bug_id", "source", "status"):
+                if not defect.get(req):
+                    problems.append(f"[defects] {rel}: 缺陷缺必填字段 {req}")
+    return total, problems
 
 
 def main():
@@ -443,9 +602,27 @@ def main():
     print(f"[11] audit 依赖图对齐: {'✅' if not probs else '❌'}")
     all_problems.extend(probs)
 
+    # 12. module_group 结构不变式（kind↔sub_modules↔tc_prefix 互斥）
+    total, probs = check_module_group_structure(story)
+    print(f"[12] module_group 结构（{total} 个容器）: {'✅' if not probs else '❌'}")
+    all_problems.extend(probs)
+
+    # 13. 断言语义启发式（非阻断，弱启发式提示）
+    total, warns = check_assertion_semantics(story)
+    print(f"[13] 断言语义启发式（{total} 处提示）: {'无提示' if not warns else '发现提示（非阻断，供人工复核）'}")
+
+    # 14. data_fixtures + defects 结构一致性
+    total, probs = check_data_fixtures_defects(story, contracts)
+    print(f"[14] 资源/缺陷登记（{total} 个项目）: {'✅' if not probs else '❌'}")
+    all_problems.extend(probs)
+
     print("\n" + "=" * 60)
+    if warns:
+        print("\n· 断言语义提示（非阻断）：")
+        for w in warns:
+            print(f"  {w}")
     if all_problems:
-        print(f"❌ {len(all_problems)} 个问题：")
+        print(f"\n❌ {len(all_problems)} 个问题：")
         for p in all_problems:
             print(f"  {p}")
         sys.exit(1)
