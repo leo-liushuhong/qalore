@@ -22,6 +22,8 @@
 
 > 样式断言值支持 `@档位` 后缀（如 `element-font-size(.title, 16@mobile)`）以覆盖多机型/系统兼容，档位清单见 dependencies.json 的 `environments[].device_profiles`。
 
+**元素定位（@句柄）：** 产出 UI/视觉样式断言时，选择器参数使用 `@句柄` 语义引用（如 `element-text(@metric-card, "用户活跃数")`），并在 `story/{项目}/locators.json` 登记句柄 → 真实选择器映射（首次产出时生成，执行漂移时由 qa-execution 回写）。命名规则与机器契约见 schema「标识符命名一览表」与 `contracts.json#locators`。未建立定位表的存量模块可先直接写 CSS 选择器（向后兼容）。
+
 **追问原则：**
 - 四镜头对每个组件/页面全部执行，设计稿有明确呈现 → 记为断言；无明确呈现 → 写入待确认项，不猜测
 - 设计稿只描述「应该长什么样」，不描述「内部怎么实现」——数据逻辑/接口契约不属于本适配器范围，由技术适配器（code.md）负责

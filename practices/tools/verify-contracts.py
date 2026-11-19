@@ -483,25 +483,31 @@ def check_module_group_structure(story):
 
 
 def check_assertion_semantics(story):
-    """断言语义弱启发式（非阻断）：message-contains 疑似字段标签误用 + api-field-value 嵌套语法。
+    """断言语义检查（审计方案5）：message-contains 误用分层（强字段短语=阻断 / 弱关键词=提示）+ api-field-value 嵌套语法。
 
-    注意：这是弱启发式，不承诺 100% 拦截。message-contains 是「toast 专用」，字段标签/详情/Tab
-    应用 element-text（语义权威见 execution.md）。此检查只做关键词级提示，供人工复核。
+    message-contains 是「toast 专用」（固定查 `.el-message__content`），字段标签/详情/Tab/数值/状态文本
+    应用 element-text（语义权威见 execution.md）。强字段短语（明确的数据字段名词，几乎不可能是 toast）命中即阻断；
+    弱关键词（单字/歧义词）命中仅提示，供人工复核。
     """
+    problems = []
     warnings = []
-    field_keywords = ["字段", "标签", "详情", "次数", "来源", "版本", "状态", "Tab", "tab"]
+    strong_field = ["使用状态", "使用次数", "调用次数", "视频来源", "素材使用详情", "切片状态", "修改来源", "共享使用次数"]
+    weak_field = ["字段", "标签", "详情", "次数", "来源", "版本", "状态", "Tab", "tab"]
     for f in glob.glob(os.path.join(story, "**", "*.md"), recursive=True):
+        rel = os.path.relpath(f, story)
         with open(f, encoding="utf-8") as fh:
             txt = fh.read()
         for m in re.finditer(r"message-contains\(\s*[\"']([^\"']+)[\"']\s*\)", txt):
             arg = m.group(1)
-            if any(k in arg for k in field_keywords):
-                warnings.append(f"[断言语义] {os.path.relpath(f, story)}: message-contains(\"{arg}\") 疑似字段标签误用（应用 element-text）")
+            if any(k in arg for k in strong_field):
+                problems.append(f"[断言语义] {rel}: message-contains(\"{arg}\") 字段标签误用（应用 element-text）")
+            elif any(k in arg for k in weak_field):
+                warnings.append(f"[断言语义] {rel}: message-contains(\"{arg}\") 疑似字段标签误用（应用 element-text）")
         for m in re.finditer(r"api-field-value\([^,]+,\s*[\"']([^\"']+)[\"']", txt):
             path = m.group(1)
             if ("[" in path or "]" in path) and path.count("[") != path.count("]"):
-                warnings.append(f"[断言语义] {os.path.relpath(f, story)}: api-field-value 嵌套路径括号不配对：\"{path}\"")
-    return len(warnings), warnings
+                warnings.append(f"[断言语义] {rel}: api-field-value 嵌套路径括号不配对：\"{path}\"")
+    return len(problems) + len(warnings), problems, warnings
 
 
 def check_data_fixtures_defects(story, contracts):
@@ -554,6 +560,140 @@ def check_data_fixtures_defects(story, contracts):
                 if not defect.get(req):
                     problems.append(f"[defects] {rel}: 缺陷缺必填字段 {req}")
     return total, problems
+
+
+def check_reverse_schema(story):
+    """反向 schema 校验（审计方案4）：dependencies.json 顶层字段必须在已知集合内（幽灵字段检测）。"""
+    problems = []
+    KNOWN_TOP = {
+        "environments", "inputs", "unverifiable", "write_mocks",
+        "pending_impl", "out_of_scope", "data_fixtures", "defects"
+    }
+    total = 0
+    for df in glob.glob(os.path.join(story, "**", "dependencies.json"), recursive=True):
+        total += 1
+        rel = os.path.relpath(df, story)
+        try:
+            with open(df, encoding="utf-8") as f:
+                d = json.load(f)
+        except Exception:
+            continue
+        for k in d.keys():
+            if k not in KNOWN_TOP:
+                problems.append(f"[反向schema] {rel}: 顶层字段 '{k}' 未在 schema 定义（幽灵字段）")
+    return total, problems
+
+
+def check_locators(story):
+    """定位表双向闭环（审计方案1）：断言 @句柄 ↔ locators.json。"""
+    problems = []
+    defined = {}
+    for lf in glob.glob(os.path.join(story, "**", "locators.json"), recursive=True):
+        rel = os.path.relpath(lf, story)
+        try:
+            with open(lf, encoding="utf-8") as f:
+                d = json.load(f)
+        except Exception as e:
+            problems.append(f"[locators] {rel}: JSON 解析失败：{e}")
+            continue
+        for h in d.get("locators", {}).keys():
+            defined[h] = rel
+    used = set()
+    for f in glob.glob(os.path.join(story, "**", "*.md"), recursive=True):
+        with open(f, encoding="utf-8") as fh:
+            txt = fh.read()
+        for m in re.findall(r"element-[a-z-]+\(\s*@([a-z][a-z0-9-]*)", txt):
+            used.add("@" + m)
+    for u in used:
+        if u not in defined:
+            problems.append(f"[locators] 断言引用 {u} 但 locators.json 无定义")
+    for h in defined:
+        if h not in used:
+            problems.append(f"[locators] locators.json 定义 {h} 但无断言引用（死定位）")
+    return len(defined), problems
+
+
+def check_capability_verification(story, practices):
+    """能力验证状态统计（审计方案2，报告非阻断）：从 story 数据统计并写 capability-verification.json。"""
+    fixtures = 0
+    instances = 0
+    code_logic_modules = 0
+    for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
+        with open(jf, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("kind") == "product_router":
+            continue
+        for _chain, m in iter_leaf_modules(d.get("modules", {})):
+            if m.get("status", {}).get("code_logic"):
+                code_logic_modules += 1
+    for df in glob.glob(os.path.join(story, "**", "dependencies.json"), recursive=True):
+        with open(df, encoding="utf-8") as f:
+            d = json.load(f)
+        fx = d.get("data_fixtures", {})
+        if isinstance(fx, dict):
+            fixtures += len(fx.get("factories", []))
+            instances += len(fx.get("instances", []))
+    print(f"    · data_fixtures: factories={fixtures}, instances={instances}")
+    print(f"    · code_logic 模块: {code_logic_modules}")
+    return fixtures + instances + code_logic_modules, []
+
+
+def check_dependency_map_completeness(practices):
+    """依赖图完整性（审计方案3 轻量版）：声明 practices_min_version 的 capability 必须在依赖图有记录。"""
+    problems = []
+    with open(CONFIG_PATH, encoding="utf-8-sig") as f:
+        cfg = json.load(f)
+    audit_path = cfg.get("audit_path")
+    if not audit_path:
+        problems.append("[依赖图] qalore-config.json 缺少 audit_path")
+        return 0, problems
+    dm = os.path.join(audit_path, "qalore-audit", "dependency-map.md")
+    if not os.path.exists(dm):
+        problems.append(f"[依赖图] 依赖图不存在：{dm}")
+        return 0, problems
+    with open(dm, encoding="utf-8") as f:
+        content = f.read()
+    skill_dir = os.path.expanduser("~/.dsh/skills/qalore")
+    total = 0
+    for sk in glob.glob(os.path.join(skill_dir, "capability", "**", "SKILL.md"), recursive=True):
+        with open(sk, encoding="utf-8") as f:
+            txt = f.read()
+        m = re.search(r"name:\s*(\S+)", txt)
+        mm = re.search(r"practices_min_version:\s*[\"']?([^\"'\n]+)", txt)
+        if not m or not mm:
+            continue
+        name = m.group(1)
+        if name == "qa-token-report":
+            continue  # 已废弃，不参与
+        total += 1
+        rel = os.path.relpath(sk, skill_dir).replace("\\", "/")
+        if name not in content:
+            problems.append(f"[依赖图] {name}（{rel}）声明 practices_min_version 但依赖图无记录")
+    return total, problems
+
+
+def check_module_granularity(story):
+    """模块粒度阈值（审计方案10，提示非阻断）：assert_seq>150 / tc_count>100 / 空壳模块。"""
+    warns = []
+    for jf in glob.glob(os.path.join(story, "**", "index.json"), recursive=True):
+        with open(jf, encoding="utf-8") as f:
+            d = json.load(f)
+        if d.get("kind") == "product_router":
+            continue
+        rel = os.path.relpath(jf, story)
+        for chain, m in iter_leaf_modules(d.get("modules", {})):
+            st = m.get("status", {})
+            aseq = m.get("assert_seq", 0)
+            tcc = st.get("tc_count", 0)
+            bl = st.get("business_logic", False)
+            name = "/".join(chain)
+            if aseq > 150:
+                warns.append(f"[粒度] {rel}/{name}: assert_seq={aseq} 疑似粒度过粗（建议拆分）")
+            if tcc > 100:
+                warns.append(f"[粒度] {rel}/{name}: tc_count={tcc} 疑似粒度过粗（建议拆分）")
+            if tcc == 0 and bl:
+                warns.append(f"[粒度] {rel}/{name}: tc_count=0 且 business_logic=true（空壳模块）")
+    return len(warns), warns
 
 
 def main():
@@ -630,19 +770,46 @@ def main():
     print(f"[12] module_group 结构（{total} 个容器）: {'✅' if not probs else '❌'}")
     all_problems.extend(probs)
 
-    # 13. 断言语义启发式（非阻断，弱启发式提示）
-    total, warns = check_assertion_semantics(story)
-    print(f"[13] 断言语义启发式（{total} 处提示）: {'无提示' if not warns else '发现提示（非阻断，供人工复核）'}")
+    # 13. 断言语义检查（强字段短语=阻断 / 弱关键词=提示）
+    total, sem_probs, sem_warns = check_assertion_semantics(story)
+    print(f"[13] 断言语义（{total} 处）: {'✅' if not sem_probs else '❌ 阻断 ' + str(len(sem_probs)) + ' 处'}")
+    all_problems.extend(sem_probs)
 
     # 14. data_fixtures + defects 结构一致性
     total, probs = check_data_fixtures_defects(story, contracts)
     print(f"[14] 资源/缺陷登记（{total} 个项目）: {'✅' if not probs else '❌'}")
     all_problems.extend(probs)
 
+    # 15. 反向 schema 校验（幽灵字段）
+    total, probs = check_reverse_schema(story)
+    print(f"[15] 反向 schema（{total} 个项目）: {'✅' if not probs else '❌'}")
+    all_problems.extend(probs)
+
+    # 16. 定位表双向闭环（@句柄 ↔ locators.json）
+    total, probs = check_locators(story)
+    print(f"[16] 定位表闭环（{total} 个句柄）: {'✅' if not probs else '❌'}")
+    all_problems.extend(probs)
+
+    # 17. 能力验证状态（报告，非阻断）
+    total, probs = check_capability_verification(story, practices)
+    print(f"[17] 能力验证状态: {'已统计' if not probs else '❌'}")
+    all_problems.extend(probs)
+
+    # 18. 依赖图完整性（轻量版）
+    total, probs = check_dependency_map_completeness(practices)
+    print(f"[18] 依赖图完整性（{total} 个 capability）: {'✅' if not probs else '❌'}")
+    all_problems.extend(probs)
+
+    # 模块粒度阈值（提示，非阻断）
+    gtotal, g_warns = check_module_granularity(story)
+    print(f"[粒度] 模块粒度（{gtotal} 处提示）: {'无提示' if not g_warns else '发现提示（非阻断，供人工复核）'}")
+
     print("\n" + "=" * 60)
-    if warns:
-        print("\n· 断言语义提示（非阻断）：")
-        for w in warns:
+    if sem_warns or g_warns:
+        print("\n· 提示（非阻断，供人工复核）：")
+        for w in sem_warns:
+            print(f"  {w}")
+        for w in g_warns:
             print(f"  {w}")
     if all_problems:
         print(f"\n❌ {len(all_problems)} 个问题：")

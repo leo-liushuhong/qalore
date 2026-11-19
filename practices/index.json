@@ -1,8 +1,33 @@
 {
-  "version": "2026-11-19-v1",
+  "version": "2026-11-19-v2",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-11-19-v2",
+      "date": "2026-11-19",
+      "summary": "15 项优化方案落地（架构演进 + 契约硬化）：① 元素定位抽象层（locators.json + @句柄，解耦 UI 选择器与业务语义，见 contracts.json#locators）；② 能力首跑验证门槛（gateway 三态标注 + verify 第17项统计）；③ 依赖图机器化（新增 scan-dependency-map.py + verify 第18项轻量校验）；④ 反向 schema 校验（verify 第15项，补 pending_impl/out_of_scope 进 schema）；⑤ message-contains 误用修复 23 处 + 断言语义检查分层（强字段短语=阻断/弱关键词=提示）；⑥ 选择器存在性快照（漂移保护两分法：结构漂移 vs 断言值漂移）；⑦ qa-token-report 僵尸能力清理（移入已废弃章节，不再参与版本校验）；⑧ context 标记多 agent 适配（subagent 显式传参）；⑨ 置信度单源降级（单源仅启用 2 态）；⑩ 模块粒度阈值提示；⑪ 多模块批量确认模式；⑫ 闭合集验证待办化。audit 侧同步：dependency-map 登记 4 个新文件 + verify 项数 14→18 + 对齐版本 bump + qa-token-report 标注已废弃；issue-taxonomy 补闭合集验证状态；README 补 Phase 3 硬门槛。",
+      "changed_files": [
+        "contracts.json",
+        "schemas/story-index.schema.md",
+        "tech-stacks/functional/execution.md",
+        "common/handbook.md",
+        "tech-stacks/functional/automation.md",
+        "tech-stacks/functional/story-formats.md",
+        "tools/verify-contracts.py",
+        "tools/scan-dependency-map.py",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-understand/adapters/design.md",
+        "qalore:capability/qa-execution/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:capability/qa-understand/adapters/synthesis.md",
+        "story:wanpix/素材/成品/成品-功能-测试用例.md",
+        "story:玩点多多/成品库/成品库-功能-测试用例.md",
+        "story:玩点多多/素材库/素材库-功能-测试用例.md",
+        "story:wanpix/素材/素材编辑/素材编辑-功能-测试用例.md",
+        "story:wanpix.admin/atomic/atomic-功能-测试用例.md"
+      ]
+    },
     {
       "version": "2026-11-19-v1",
       "date": "2026-11-19",

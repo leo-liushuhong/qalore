@@ -25,7 +25,9 @@ qa-execution 的执行标准：断言类型定义、MCP 工具映射、执行规
 | `message-contains` | `message-contains("text")` | 期望文本（不含选择器，固定查 `.el-message__content`）；**仅限 toast 提示** | `.el-message__content` 任一 `.includes("text")` |
 | `url-contains` | `url-contains("text")` | 期望 URL 片段 | `page.url().includes("text")` |
 
-> **`message-contains` 仅限 toast**：它固定查 `.el-message__content`（toast 容器）。字段标签 / Tab 名 / 详情字段 / 卡片文案等**元素文本**必须用 `element-text(selector, "text")`，不得用 `message-contains`。反例：`message-contains("{字段值}")` 验证详情字段是错误用法，正确为 `element-text(.{详情容器}, "{字段值}")`。
+> **`@句柄`（元素定位抽象）**：UI/视觉样式断言的首个参数（选择器位置）支持 `@句柄` 语义引用（如 `element-text(@metric-card, "x")`），执行时查 `story/{项目}/locators.json` 解析为真实选择器；也支持直接写 CSS 选择器（向后兼容）。`@句柄` 命名见 schema「标识符命名一览表」。机器契约见 `contracts.json#locators`。
+
+> **`message-contains` 仅限 toast**：它固定查 `.el-message__content`（toast 容器）。字段标签 / Tab 名 / 详情字段 / 卡片文案 / 数值 / 状态文本等**元素文本**必须用 `element-text(selector, "text")`，不得用 `message-contains`。反例：`message-contains("{字段值}")` 验证详情字段是错误用法，正确为 `element-text(.{详情容器}, "{字段值}")`。判定口径：仅当验证的是**操作后的弹出提示（toast）**才用 message-contains；验证页面上持久展示的文本一律 element-text。
 
 ### 视觉样式断言（由 Playwright MCP 执行，校验与设计稿一致）
 

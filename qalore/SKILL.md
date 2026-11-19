@@ -66,7 +66,7 @@ practices_min_version: "2026-10-29-v4"
 - 一致 → 继续
 
 **capability 版本兼容性验证（路径通过后、路由前必执行）：**
-- 对**所有已注册 capability**（含用户能力和基础设施），逐一 Read 其 SKILL.md frontmatter 中的 `practices_min_version` 字段
+- 对**所有已注册 capability**（用户能力，不含已废弃项），逐一 Read 其 SKILL.md frontmatter 中的 `practices_min_version` 字段
 - 将 `practices_min_version` 与当前 `{practices_path}/index.json` 的 `version` 进行比较（日期优先比较，同日按版本号比较）
 - `practices_min_version` > 当前 practices version → 该 capability 要求的 practices 版本高于当前安装版本，停止，输出：
   ```
@@ -76,7 +76,7 @@ practices_min_version: "2026-10-29-v4"
   ```
 - `practices_min_version` ≤ 当前 practices version → 继续
 - capability SKILL.md 未声明 `practices_min_version` → 不阻断，输出警告：「[capability 名] 未声明 practices_min_version，跳过了版本兼容性检查。建议在该 SKILL.md frontmatter 中添加此字段。」
-- **基础设施 capability 同样参与此检查**（如 qa-token-report 由 Hook 触发，不在路由表中，但其 practices 版本依赖同样必须在环境验证阶段校验，不得因触发方式不同而跳过）
+- **已废弃 capability 不参与此检查**（qa-token-report 已废弃，见「已废弃」章节，不再遍历其 practices_min_version）
 
 **外部工具依赖体检（路径通过后、路由前必执行）：**
 - 读 `{practices_path}/contracts.json` 的 `external_tools.tools`，遍历每个工具（五要素 + probe 语义见 `common/handbook-dependencies.md`）：
@@ -181,21 +181,23 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 
 ### 用户能力（由网关按路由表触发）
 
+> **状态三态**：`✅ 验证过`（有真实 story 数据佐证）/ `⚠️ 声明未验证`（已建设但无真实实例）/ `❌ 未建设`。验证状态由 verify-contracts.py 第 17 项从 story 数据实时统计打印，本表只引用不复制。
+
 | Capability | SKILL.md 路径 | 状态 |
 |-----------|-------------|------|
-| 测试意图理解与提炼 | `capability/qa-understand/SKILL.md` | ✅ 可用 |
-| 功能测试用例设计与产物输出 | `capability/qa-functional-test/SKILL.md` | ✅ 可用 |
-| 用例评审 | `capability/qa-case-review/SKILL.md` | ✅ 可用 |
-| 自动化测试执行 | `capability/qa-execution/SKILL.md` | ✅ 可用 |
-| 全量审计 | `capability/qa-audit/SKILL.md` | ✅ 可用 |
-| 测试数据准备 | `capability/qa-data-prep/SKILL.md` | ✅ 可用 |
-| 测试报告产出 | `capability/qa-report/SKILL.md` | ✅ 可用 |
+| 测试意图理解与提炼 | `capability/qa-understand/SKILL.md` | ✅ 验证过 |
+| 功能测试用例设计与产物输出 | `capability/qa-functional-test/SKILL.md` | ✅ 验证过 |
+| 用例评审 | `capability/qa-case-review/SKILL.md` | ✅ 验证过 |
+| 自动化测试执行 | `capability/qa-execution/SKILL.md` | ✅ 验证过 |
+| 全量审计 | `capability/qa-audit/SKILL.md` | ✅ 验证过 |
+| 测试数据准备 | `capability/qa-data-prep/SKILL.md` | ⚠️ 声明未验证 |
+| 测试报告产出 | `capability/qa-report/SKILL.md` | ⚠️ 声明未验证 |
 
-### 基础设施（由 Hook 自动触发，不由网关路由）
+### 已废弃（不参与路由与版本校验）
 
-| Capability | SKILL.md 路径 | 触发方式 |
-|-----------|-------------|---------|
-| Token 使用统计 | `capability/qa-token-report/SKILL.md` | Stop Hook 自动执行 |
+| Capability | 废弃原因 |
+|-----------|---------|
+| Token 使用统计（qa-token-report） | Claude Code Stop Hook 专属，DSH 无此机制不生效；文件保留仅作历史，不再纳入 practices_min_version 校验 |
 
 **环境可用性标注（同一 capability 在不同环境可用面不同）：**
 
@@ -204,7 +206,6 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 | qa-understand / qa-functional-test / qa-case-review / qa-audit | ✅ 完整 | ✅ 完整 |
 | qa-execution | ✅ 完整（Playwright 全覆盖 UI/Console/API/样式） | ✅ 完整（Playwright 全覆盖 UI/Console/API/样式；DB 断言依赖 psql） |
 | qa-data-prep / qa-report | ✅ 完整 | ✅ 完整（qa-report 依赖缺陷系统 MCP + office 套件；qa-data-prep 依赖执行环境与造数通道） |
-| qa-token-report | ✅ 完整（Stop Hook 触发） | ❌ 不生效（依赖 Stop Hook，DSH 无此机制） |
 
 > 上表是「声明」——其与「目标环境实际接线」的一致性由 qa-audit 的步骤18（环境可用性一致性，机器探测）校验，漂移时以审计报告为准。
 

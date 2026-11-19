@@ -152,11 +152,15 @@
   }],
   "inputs": [{ "type": "text|technical|design", "source": "{URL/路径}", "trust": "官方文档|需求文档|推断" }],
   "unverifiable": [{ "id": "DEP-{PREFIX}-{seq}", "symptom": "{症状/错误码}", "locate_path": "{定位路径}" }],
-  "write_mocks": [{ "id": "{标识}", "target": "{表/字段/键}", "method": "{操作}", "confirmed_by": "{确认人}", "confirmed_date": "{YYYY-MM-DD}" }]
+  "write_mocks": [{ "id": "{标识}", "target": "{表/字段/键}", "method": "{操作}", "confirmed_by": "{确认人}", "confirmed_date": "{YYYY-MM-DD}" }],
+  "pending_impl": [{ "module": "{模块}", "item": "{待开发项}", "prd": "{版本}", "status": "待开发" }],
+  "out_of_scope": [{ "module": "{模块}", "tc_id": "TC-{PREFIX}-{seq}", "title": "{标题}", "reason": "{原因}", "scope": "{测试计划}" }]
 }
 ```
 
-**字段所有权：** `environments`/`accounts` 由 gateway 新建项目时引导用户初始化；`inputs` 由 qa-understand 沉淀（输入依赖）；`unverifiable` 由 qa-understand 沉淀（不可测约束）；`write_mocks` 由 qa-functional-test 声明 + qa-case-review 人类确认后写入；qa-audit 校验一致性（引用闭环/脱敏/prod 排除/写 mock 确认标记）。
+**字段所有权：** `environments`/`accounts` 由 gateway 新建项目时引导用户初始化；`inputs` 由 qa-understand 沉淀（输入依赖）；`unverifiable` 由 qa-understand 沉淀（不可测约束）；`write_mocks` 由 qa-functional-test 声明 + qa-case-review 人类确认后写入；`pending_impl`（待开发项清单）与 `out_of_scope`（本期不做清单）由 qa-report / qa-functional-test 沉淀；qa-audit 校验一致性（引用闭环/脱敏/prod 排除/写 mock 确认标记）。
+
+**`pending_impl` / `out_of_scope` 语义：** 二者均为**需求级边界清单**，与 `unverifiable`（环境不可测约束）和 `defects`（已验证外部缺陷）不同——`pending_impl` 记录「PRD 已明确但尚未开发」的项，`out_of_scope` 记录「产品确认本次不做」的用例。
 
 **`device_profiles`（环境档位）：** 声明该环境支持的机型/系统/viewport 档位（如 desktop/mobile/ios/android）。样式断言值用 `@档位` 后缀引用（如 `element-font-size(.title, 14@mobile)`），档位 ID 必须在此声明。practices 不写死档位值；verify-contracts.py 校验 `@档位` 在已声明档位内。新增机型/系统 → 往此表加一行，不改断言类型。
 
@@ -212,3 +216,48 @@
 **字段所有权：** `defects` 由 qa-report 沉淀（从外部缺陷系统拉取真实内容 + 状态快照）；qa-audit 校验一致性（bug_id/source/status 必填、mapped_to 指向存在的模块/功能点）。
 
 > `defects` 与 `unverifiable`（环境不可测约束）不同：`unverifiable` 记录「无法验证的环境问题」，`defects` 记录「已验证的外部缺陷」。与业务逻辑.md 断言 `[pending/resolved]` 状态也不同：后者是断言级内部待确认项，前者是需求级外部缺陷映射。
+
+---
+
+## 元素定位表（locators.json）
+
+`story/{项目名}/locators.json` 是** UI 元素定位**的单一权威，承载断言中 `@句柄` 到真实选择器的映射。机器可判定契约见 `contracts.json#locators`，语义权威见 `tech-stacks/functional/execution.md`「@句柄」章节。
+
+> **职责边界**：locators.json 只承载 **UI 元素定位**（CSS/test-id/role）；接口路径、DB 字段、账号、档位等**后端资源定位**继续由 `dependencies.json` 承载（`environments[].api_url` / `databases[]` / `accounts[]` / `device_profiles[]`），不得混入 locators.json。
+
+**最小结构：**
+
+```jsonc
+{
+  "locators": {
+    "@metric-card": { "selector": ".metric-card", "strategy": "css", "module": "使用分析" }
+  }
+}
+```
+
+**字段：**
+
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `@句柄`（键名） | string | 是 | `@` + 小写字母 + 连字符，业务含义命名，项目内唯一 |
+| `selector` | string | 是 | 真实选择器（CSS/test-id/role 等） |
+| `strategy` | string | 是 | 定位策略（css / testid / role） |
+| `module` | string | 是 | 归属叶子模块名 |
+
+**字段所有权：** 句柄由 qa-understand（design 适配器）产出断言时生成 + 首次定位；`selector` 由 qa-execution 执行发现漂移时回写；qa-audit 校验双向闭环（`@句柄` 都有定义 / selector 都被引用）。
+
+---
+
+## 标识符命名一览表
+
+厘清五类命名，防止 `@` 符号与 ID 体系混淆：
+
+| 标识符 | 形态 | 唯一性范围 | 例子 |
+|--------|------|-----------|------|
+| TC 前缀 | `tc_prefix`（2-5 大写字母） | 项目内 | `AGT` |
+| 脑图短 ID | `mm_short_id`（2-5 小写字母 = 前缀小写） | 项目内 | `agt` |
+| 断言 ID | `[assert-{PREFIX}-{seq}]` | 模块内 | `[assert-AGT-001]` |
+| 语义句柄（定位） | `@小写-连字符`，出现在**选择器参数位置** | 项目内 | `element-text(@metric-card, "x")` |
+| 档位后缀 | `@档位`，出现在**期望值后缀位置** | 环境声明内 | `element-font-size(.title, 14@mobile)` |
+
+> 关键区分：`@语义句柄` 在断言**参数位置**，`@档位` 在断言**值后缀位置**，位置天然不同，不共用同一语义。

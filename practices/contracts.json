@@ -132,5 +132,10 @@
       "yunxiao_mcp": { "serves": ["defects"], "type": "mcp", "probe": "网关查 MCP 工具列表", "min_version": null, "upgrade": "重新配置 MCP" },
       "office_xlsx": { "serves": ["report-template"], "type": "skill", "probe": "网关查 skill 列表", "min_version": null, "upgrade": "重新安装 office 套件" }
     }
+  },
+  "locators": {
+    "authority_note": "UI 元素定位的机器可判定契约。语义权威见 tech-stacks/functional/execution.md「@句柄」章节；本段只放机器可判定的不变式。分层边界：真实选择器只出现在 story/{项目}/locators.json，practices 层只放占位符。",
+    "reference_closure": "断言中的 @句柄 必须在 locators.json 有定义（正向）；locators.json 中的 selector 必须被至少一条断言引用（反向）",
+    "naming_rule": "@小写字母-连字符，项目内唯一；与 @档位 后缀区分（@句柄在参数位置，@档位在值后缀位置）"
   }
 }

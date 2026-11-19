@@ -26,13 +26,17 @@ practices_min_version: "2026-10-29-v7"
 ```
 1. 机器校验（必须第一步）：
    python3 {practices_path}/tools/verify-contracts.py
-   → 覆盖 14 项：assert_seq 数据 / 断言类型数据 / assert_seq 副本语义 /
+   → 覆盖 18 项：assert_seq 数据 / 断言类型数据 / assert_seq 副本语义 /
      断言类型计数副本 / 计数字段（tc_count·pending_count）/ ID 规则 / index.json 版本一致性 /
      依赖登记（prod 排除·秘密脱敏·写 mock 确认标记）/ 外部工具（probe 必填·cli 探测）/
     @档位合法性 / audit 依赖图对齐（practices version == dependency-map 对齐版本，且 audit 版本字段存在且格式合法）/
     module_group 结构（kind↔sub_modules↔tc_prefix 互斥一致）/
-    断言语义启发式（message-contains 误用·api-field-value 嵌套语法，非阻断提示）/
-    资源/缺陷登记（data_fixtures factory_id 引用·枚举·fingerprint·defects 必填字段）
+    断言语义（message-contains 误用分层：强字段短语=阻断/弱关键词=提示·api-field-value 嵌套语法）/
+    资源/缺陷登记（data_fixtures factory_id 引用·枚举·fingerprint·defects 必填字段）/
+    反向 schema（dependencies.json 顶层字段 ⊆ schema，幽灵字段检测）/
+    定位表闭环（@句柄 ↔ locators.json 双向引用）/
+    能力验证状态（data_fixtures 实例数·code_logic 模块数，报告非阻断）/
+    依赖图完整性（声明 practices_min_version 的 capability 必须在依赖图有记录）
    → 记录全部 ❌ 项，作为审计报告第一部分
 
 2. 语义审计（脚本无法覆盖的部分）：
@@ -73,8 +77,12 @@ practices_min_version: "2026-10-29-v7"
 | @档位 | ✅/❌ |
 | audit 依赖图对齐 | ✅/❌ |
 | module_group 结构 | ✅/❌ |
-| 断言语义启发式 | ✅/❌（非阻断） |
+| 断言语义 | ✅/❌（强=阻断/弱=提示） |
 | 资源/缺陷登记 | ✅/❌ |
+| 反向 schema | ✅/❌ |
+| 定位表闭环 | ✅/❌ |
+| 能力验证状态 | 已统计（非阻断） |
+| 依赖图完整性 | ✅/❌ |
 
 ## 二、语义审计发现
 | 严重级别 | 步骤 | 位置 | 问题 | 建议修复 |

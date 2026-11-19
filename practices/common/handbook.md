@@ -220,6 +220,10 @@ capability 按依赖顺序顺序执行（非并发），每个 capability 执行
 
 写入节奏遵循「story 维护约定 · 断点恢复规范」章节。
 
+**确认模式（二选一，任务开始时由用户选择）：**
+- 逐模块确认（默认）：每完成一个模块暂停，告知用户并等待继续
+- 批量确认：先展示全部模块计划 + 预估产物，用户一次性确认后连续执行，中途仅在异常时暂停；批量模式下计划预览必须列全风险点（外部依赖断点、待确认项、TC 前缀推断）
+
 ---
 
 ## context 标记规范
@@ -242,6 +246,8 @@ practices 文件的按需加载通过 context 标记实现，所有 capability �
 - 标记不存在（新会话 / context 被压缩 / 未加载）→ 执行 Read，加载后立即写入标记
 - 网关在每次任务开始时验证 `【practices:handbook.md:loaded】`；其余标记由各 capability 在用到时自行检查，规则相同
 - practices 版本更新时，网关重新加载并覆写对应标记；capability 无需处理版本判断
+
+**多 agent 场景（subagent / workflow）：** context 标记**仅单 agent 主会话有效**。subagent 不共享父 agent 的 context，标记在 subagent 内一律视为未加载。委托 subagent 时，capability 必须把该 subagent 需要的 practices 关键摘要**显式写入 prompt**（如 qa-functional-test 委托平台同步 subagent 时内嵌 cloud-sync 硬约束），subagent 不依赖 context 标记、不重建标记。
 
 ### context 标记注册表
 
@@ -478,7 +484,7 @@ qalore 与本地审计工具 audit（独立于 qalore 的 skill，已注册为 D
 - qalore 反馈 audit：qalore 每次变更后，须同步 audit 的依赖图（`dependency-map.md`），保证 audit 下次自迭代能全面覆盖所有 feature，不会因版本 gap 导致检查失效
 - 版本锚点：audit 依赖图头部记录「对齐 qalore 版本号」；audit 启动审查前先校验版本对齐，不一致先补齐依赖图再检查
 - audit 同样是自迭代 spec：与 qalore 一样，不得承载业务内容，遵守「通用性约束」的 10 类业务内容清单
-- 分工边界：qa-audit（qalore 内建能力）做**全量审计**——十九步流水线 + verify-contracts.py 14 项机器校验，覆盖机器可判定契约与 story 数据一致性；qalore-audit（独立 skill，已注册）做**变更驱动定点审查**——沿依赖图只查受影响下游（七类问题），不全量重读。两者共享版本锚点，机器强制对齐，不重复审计同一维度
+- 分工边界：qa-audit（qalore 内建能力）做**全量审计**——十九步流水线 + verify-contracts.py 18 项机器校验，覆盖机器可判定契约与 story 数据一致性；qalore-audit（独立 skill，已注册）做**变更驱动定点审查**——沿依赖图只查受影响下游（七类问题），不全量重读。两者共享版本锚点，机器强制对齐，不重复审计同一维度
 
 **核心纲领（分离原则）**
 
