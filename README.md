@@ -120,7 +120,7 @@ qalore/
 5. 计数字段（tc_count / pending_count）
 6. ID 规则
 7. index.json 版本一致性
-8. 依赖登记（prod 排除 / 秘密脱敏 / 写 mock 确认）
+8. 依赖登记（prod 排除 / 秘密脱敏 / 写 mock 确认 / 凭证解析格式 / 可执行环境 web_url / DB 连接闭环）
 9. 外部工具（probe 必填 + CLI 探测）
 10. @档位合法性
 11. **audit 依赖图对齐**（practices version == audit 依赖图「对齐版本」，版本 gap 由机器暴露）
