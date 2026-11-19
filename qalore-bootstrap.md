@@ -66,12 +66,12 @@
 - **MCP（Playwright / Figma / 云效）**：运行 `python3 practices/tools/gen-mcp-config.py` 生成目标 agent 的 MCP 配置（含传输方式 + 启动命令 + 凭证占位符），引导用户填入凭证
 - 安装失败 → 标注「降级」，不阻断
 
-## 步骤 6：获取 story 与 audit 数据（按需）
+## 步骤 6：获取 story 与 audit 数据
 
-- **audit 数据（必做）**：按 `manifest.audit_source` 获取 audit 仓库到 `audit_path`（verify 第 11 项依赖 audit 依赖图对齐校验）
-- **story**：
-  - 场景 A（仅框架）：`story-template/` 已初始化，完成
-  - 场景 B（完整业务）：按 `manifest.story_source` 引导用户 clone 到 `story_path`
+- **已内置（本包根目录已有 `story/` 与 `audit/`）**：直接使用，跳过 clone；步骤 3 生成的 config 路径已指向它们，无需额外操作
+- **未内置（仅框架包）**：
+  - audit 数据（必做）：按 `manifest.audit_source` 获取 audit 仓库到 `audit_path`（verify 第 11 项依赖 audit 依赖图对齐校验）
+  - story：场景 A（仅框架）用 `story-template/`；场景 B（完整业务）按 `manifest.story_source` 引导 clone 到 `story_path`
 
 ## 步骤 7：验收
 
