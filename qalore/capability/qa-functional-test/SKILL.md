@@ -68,6 +68,7 @@ practices_min_version: "2026-10-29-v4"
 - 设计用例时，从断言推导「测此边界需 mock 什么」（钢印 A 推导）——如断言「{字段} 过期时刷新」，测此边界需 mock `{字段}` 为过期值 → 在用例「前置条件」声明该写 mock（目标/方法/字段）。
 - 写 mock 声明走「权限左移四件套」（见 `contracts.json#dependencies.permission_shift_left`）：设计期声明 → 评审期人类确认 → 写入用例 → 执行期只强制不再问人。
 - 未声明的写 mock 一律不产出（留给执行期机器拦截）；声明了但未确认的写 mock，标注「待确认」由 qa-case-review 处理。
+- 设计用例时将 `data_fixtures.factory` 作为上下文输入（已登记的造数入口，结构见 schema「测试资源登记」），由 AI 自主判断复用（前置条件引用 factory_id）或新造（声明 write mock + 标注「建议沉淀 factory」）。
 
 ---
 
