@@ -42,7 +42,12 @@ practices_min_version: "2026-11-18-v1"
 
 3. 按优先级排序执行（P0 → P1 → P2 → P3）
 
-4. 逐条执行：
+4. 装载测试资源（执行前）：
+   - 从 dependencies.json 装载执行资源（环境/账号/DB/档位），边界与降级见 handbook.md「执行期资源装载」
+   - 环境导航、账号鉴权、DB 连接、档位切换的具体动作依据执行上下文自主完成
+   - 装载失败的资源相关断言 → SKIP + 原因（不现编资源/凭证）
+
+5. 逐条执行：
    a. 检查前置条件可满足性 → 不满足 → SKIP + 原因
    b. 处理前置写 mock：仅执行「已确认」的写 mock 声明（见 contracts.json#dependencies.permission_shift_left）；未确认/未声明的写操作 → 机器拦截，不新增判断，不向用户重复确认
    c. 按测试步骤顺序执行操作（导航/点击/输入）
@@ -52,9 +57,9 @@ practices_min_version: "2026-11-18-v1"
       - DB 断言 → psql 只读 SELECT（db-field-value / db-row-count，见 execution.md）
    e. 记录结果：PASS（实测值）/ FAIL（实测值 vs 预期值）/ SKIP（原因）
 
-5. 输出执行报告
+6. 输出执行报告
 
-6. 输出【待沉淀】声明
+7. 输出【待沉淀】声明
 ```
 
 ## 断言类型速查
@@ -120,7 +125,7 @@ practices_min_version: "2026-11-18-v1"
 
 ```markdown
 # {模块名} 执行报告
-> 执行时间: {ISO 8601} | 工具: Playwright MCP | 环境: {URL}
+> 执行时间: {ISO 8601} | 工具: Playwright MCP | 环境: {id} {URL} | 账号: {角色} | 档位: {id}
 
 | TC ID | 标题 | 结果 | 实测 |
 |-------|------|------|------|
@@ -155,6 +160,7 @@ practices_min_version: "2026-11-18-v1"
 |------|------|---------|
 | 断言漂移 | 已有断言实测 FAIL（实测值 ≠ 预期值） | 附实测值（API 响应 / trace / DB / 截图） |
 | 覆盖缺口 | 实测发现 story 无对应功能点/断言 | 附新场景实测证据（端点/字段/行为） |
+| 依赖漂移 | 实测发现 dependencies.json 登记资源漂移（环境 URL 变/账号权限变/DB 结构变/档位增减/造数入口漂移） | 附实测漂移证据（新 URL/新边界/新结构） |
 
 不满足判据（无实测证据的「疑似」）不得准入，降级为观察记录，不写入【待回写项】。
 
@@ -164,6 +170,7 @@ practices_min_version: "2026-11-18-v1"
 |------|---------|--------|
 | 断言漂移 | 3.2 更新 / 3.3 删除 | 执行者直接回写（走 handbook「断言变更规则」） |
 | 覆盖缺口 | 3.1 新增 | 路由 qa-understand「实测反哺」子流程（理解→断言→用例→收敛，实测为准，需求未覆盖以开发实现为准） |
+| 依赖漂移 | 回写 dependencies.json 对应字段（environments/accounts/databases/device_profiles/data_fixtures.factory） | 执行者直接回写（走 handbook「依赖登记规范」） |
 
 **可信度标准（怎么保证真实）：**
 - 每条绑定实测证据（具体端点/字段/值），不允许「推测」
