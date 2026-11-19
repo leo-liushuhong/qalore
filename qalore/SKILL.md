@@ -117,7 +117,7 @@ practices_min_version: "2026-10-29-v4"
 识别项目名后检查 story 目录：
 - `{story_path}/{确认项目名}/` 不存在（新项目）→ 询问用户：
   「{项目名} 是新项目，请提供一句话描述（面向谁、核心功能），确认后新建 story。」
-  → 拒绝终止；同意 + 描述 → 创建 `index.json` 初始结构（含 project / description / created / modules:{}）后继续
+  → 拒绝终止；同意 + 描述 → 创建 `index.json` 初始结构（含 project / description / created / modules:{}），并引导用户初始化 dependencies.json 的 environments/accounts/policy（用户暂不提供 → 创建 `environments: []` 空骨架 + 预检标「待初始化」）后继续
 - 已存在 → 继续（各 capability 负责检查自身需要的模块目录）
 
 对照路由表识别需要触发的 capability（可多个同时匹配）：
@@ -167,8 +167,11 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 多个 capability 同时触发时，各自读取 SKILL.md，共享同一套注入变量。
 
 **依赖登记预检（项目识别后、执行前）：**
-- `{story_path}/{确认项目名}/dependencies.json` 存在 → 校验其 `environments` 中无 `executable=true` 的 `prod` 环境（prod 排除，见 `contracts.json#dependencies.invariants.prod_exclusion`）；违反 → 停止并提示修复
-- 不存在 → 不阻断（首次接入项目时可后补），记录「依赖登记缺失」
+- `{story_path}/{确认项目名}/dependencies.json` 存在 → 三查（违反 → 停止并提示修复）：
+  1. prod 排除：`environments` 无 `executable=true` 的 `prod` 环境（见 `contracts.json#dependencies.invariants.prod_exclusion`）
+  2. 秘密脱敏：密码/token 无明文（见 `contracts.json#dependencies.invariants.secret_masking`）
+  3. 可执行环境：存在 `executable=true` 且 `web_url` 非空的环境；无 → 标注「测试资源待补全」（见 `contracts.json#dependencies.invariants.executable_env`）
+- 不存在 → 不阻断（首次接入项目时可后补），记录「依赖登记缺失」+ 标注「待初始化」
 
 ---
 
