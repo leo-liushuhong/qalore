@@ -582,7 +582,7 @@
 
 ### 步骤19：依赖一致性（S）
 
-**目标**：story 依赖登记（`dependencies.json`）与断言/用例之间引用闭环，账号边界覆盖用例角色声明，输入依赖可追溯到断言来源。机器可判定部分（prod 排除 / 秘密脱敏 / 写 mock 确认标记）由 verify-contracts.py 第 8 项覆盖；本步骤补脚本无法覆盖的语义一致性。
+**目标**：story 依赖登记（`dependencies.json`）与断言/用例之间引用闭环，账号边界覆盖用例角色声明，输入依赖可追溯到断言来源。机器可判定部分（prod 排除 / 秘密脱敏 / 写 mock 确认标记 / 凭证解析格式 / 可执行环境 web_url / DB 连接闭环）由 verify-contracts.py 第 8 项覆盖；本步骤补脚本无法覆盖的语义一致性。
 
 ```
 1. 引用闭环（正向：依赖 → 用例）：
@@ -600,6 +600,12 @@
 5. 写 mock 合法性（脚本覆盖确认标记后的人工侧）：
    — 写 mock 声明是否满足安全围栏五边界（环境白名单/数据白名单/可还原/已声明/已确认）
    — 副作用是否可接受 → 由人类拍板，AI 只做形式核对
+6. data_fixtures 引用闭环（机器第 14 项已查字段级不变式，本步补语义侧）：
+   — factory 被 instance 引用：instance.factory_id 指向存在的 factory.id
+   — instance 被用例引用：instance.serves_tc 非空且指向的 TC 存在
+   — policy 三字段（retention/reuse/cleanup）非空
+7. defects 引用闭环（机器第 14 项已查必填字段，本步补语义侧）：
+   — defects[].mapped_to 指向存在的叶子模块/功能点
 ```
 
 **适用范围**：全部 `story/{项目}/dependencies.json` + 对应项目的断言/用例文件。

@@ -413,15 +413,17 @@ qalore 执行任何任务过程中，若在文件系统中创建了临时脚本�
   
 ## 依赖登记规范
 
-story 中 `{项目名}/dependencies.json` 登记三类依赖（输入/执行/不可测），数据结构见 `schemas/story-index.schema.md`「依赖登记」章节。机器可判定契约（访问方法/安全围栏/权限左移/不变式）的单一权威源见 `contracts.json#dependencies`，本表为操作说明。注意区分：本表是 **story 项目级依赖**；qalore 框架自身依赖的外部工具（MCP/CLI/Python）见 `handbook-dependencies.md`。
+story 中 `{项目名}/dependencies.json` 登记五类资源（输入依赖/执行依赖/不可测约束/测试资源/缺陷映射），数据结构见 `schemas/story-index.schema.md`「依赖登记」「测试资源登记」「缺陷登记」章节。机器可判定契约（访问方法/安全围栏/权限左移/不变式）的单一权威源见 `contracts.json#dependencies`，本表为操作说明。注意区分：本表是 **story 项目级依赖**；qalore 框架自身依赖的外部工具（MCP/CLI/Python）见 `handbook-dependencies.md`。
 
-**三类依赖：**
+**五类资源：**
 
 | 类 | 含义 | 供血对象 | 典型例 |
 |---|---|---|---|
 | 输入依赖（源） | 帮助理解、补边界的输入 | 需求理解 → 断言 | 官方文档、PRD、设计稿、代码 |
 | 执行依赖（地基） | 让用例跑起来的资源 | 用例 → 执行 | 地址、环境、测试账号、DB、redis、MQ、可执行范围 |
 | 不可测约束 | 官方硬逻辑/等不了时间的场景 | 断言 → 用例（可测性判定） | 官方硬上限、等不了时间的刷新 |
+| 测试资源（data_fixtures） | 造数工厂/实例/策略（factory/instance/policy） | 造数 → 执行参照 → 报告验收 | 结构见 schema「测试资源登记」 |
+| 缺陷映射（defects） | 需求 ↔ 缺陷 ID ↔ 状态快照 | 报告 → 审计 | 结构见 schema「缺陷登记」 |
 
 **访问方法二态（`contracts.json#dependencies.access_methods`）：**
 
@@ -432,9 +434,11 @@ story 中 `{项目名}/dependencies.json` 登记三类依赖（输入/执行/不
 
 **权限左移（`contracts.json#dependencies.permission_shift_left`）：** 写 mock 的合法充要条件 = 声明 + 确认 + 可还原 + 边界内。许可在设计/评审期授予并写入 story，执行期只强制、不再问人。
 
-**不变式（`contracts.json#dependencies.invariants`）：** 引用闭环（依赖↔用例双向）· 秘密脱敏（密码/token 不落明文）· prod 排除（`prod ⟹ executable=false`）。
+**不变式（`contracts.json#dependencies.invariants`）：** 引用闭环（依赖↔用例双向）· 秘密脱敏（密码/token 不落明文）· prod 排除（`prod ⟹ executable=false`）· 凭证解析（credential_ref → 宿主 secret 存储，不可解析 SKIP）· 可执行环境（`executable ⟹ web_url 非空`）· DB 连接闭环（断言「连接」= `databases[].ref`）。
 
 **账号三要素：** 可执行边界（权限范围）+ 角色→账号映射（项目级维护）+ 场景账号档位（admin/member/无权限/越权）。用例声明角色，执行期校验「账号边界 ⊇ 用例声明」。
+
+**执行期资源装载：** 执行前从 dependencies.json 装载执行资源——环境（web_url/api_url 导航与断言 base）、账号（角色→`accounts[].label`→`credential_ref`→secret 解析→鉴权）、DB（断言「连接」→`databases[].ref`→连接信息）、档位（`@档位`→`device_profiles[].viewport`）。装载失败的资源相关断言 SKIP（降级不阻断，不现编资源/凭证）。具体装载动作（登录方式、psql 连接、viewport 切换）由 qa-execution 依据执行上下文自主完成。
 
 ---
 
