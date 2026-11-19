@@ -66,7 +66,7 @@ practices_min_version: "2026-10-29-v4"
 - 一致 → 继续
 
 **capability 版本兼容性验证（路径通过后、路由前必执行）：**
-- 对**所有已注册 capability**（用户能力，不含已废弃项），逐一 Read 其 SKILL.md frontmatter 中的 `practices_min_version` 字段
+- 对**所有已注册 capability**（用户能力 + 维护能力，不含已废弃项），逐一 Read 其 SKILL.md frontmatter 中的 `practices_min_version` 字段
 - 将 `practices_min_version` 与当前 `{practices_path}/index.json` 的 `version` 进行比较（日期优先比较，同日按版本号比较）
 - `practices_min_version` > 当前 practices version → 该 capability 要求的 practices 版本高于当前安装版本，停止，输出：
   ```
@@ -192,6 +192,12 @@ playwright_mcp_available = {true/false}   ← 依赖体检：Playwright MCP 是�
 | 全量审计 | `capability/qa-audit/SKILL.md` | ✅ 验证过 |
 | 测试数据准备 | `capability/qa-data-prep/SKILL.md` | ⚠️ 声明未验证 |
 | 测试报告产出 | `capability/qa-report/SKILL.md` | ⚠️ 声明未验证 |
+
+### 维护能力（由网关按需触发，不参与测试路由）
+
+| Capability | SKILL.md 路径 | 触发方式 |
+|-----------|-------------|---------|
+| qalore 移植与维护 | `capability/qa-bootstrap/SKILL.md` | 用户说「升级 qalore / 补装工具 / 检查移植状态」时按需加载；首次移植由仓库根 `qalore-bootstrap.md` 种子指令完成（不依赖本 capability） |
 
 ### 已废弃（不参与路由与版本校验）
 

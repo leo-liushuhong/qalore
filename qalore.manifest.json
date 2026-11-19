@@ -1,0 +1,49 @@
+{
+  "manifest_version": 1,
+  "name": "qalore",
+  "description": "全栈测试工程师网关：让 AI 的测试能力可沉淀、可校验、可迁移。本清单是 qalore 分发的机器可读声明，供自举安装（qalore-bootstrap.md）与 qa-bootstrap capability 读取。",
+  "version_lock": {
+    "skill": "2026-11-19-v2",
+    "practices": "2026-11-19-v2",
+    "audit_alignment": "2026-11-19-v2"
+  },
+  "components": {
+    "skill": "qalore/",
+    "practices": "practices/",
+    "story_template": "story-template/",
+    "seed_instruction": "qalore-bootstrap.md",
+    "agent_adapters": "agents.json",
+    "plugins": [
+      {
+        "id": "multi-window",
+        "type": "dsh-plugin",
+        "mount": "复制到 DSH 插件目录（~/.dsh/plugins/multi-window/）",
+        "verify": "加载后出现在 DSH 插件列表",
+        "required_by": ["qa-execution"],
+        "note": "多窗口插件为 qa-execution 提供浏览器多上下文/多窗口隔离能力；形态为 DSH 插件，随本仓库分发，由 qa-bootstrap 按 type 执行挂载"
+      }
+    ]
+  },
+  "supported_agents": ["dsh", "claude-code", "generic", "chat-only"],
+  "external_tools": ["playwright_mcp", "figma_mcp", "yunxiao_mcp", "lark_cli", "psql", "python3", "office_xlsx"],
+  "story_source": {
+    "type": "git",
+    "url": "git@github.com:leo-liushuhong/qalore-story.git",
+    "note": "场景 B（完整业务）时获取；场景 A（仅框架）时用 story-template/ 空骨架，qalore 首次运行自引导初始化"
+  },
+  "audit_source": {
+    "type": "git",
+    "url": "git@github.com:leo-liushuhong/audit.git",
+    "note": "audit 数据（依赖图 dependency-map.md + 问题分类 issue-taxonomy.md）+ qalore-audit skill，供 verify 第 11 项对齐校验与变更驱动定点审查使用"
+  },
+  "requires_user_credentials": [
+    "飞书 appSecret（lark-cli 需要）",
+    "云效 token（yunxiao_mcp 需要）",
+    "figma token（figma_mcp 需要）"
+  ],
+  "capability_tiers": {
+    "full": "有 skill + MCP + subagent（DSH / Claude Code）",
+    "degraded": "有文件/命令行工具，无 skill 概念（generic）",
+    "readonly": "仅对话（chat-only）"
+  }
+}

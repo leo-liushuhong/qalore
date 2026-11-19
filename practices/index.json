@@ -1,8 +1,25 @@
 {
-  "version": "2026-11-19-v2",
+  "version": "2026-11-19-v3",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-11-19-v3",
+      "date": "2026-11-19",
+      "summary": "可移植（自举安装）能力落地：① 新增 qa-bootstrap capability（移植与维护：升级/补装工具/凭证引导，不参与测试路由）；② 新增 tools/gen-mcp-config.py（MCP 三要素配置生成器：传输方式+启动命令+凭证占位）；③ 仓库根新增分发物——qalore-bootstrap.md（种子指令，自包含，打破自举悖论）+ qalore.manifest.json（版本三元组+story_source+audit_source+plugins+待填凭证）+ agents.json（agent 适配器+能力分级 full/degraded/readonly）+ story-template/（空骨架）；④ gateway 能力列表新增「维护能力」章节 + 版本兼容性校验范围纳入 qa-bootstrap；⑤ qalore README 更新（目录结构/18项校验/可移植章节）+ audit README 补分发说明。",
+      "changed_files": [
+        "tools/gen-mcp-config.py",
+        "qalore:SKILL.md",
+        "qalore:capability/qa-bootstrap/SKILL.md",
+        "repo:qalore-bootstrap.md",
+        "repo:qalore.manifest.json",
+        "repo:agents.json",
+        "repo:story-template/index.json",
+        "repo:story-template/README.md",
+        "repo:README.md",
+        "audit:README.md"
+      ]
+    },
     {
       "version": "2026-11-19-v2",
       "date": "2026-11-19",

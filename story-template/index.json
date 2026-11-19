@@ -1,0 +1,7 @@
+{
+  "project": "示例项目",
+  "description": "qalore story 空骨架模板。首次运行 qalore 时由网关引导初始化真实项目；本模板仅用于验证 skill→practices→story 路由是否打通。",
+  "created": "2026-11-19",
+  "last_updated": "2026-11-19",
+  "modules": {}
+}

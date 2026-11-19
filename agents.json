@@ -1,0 +1,40 @@
+{
+  "agents": {
+    "dsh": {
+      "skill_dir": "~/.dsh/skills/",
+      "config_path": "~/.dsh/qalore-config.json",
+      "mcp_config_path": "~/.dsh/mcp.json",
+      "frontmatter": "standard",
+      "tier": "full"
+    },
+    "claude-code": {
+      "skill_dir": "~/.claude/skills/",
+      "config_path": "~/.claude/qalore-config.json",
+      "mcp_config_path": "~/.claude.json",
+      "frontmatter": "claude",
+      "tier": "full"
+    },
+    "generic": {
+      "skill_dir": null,
+      "config_path": "~/.qalore/qalore-config.json",
+      "mcp_config_path": null,
+      "frontmatter": null,
+      "tier": "degraded",
+      "note": "无 skill 概念时：挂载降级为「把 practices 关键规范注入 prompt」，story 路径由 config 生成；无 MCP 时 qa-execution 降级为手动执行"
+    },
+    "chat-only": {
+      "skill_dir": null,
+      "config_path": null,
+      "mcp_config_path": null,
+      "frontmatter": null,
+      "tier": "readonly",
+      "note": "仅对话：只读 story 做需求理解/用例设计，产物在对话中，不落盘"
+    }
+  },
+  "probe_hints": {
+    "dsh": "存在 mcp__* 工具 + ~/.dsh 目录",
+    "claude-code": "存在 ~/.claude 目录 + Claude 系工具",
+    "generic": "有文件读写工具但无 skill/MCP 机制",
+    "chat-only": "仅对话，无任何文件/命令行工具"
+  }
+}

@@ -35,23 +35,29 @@ qalore 有一条不可违反的边界：
 
 ```
 qalore/
+├── qalore-bootstrap.md            # 种子指令（自举安装唯一入口，粘贴即触发）
+├── qalore.manifest.json           # 分发清单（版本三元组 + story_source + plugins + 待填凭证）
+├── agents.json                    # agent 适配器注册表（dsh/claude-code/generic/chat-only）
+├── story-template/                # story 空骨架（场景 A 仅框架移植）
+├── qalore/                        # skill 包（网关 + capability）
+│   └── capability/                # 能力（7 个用户能力 + 1 个维护能力）
+│       ├── qa-understand/         # 测试意图理解与提炼（含 text/code/design 适配器 + synthesis）
+│       ├── qa-functional-test/    # 功能测试用例设计与产物输出
+│       ├── qa-case-review/        # 用例评审
+│       ├── qa-execution/          # 自动化测试执行
+│       ├── qa-report/             # 测试报告产出
+│       ├── qa-data-prep/          # 测试数据准备（资源生命周期）
+│       ├── qa-audit/              # 全量审计
+│       ├── qa-bootstrap/          # qalore 移植与维护（升级/补装/凭证引导）
+│       └── qa-token-report/       # 已废弃（DSH 无 Stop Hook）
 ├── practices/                     # 规范（spec，纯测试 + 企业 spec）
 │   ├── common/                    # 通用规范（handbook 主规范、审计流水线、依赖登记、写入协议…）
 │   ├── tech-stacks/functional/    # 技术栈规范（断言、用例、执行、输出、自动化…）
 │   ├── schemas/                   # schema 权威定义（story/index.json 结构）
 │   ├── contracts.json             # 机器契约（外部工具、自动化不变式、依赖登记）
 │   ├── index.json                 # 版本 + changelog（增量读取入口）
-│   └── tools/verify-contracts.py  # 机器校验脚本（14 项）
-├── capability/                    # 能力（思考方式，7 个用户能力 + 1 个基础设施）
-│   ├── qa-understand/             # 测试意图理解与提炼（含 text/code/design 适配器 + synthesis）
-│   ├── qa-functional-test/        # 功能测试用例设计与产物输出
-│   ├── qa-case-review/            # 用例评审
-│   ├── qa-execution/              # 自动化测试执行
-│   ├── qa-report/                 # 测试报告产出
-│   ├── qa-data-prep/              # 测试数据准备（资源生命周期）
-│   ├── qa-audit/                  # 全量审计
-│   └── qa-token-report/           # Token 统计（基础设施，由 Stop Hook 触发）
-└── story/                         # 业务知识库（项目-模块两级，唯一承载业务内容）
+│   └── tools/                     # verify-contracts.py（18 项）+ scan-dependency-map.py + gen-mcp-config.py
+└── story/                         # 业务知识库（场景 A 用 story-template，场景 B 用独立私有仓库）
 ```
 
 ---
@@ -111,7 +117,7 @@ qalore/
 
 ## 机器校验（verify-contracts.py）
 
-`tools/verify-contracts.py` 提供 14 项契约校验，机器能判定的不靠 AI 直觉：
+`tools/verify-contracts.py` 提供 18 项契约校验，机器能判定的不靠 AI 直觉：
 
 1. assert_seq 数据
 2. 断言类型数据
@@ -125,8 +131,12 @@ qalore/
 10. @档位合法性
 11. **audit 依赖图对齐**（practices version == audit 依赖图「对齐版本」，版本 gap 由机器暴露）
 12. module_group 结构（容器判别不变式 + 递归遍历）
-13. 断言语义启发式（message-contains 误用等，非阻断）
+13. 断言语义检查（message-contains 误用分层：强=阻断/弱=提示）
 14. 资源/缺陷登记（data_fixtures / defects 结构）
+15. 反向 schema（dependencies.json 顶层字段 ⊆ schema，幽灵字段检测）
+16. 定位表闭环（@句柄 ↔ locators.json 双向引用）
+17. 能力验证状态（data_fixtures 实例数 / code_logic 模块数，报告非阻断）
+18. 依赖图完整性（声明 practices_min_version 的 capability 必须在依赖图有记录）
 
 ---
 
@@ -145,7 +155,7 @@ qalore 整体遵循「双螺旋自迭代」模型，并配套一个独立的审�
 
 | 审计 | 归属 | 职责 |
 |------|------|------|
-| **qa-audit** | qalore 内建能力 | 全量审计：19 步流水线 + verify-contracts.py 14 项机器校验，覆盖机器可判定契约与 story 数据一致性 |
+| **qa-audit** | qalore 内建能力 | 全量审计：19 步流水线 + verify-contracts.py 18 项机器校验，覆盖机器可判定契约与 story 数据一致性 |
 | **qalore-audit** | 独立 skill（已注册 DSH） | 变更驱动定点审查：沿依赖图只查受影响下游（七类问题闭合集），不全量重读 |
 
 两者共享版本锚点（机器强制对齐，见 verify 第 11 项），不重复审计同一维度：qalore 每次变更后同步 audit 的依赖图，audit 审查 qalore 后回馈更新 qalore。
@@ -165,6 +175,28 @@ qalore 整体遵循「双螺旋自迭代」模型，并配套一个独立的审�
   3. 新增规范文件类型时注册
   4. 同步 audit 依赖图对齐版本（新增/修改 producer-consumer 关系时补齐依赖图）
 - **practices_min_version**：每个 capability 声明自己依赖的最低 practices 版本，网关在路由前校验（声明要准确投影实际依赖）。
+
+---
+
+## 可移植（自举安装）
+
+qalore 支持把完整测试能力移植到任意 agent / 模型：
+
+**入口**：把仓库根目录的 `qalore-bootstrap.md`（种子指令，自包含）整段复制粘贴给任意 agent，即可完成自举安装——不依赖任何已挂载的 skill。
+
+**能力分级**（诚实承诺，不谎报"完整"）：
+
+| 模式 | 触发条件 | 能力面 |
+|------|---------|--------|
+| 完整 | 有 skill + MCP + subagent（DSH / Claude Code） | 全部 7 能力 + Playwright/Figma/云效 + 自动化执行 |
+| 降级 | 无 skill 但有文件/命令行工具 | practices 注入 prompt；无 Playwright → 手动执行 |
+| 只读 | 仅对话 | 只做需求理解/用例设计，产物在对话 |
+
+**分发物**：`qalore.manifest.json`（版本三元组 + story_source + plugins + 待填凭证）、`agents.json`（agent 适配器）、`story-template/`（空骨架）、`tools/gen-mcp-config.py`（MCP 配置生成）。
+
+**story 分发**：框架仓库公开（不含业务）；完整业务 story 走独立私有仓库（`manifest.story_source`）。
+
+**维护**：挂载后由 `qa-bootstrap` capability 负责升级（幂等重跑）、补装工具、凭证引导。
 
 ---
 
