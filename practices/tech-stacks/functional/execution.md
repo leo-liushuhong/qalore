@@ -65,7 +65,7 @@ qa-execution 的执行标准：断言类型定义、MCP 工具映射、执行规
 
 ### DB 断言
 
-> db-field-value / db-row-count 由 psql 执行（只读 SELECT）。需网关注入 `db_psql_available=true`，否则 SKIP。访问方法契约见 `contracts.json#dependencies.access_methods`。
+> db-field-value / db-row-count 由 psql 执行（只读 SELECT）。需网关注入 `db_psql_available=true`，否则 SKIP。访问方法契约见 `contracts.json#dependencies.access_methods`。「连接」参数 = `dependencies.json` 的 `databases[].ref`（库名），连接信息（host/user/password_ref）装载自 `databases[]`，引用闭环与降级见 `contracts.json#dependencies.db_connection_closure`。
 
 | 类型 | 格式 | 参数说明 | 验证逻辑 |
 |------|------|---------|---------|
