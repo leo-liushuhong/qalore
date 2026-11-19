@@ -326,6 +326,15 @@ def check_dependencies(story, contracts):
         for env in d.get("environments", []):
             if env.get("id") == "prod" and env.get("executable") is True:
                 problems.append(f"[dependencies] {rel}: 环境 'prod' 的 executable 为 true，违反 prod_exclusion")
+            # 可执行环境：executable == true ⟹ web_url 非空
+            if env.get("executable") is True and not env.get("web_url"):
+                problems.append(f"[dependencies] {rel}: 环境 '{env.get('id', '?')}' executable 为 true 但 web_url 为空，违反 executable_env")
+        # 凭证解析格式：credential_ref 必须 secret: 前缀且非空
+        for env in d.get("environments", []):
+            for acc in env.get("accounts", []):
+                cref = acc.get("credential_ref", "")
+                if cref and (not cref.startswith("secret:") or cref.strip() == "secret:"):
+                    problems.append(f"[dependencies] {rel}: 账号 '{acc.get('label', '?')}' credential_ref 格式非法（须 secret:{{项目}}/{{账号名}}）：{cref[:20]}")
         # 秘密脱敏：键名含 password/token/secret/credential/passwd 且值为明文 → 泄漏
         def scan_secrets(obj, path=""):
             if isinstance(obj, dict):
@@ -344,6 +353,20 @@ def check_dependencies(story, contracts):
         for wm in d.get("write_mocks", []):
             if not wm.get("confirmed_by") or not wm.get("confirmed_date"):
                 problems.append(f"[dependencies] {rel}: 写 mock '{wm.get('id', '?')}' 缺确认标记（confirmed_by/confirmed_date）")
+        # DB 连接闭环：TC 文件 db 断言的「连接」参数必须存在于 databases[].ref
+        refs = set()
+        for env in d.get("environments", []):
+            for db in env.get("databases", []):
+                if db.get("ref"):
+                    refs.add(db["ref"])
+        base = os.path.dirname(df)
+        for tc in glob.glob(os.path.join(base, "**", "*-功能-测试用例.md"), recursive=True):
+            with open(tc, encoding="utf-8") as f:
+                txt = f.read()
+            for m in re.findall(r"db-(?:field-value|row-count)\(([^,)]+)", txt):
+                conn = m.strip().strip('"').strip("'")
+                if conn and conn not in refs:
+                    problems.append(f"[dependencies] {rel}: DB 断言引用连接 '{conn}' 不在 databases[].ref 中，违反 db_connection_closure")
     return total, problems
 
 
