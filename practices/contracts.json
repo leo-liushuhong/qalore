@@ -87,7 +87,10 @@
     "invariants": {
       "reference_closure": "每条依赖须被至少一个断言/用例引用；用例引用的依赖必须存在",
       "secret_masking": "密码/token 不得明文，只允许 secret: 引用或占位符",
-      "prod_exclusion": "environment.id == prod ⟹ executable == false"
+      "prod_exclusion": "environment.id == prod ⟹ executable == false",
+      "secret_ref_resolution": "credential_ref 格式 secret:{项目}/{账号名}；解析目标由宿主环境提供（环境变量或本地 secret 文件）；不可解析 → 资源相关断言 SKIP（不阻断、不现编凭证）",
+      "executable_env": "executable == true ⟹ web_url 非空（可执行环境必有地址）",
+      "db_connection_closure": "DB 断言的「连接」参数 = databases[].ref 引用；连接信息（host/user/password_ref）从 databases[] 装载；引用的 ref 不存在 → DB 断言 SKIP"
     }
   },
   "data_fixtures": {

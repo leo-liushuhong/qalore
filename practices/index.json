@@ -1,8 +1,23 @@
 {
-  "version": "2026-11-18-v1",
+  "version": "2026-11-19-v1",
   "usage_hint": "先读此文件，按需读具体规范，禁止全量读取",
   "conflict_resolution": "规范冲突时，更具体的规范优先：项目特有规范 > 技术栈规范 > 通用规范",
   "changelog": [
+    {
+      "version": "2026-11-19-v1",
+      "date": "2026-11-19",
+      "summary": "测试资源执行期闭环（6 项）：① contracts.json#dependencies.invariants 追加 3 条机器边界（secret_ref_resolution 凭证解析/executable_env 可执行环境/db_connection_closure DB 连接闭环）；② execution.md DB 断言「连接」参数语义澄清（= databases[].ref）；③ handbook.md 依赖登记规范：三类依赖扩五类资源（补 data_fixtures/defects）+ 不变式同步 + 新增「执行期资源装载」边界（环境/账号/DB/档位装载 + 降级 SKIP，具体动作 AI 自主）；④ handbook-audit.md 步骤19 补 data_fixtures/defects 引用闭环语义检查 + 机器可判定部分扩展；⑤ verify-contracts.py 第 8 项扩 3 项校验（credential_ref 格式/executable web_url/DB 连接闭环）；⑥ gateway 新建项目引导初始化测试资源 + 预检三查，qa-execution 补装载测试资源步骤 + 依赖漂移回写 + 报告头扩资源，qa-functional-test 补设计期复用 factory。audit 侧同步 dependency-map 对齐版本。",
+      "changed_files": [
+        "contracts.json",
+        "tech-stacks/functional/execution.md",
+        "common/handbook.md",
+        "common/handbook-audit.md",
+        "tools/verify-contracts.py",
+        "qalore:capability/qa-execution/SKILL.md",
+        "qalore:capability/qa-functional-test/SKILL.md",
+        "qalore:SKILL.md"
+      ]
+    },
     {
       "version": "2026-11-18-v1",
       "date": "2026-11-18",
